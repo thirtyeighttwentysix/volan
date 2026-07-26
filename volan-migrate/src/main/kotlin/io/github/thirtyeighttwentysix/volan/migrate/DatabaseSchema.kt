@@ -70,4 +70,4 @@ public data class TableDefinition(
  * The message names what stood in the way and what to write instead: every one of these is answered
  * by an edit to the schema file or to the migration, never by a retry.
  */
-public class VolanMigrationException(message: String) : VolanException(message)
+public class VolanMigrationException(message: String, cause: Throwable? = null) : VolanException(message, cause)

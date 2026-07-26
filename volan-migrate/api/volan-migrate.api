@@ -1,3 +1,23 @@
+public final class io/github/thirtyeighttwentysix/volan/migrate/AppliedMigration {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/time/Instant;Ljava/time/Instant;I)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/time/Instant;
+	public final fun component4 ()Ljava/time/Instant;
+	public final fun component5 ()I
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/time/Instant;Ljava/time/Instant;I)Lio/github/thirtyeighttwentysix/volan/migrate/AppliedMigration;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/migrate/AppliedMigration;Ljava/lang/String;Ljava/lang/String;Ljava/time/Instant;Ljava/time/Instant;IILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/migrate/AppliedMigration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAppliedSteps ()I
+	public final fun getChecksum ()Ljava/lang/String;
+	public final fun getFinishedAt ()Ljava/time/Instant;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getStartedAt ()Ljava/time/Instant;
+	public fun hashCode ()I
+	public final fun isFinished ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema {
 	public fun <init> ()V
 	public fun <init> (Ljava/util/List;Ljava/util/List;)V
@@ -28,6 +48,50 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/EnumDefinition {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationDirectory {
+	public fun <init> (Ljava/nio/file/Path;)V
+	public final fun read ()Ljava/util/List;
+	public final fun write (Ljava/time/Instant;Ljava/lang/String;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationFile;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationFile {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/migrate/MigrationFile$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public static final fun checksumOf (Ljava/lang/String;)Ljava/lang/String;
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationFile;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/migrate/MigrationFile;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationFile;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getChecksum ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSql ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationFile$Companion {
+	public final fun checksumOf (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationJournal {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/migrate/MigrationJournal$Companion;
+	public static final field DEFAULT_TABLE Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun begin (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/migrate/MigrationFile;Ljava/time/Instant;)V
+	public final fun ensure (Ljava/sql/Connection;)V
+	public final fun exists (Ljava/sql/Connection;)Z
+	public final fun finish (Ljava/sql/Connection;Ljava/lang/String;Ljava/time/Instant;I)V
+	public final fun markApplied (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/migrate/MigrationFile;Ljava/time/Instant;)V
+	public final fun read (Ljava/sql/Connection;)Ljava/util/List;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationJournal$Companion {
+}
+
 public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationPlan {
 	public static final field Companion Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan$Companion;
 	public static final field EMPTY Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan;
@@ -49,6 +113,27 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationPlan {
 public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationPlan$Companion {
 }
 
+public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationStatus {
+	public fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationStatus;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/migrate/MigrationStatus;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationStatus;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getApplied ()Ljava/util/List;
+	public final fun getEdited ()Ljava/util/List;
+	public final fun getHasDrifted ()Z
+	public final fun getMissing ()Ljava/util/List;
+	public final fun getPending ()Ljava/util/List;
+	public final fun getUnfinished ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun isUpToDate ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationStep {
 	public fun <init> (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement;Ljava/lang/String;)V
 	public synthetic fun <init> (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -61,6 +146,15 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationStep {
 	public final fun getWarning ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/Migrator {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/migrate/MigrationDirectory;Lio/github/thirtyeighttwentysix/volan/migrate/MigrationJournal;Ljava/time/Clock;)V
+	public synthetic fun <init> (Lio/github/thirtyeighttwentysix/volan/migrate/MigrationDirectory;Lio/github/thirtyeighttwentysix/volan/migrate/MigrationJournal;Ljava/time/Clock;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun apply (Ljava/sql/Connection;)Ljava/util/List;
+	public final fun markApplied (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/migrate/MigrationFile;)V
+	public final fun now ()Ljava/time/Instant;
+	public final fun status (Ljava/sql/Connection;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationStatus;
 }
 
 public final class io/github/thirtyeighttwentysix/volan/migrate/SchemaDiffer {
@@ -97,6 +191,7 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/TableDefinition 
 }
 
 public final class io/github/thirtyeighttwentysix/volan/migrate/VolanMigrationException : io/github/thirtyeighttwentysix/volan/VolanException {
-	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
