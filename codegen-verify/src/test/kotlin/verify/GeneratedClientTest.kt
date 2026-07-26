@@ -446,6 +446,13 @@ class GeneratedClientTest {
     }
 
     @Test
+    fun `distinct names its fields the way every other block does, and travels as columns`() {
+        val executor = FakeExecutor()
+        VolanClient(executor).user.findMany { distinct { createdAt } }
+        executor.query.distinct shouldContainExactly listOf("created_at")
+    }
+
+    @Test
     fun `the ignored model is not part of the client at all`() {
         val names = VolanClient::class.java.methods.map { it.name }
         names.none { it.contains("Legacy", ignoreCase = true) } shouldBe true

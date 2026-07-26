@@ -834,6 +834,31 @@ class PostgresIntegrationTest {
     }
 
     @Test
+    fun `distinct de-duplicates on the named fields, asked of the database`() {
+        val alice = alice()
+        client.post.createMany {
+            row {
+                title = "A"
+                draft = false
+                authorId = alice.id
+            }
+            row {
+                title = "B"
+                draft = false
+                authorId = alice.id
+            }
+            row {
+                title = "C"
+                draft = true
+                authorId = alice.id
+            }
+        }
+
+        client.post.findMany { distinct { draft } }.size shouldBe 2
+        client.post.findMany { }.size shouldBe 3
+    }
+
+    @Test
     fun `timestamps survive the round trip`() {
         val before = Instant.now().minusSeconds(1)
         val user = alice()

@@ -1,5 +1,6 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -181,6 +182,12 @@ class QueryDescriptionTest {
             }
         }.build()
         spec.columns shouldContainExactly listOf("email", "name")
+    }
+
+    @Test
+    fun `distinct names the columns rows must differ in, and nothing by default`() {
+        UserQuery().apply { }.build().distinct.shouldBeEmpty()
+        UserQuery().apply { distinct { email } }.build().distinct shouldContainExactly listOf("email")
     }
 
     @Test

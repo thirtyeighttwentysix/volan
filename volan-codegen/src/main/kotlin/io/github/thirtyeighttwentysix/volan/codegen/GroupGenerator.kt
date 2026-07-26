@@ -19,21 +19,6 @@ import io.github.thirtyeighttwentysix.volan.ir.Model
  * out fails the same way, naming the block that would add it.
  */
 internal class GroupGenerator(private val types: TypeResolver, private val aggregates: AggregateGenerator) {
-    fun fields(model: Model): TypeSpec {
-        val builder = TypeSpec.classBuilder("${model.name}GroupFields")
-            .addKdoc("The fields of `${model.name}` whose values can define a group.\n")
-            .superclass(Types.selectScope)
-        model.fields.forEach { field ->
-            builder.addProperty(
-                PropertySpec.builder(field.name, UNIT)
-                    .addKdoc("Groups by `${field.name}`.\n")
-                    .getter(FunSpec.getterBuilder().addStatement("return markSelected(%S)", field.name).build())
-                    .build(),
-            )
-        }
-        return builder.build()
-    }
-
     fun having(model: Model): TypeSpec = TypeSpec.classBuilder("${model.name}Having")
         .addKdoc(
             "Which groups of `${model.name}` survive, written over what was worked out about them.\n\n" +
@@ -52,8 +37,8 @@ internal class GroupGenerator(private val types: TypeResolver, private val aggre
         .addFunction(
             FunSpec.builder("by")
                 .addKdoc("The fields whose values define a group.\n")
-                .addParameter("block", lambdaOn(types.declared("${model.name}GroupFields")))
-                .addStatement("recordGrouping(%T().apply(block).build())", types.declared("${model.name}GroupFields"))
+                .addParameter("block", lambdaOn(types.declared("${model.name}Fields")))
+                .addStatement("recordGrouping(%T().apply(block).build())", types.declared("${model.name}Fields"))
                 .build(),
         )
         .addFunction(

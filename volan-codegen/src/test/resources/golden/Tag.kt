@@ -366,6 +366,23 @@ public class TagInclude : IncludeScope() {
 }
 
 /**
+ * The fields of `Tag`, for the blocks that name some of them.
+ */
+public class TagFields : SelectScope() {
+  /**
+   * Names `id`.
+   */
+  public val id: Unit
+    get() = markSelected("id")
+
+  /**
+   * Names `name`.
+   */
+  public val name: Unit
+    get() = markSelected("name")
+}
+
+/**
  * A read of `Tag`: its filter, ordering, paging, projection and relations.
  */
 public class TagQuery : QueryScope("Tag") {
@@ -401,6 +418,15 @@ public class TagQuery : QueryScope("Tag") {
     val fields = TagSelect().apply(block).build()
     selectedFields = fields
     recordSelection(fields.map { requireNotNull(TagTable.METADATA.column(it)).column })
+  }
+
+  /**
+   * Returns only rows that differ in the named fields.
+   *
+   * With no fields named, nothing is de-duplicated: the query returns every matching row.
+   */
+  public fun distinct(block: TagFields.() -> Unit) {
+    recordDistinct(TagFields().apply(block).build().map { requireNotNull(TagTable.METADATA.column(it)).column })
   }
 
   /**
@@ -548,23 +574,6 @@ public class TagAggregate(
 }
 
 /**
- * The fields of `Tag` whose values can define a group.
- */
-public class TagGroupFields : SelectScope() {
-  /**
-   * Groups by `id`.
-   */
-  public val id: Unit
-    get() = markSelected("id")
-
-  /**
-   * Groups by `name`.
-   */
-  public val name: Unit
-    get() = markSelected("name")
-}
-
-/**
  * Which groups of `Tag` survive, written over what was worked out about them.
  *
  * Only summaries are on offer here. A condition on a grouped field is the same condition on the rows that went into the group, which is what `where` is for — and `where` narrows before the grouping work is done rather than after it.
@@ -620,8 +629,8 @@ public class TagGroupScope : GroupScope("Tag") {
   /**
    * The fields whose values define a group.
    */
-  public fun `by`(block: TagGroupFields.() -> Unit) {
-    recordGrouping(TagGroupFields().apply(block).build())
+  public fun `by`(block: TagFields.() -> Unit) {
+    recordGrouping(TagFields().apply(block).build())
   }
 
   /**

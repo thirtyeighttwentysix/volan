@@ -92,9 +92,7 @@ public abstract class QueryScope protected constructor(private val model: String
     /** How many rows to pass over before returning any. */
     public var skip: Int? = null
 
-    /** Which columns rows must differ in to be returned. */
-    public var distinct: List<String> = emptyList()
-
+    private var distinctColumns: List<String> = emptyList()
     private var filter: Filter? = null
     private var orderTerms: List<OrderTerm> = emptyList()
     private var selectedColumns: List<String>? = null
@@ -115,6 +113,11 @@ public abstract class QueryScope protected constructor(private val model: String
     /** Records the fields a `select { … }` block collected. */
     protected fun recordSelection(columns: List<String>) {
         selectedColumns = columns
+    }
+
+    /** Records the columns a `distinct { … }` block collected. */
+    protected fun recordDistinct(columns: List<String>) {
+        distinctColumns = columns
     }
 
     /** Records the relations an `include { … }` block collected. */
@@ -138,7 +141,7 @@ public abstract class QueryScope protected constructor(private val model: String
         filter = filter,
         orderBy = orderTerms,
         pagination = Pagination(take, skip, cursor, skipCursorRow),
-        distinct = distinct,
+        distinct = distinctColumns,
         columns = selectedColumns,
         includes = relations,
     )

@@ -510,15 +510,14 @@ public abstract interface class io/github/thirtyeighttwentysix/volan/runtime/Que
 public abstract class io/github/thirtyeighttwentysix/volan/runtime/QueryScope {
 	protected fun <init> (Ljava/lang/String;)V
 	public final fun build ()Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;
-	public final fun getDistinct ()Ljava/util/List;
 	public final fun getSkip ()Ljava/lang/Integer;
 	public final fun getTake ()Ljava/lang/Integer;
 	protected final fun recordCursor (Ljava/util/Map;Z)V
+	protected final fun recordDistinct (Ljava/util/List;)V
 	protected final fun recordFilter (Lio/github/thirtyeighttwentysix/volan/runtime/FilterScope;)V
 	protected final fun recordIncludes (Lio/github/thirtyeighttwentysix/volan/runtime/IncludeScope;)V
 	protected final fun recordOrder (Lio/github/thirtyeighttwentysix/volan/runtime/OrderScope;)V
 	protected final fun recordSelection (Ljava/util/List;)V
-	public final fun setDistinct (Ljava/util/List;)V
 	public final fun setSkip (Ljava/lang/Integer;)V
 	public final fun setTake (Ljava/lang/Integer;)V
 }

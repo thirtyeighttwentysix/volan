@@ -187,9 +187,39 @@ internal class DslGenerator(private val types: TypeResolver) {
             .addFunction(scopeEntry("orderBy", "${model.name}OrderBy", "recordOrder"))
             .addFunction(scopeEntry("include", "${model.name}Include", "recordIncludes"))
             .addFunction(selectEntry(model))
+            .addFunction(distinctEntry(model))
         cursorFunction(model)?.let { builder.addFunction(it) }
         return builder.build()
     }
+
+    /** The fields of a model, for the blocks that name some of them without reading them. */
+    fun fields(model: Model): TypeSpec {
+        val builder = TypeSpec.classBuilder("${model.name}Fields")
+            .addKdoc("The fields of `${model.name}`, for the blocks that name some of them.\n")
+            .superclass(Types.selectScope)
+        model.fields.forEach { field ->
+            builder.addProperty(
+                PropertySpec.builder(field.name, UNIT)
+                    .addKdoc("Names `${field.name}`.\n")
+                    .getter(FunSpec.getterBuilder().addStatement("return markSelected(%S)", field.name).build())
+                    .build(),
+            )
+        }
+        return builder.build()
+    }
+
+    private fun distinctEntry(model: Model): FunSpec = FunSpec.builder("distinct")
+        .addKdoc(
+            "Returns only rows that differ in the named fields.\n\n" +
+                "With no fields named, nothing is de-duplicated: the query returns every matching row.\n",
+        )
+        .addParameter("block", lambdaOn(types.declared("${model.name}Fields")))
+        .addStatement(
+            "recordDistinct(%T().apply(block).build().map { requireNotNull(%T.METADATA.column(it)).column })",
+            types.declared("${model.name}Fields"),
+            types.declared("${model.name}Table"),
+        )
+        .build()
 
     private fun scopeEntry(name: String, scope: String, hook: String): FunSpec {
         val scopeType = types.declared(scope)

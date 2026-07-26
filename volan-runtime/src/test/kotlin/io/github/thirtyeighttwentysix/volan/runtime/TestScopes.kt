@@ -145,6 +145,10 @@ internal class UserQuery : QueryScope("User") {
         recordIncludes(UserInclude().apply(block))
     }
 
+    fun distinct(block: UserSelect.() -> Unit) {
+        recordDistinct(UserSelect().apply(block).build().toList())
+    }
+
     fun cursor(id: Int, inclusive: Boolean = false) {
         recordCursor(mapOf("id" to id), inclusive)
     }
