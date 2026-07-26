@@ -32,6 +32,9 @@ internal object Types {
     val filterScope: ClassName = ClassName(RUNTIME, "FilterScope")
     val orderScope: ClassName = ClassName(RUNTIME, "OrderScope")
     val selectScope: ClassName = ClassName(RUNTIME, "SelectScope")
+    val aggregateScope: ClassName = ClassName(RUNTIME, "AggregateScope")
+    val aggregateFunction: ClassName = ClassName(RUNTIME, "AggregateFunction")
+    val aggregateValues: ClassName = ClassName(RUNTIME, "AggregateValues")
     val includeScope: ClassName = ClassName(RUNTIME, "IncludeScope")
     val queryScope: ClassName = ClassName(RUNTIME, "QueryScope")
     val orderField: ClassName = ClassName(RUNTIME, "OrderField")
@@ -101,6 +104,26 @@ internal object Types {
         ScalarType.JSON -> "getJson"
         ScalarType.BYTES -> "getBytes"
         ScalarType.UUID -> "getUuid"
+    }
+
+    /**
+     * The `AggregateValues` reader that turns a summary back into this type.
+     *
+     * Drivers hand out their own idea of a timestamp or a UUID, so a summary is read through the same
+     * kind of conversion a row goes through rather than cast straight to the field's type.
+     */
+    fun aggregateReader(type: ScalarType): String = when (type) {
+        ScalarType.STRING -> "string"
+        ScalarType.INT -> "int"
+        ScalarType.LONG -> "long"
+        ScalarType.FLOAT -> "float"
+        ScalarType.DOUBLE -> "double"
+        ScalarType.DECIMAL -> "decimal"
+        ScalarType.DATE_TIME -> "instant"
+        ScalarType.DATE -> "localDate"
+        ScalarType.TIME -> "localTime"
+        ScalarType.UUID -> "uuid"
+        ScalarType.BOOLEAN, ScalarType.JSON, ScalarType.BYTES -> error("${type.name} has no smallest or largest value")
     }
 
     /** Whether values of this type can be put in order, which decides the filter handle it gets. */

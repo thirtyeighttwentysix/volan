@@ -1,25 +1,31 @@
 package verify
 
 import com.example.blog.Post
+import com.example.blog.PostNumericFields
+import com.example.blog.PostOrderedFields
 import com.example.blog.Role
 import com.example.blog.User
 import com.example.blog.UserRowMapper
 import com.example.blog.UserTable
 import com.example.blog.VolanClient
+import io.github.thirtyeighttwentysix.volan.runtime.AggregateFunction
 import io.github.thirtyeighttwentysix.volan.runtime.ComparisonOperator
 import io.github.thirtyeighttwentysix.volan.runtime.Filter
 import io.github.thirtyeighttwentysix.volan.runtime.RelationQuantifier
 import io.github.thirtyeighttwentysix.volan.runtime.RelationSlot
 import io.github.thirtyeighttwentysix.volan.runtime.SortDirection
+import io.github.thirtyeighttwentysix.volan.runtime.VolanAggregateNotAskedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanFieldNotSelectedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanRelationNotLoadedException
 import io.github.thirtyeighttwentysix.volan.runtime.NestedWrite
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import java.time.Instant
 
 /**
@@ -312,6 +318,65 @@ class GeneratedClientTest {
         (plain == withPosts) shouldBe true
         plain.hashCode() shouldBe withPosts.hashCode()
         plain.toString() shouldContain "email=alice@acme.com"
+    }
+
+    @Test
+    fun `aggregate describes the summaries the block asked for, over the rows it narrowed to`() {
+        val executor = FakeExecutor()
+        VolanClient(executor).post.aggregate {
+            where { draft eq false }
+            count()
+            sum { views }
+            average { views }
+            maximum { title }
+        }
+        val spec = executor.aggregates.single()
+        spec.model shouldBe "Post"
+        spec.filter shouldBe Filter.Compare("draft", ComparisonOperator.EQUAL, false)
+        spec.aggregations.map { it.function to it.alias } shouldContainExactly listOf(
+            AggregateFunction.COUNT to "count",
+            AggregateFunction.SUM to "sum_views",
+            AggregateFunction.AVERAGE to "avg_views",
+            AggregateFunction.MAXIMUM to "max_title",
+        )
+    }
+
+    @Test
+    fun `a summary is named by the column, not by the field, so a mapped field still works`() {
+        val executor = FakeExecutor()
+        VolanClient(executor).user.aggregate { maximum { createdAt } }
+        executor.aggregates.single().aggregations.single().column shouldBe "created_at"
+    }
+
+    @Test
+    fun `the answers come back with the types their fields have`() {
+        val executor = FakeExecutor(
+            answers = mapOf("count" to 3L, "sum_views" to 90L, "avg_views" to BigDecimal("30.0"), "max_title" to "Zebra"),
+        )
+        val summary = VolanClient(executor).post.aggregate {
+            count()
+            sum { views }
+            average { views }
+            maximum { title }
+        }
+
+        summary.count shouldBe 3L
+        summary.sumOfViews shouldBe BigDecimal("90")
+        summary.averageOfViews shouldBe 30.0
+        summary.maximumOfTitle shouldBe "Zebra"
+    }
+
+    @Test
+    fun `reading a summary the query never asked for says how to ask for it`() {
+        val summary = VolanClient(FakeExecutor()).post.aggregate { count() }
+        val failure = shouldThrow<VolanAggregateNotAskedException> { summary.sumOfViews }
+        failure.message.shouldContain("Ask for it in the `aggregate` block")
+    }
+
+    @Test
+    fun `a boolean column is not offered as something to total or to order`() {
+        val fields = PostNumericFields::class.java.methods.map { it.name } + PostOrderedFields::class.java.methods.map { it.name }
+        fields.none { it.contains("draft", ignoreCase = true) } shouldBe true
     }
 
     @Test

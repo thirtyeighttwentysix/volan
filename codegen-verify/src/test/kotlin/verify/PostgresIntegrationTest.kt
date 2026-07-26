@@ -5,6 +5,7 @@ import com.example.blog.VolanClient
 import io.github.thirtyeighttwentysix.volan.dialect.postgres.PostgresDialect
 import io.github.thirtyeighttwentysix.volan.runtime.Isolation
 import io.github.thirtyeighttwentysix.volan.runtime.Volan
+import io.github.thirtyeighttwentysix.volan.runtime.VolanAggregateNotAskedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanNotFoundException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanRelationNotLoadedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanUniqueConstraintException
@@ -631,6 +632,77 @@ class PostgresIntegrationTest {
         }
         client.user.findUnique { where { id eq user.id } }.shouldNotBeNull().name shouldBe "'); drop table users; --"
         client.user.count() shouldBe 1
+    }
+
+    @Test
+    fun `aggregate works out every summary the block asked for in one statement`() {
+        val author = alice()
+        client.post.createMany {
+            row {
+                title = "A"
+                views = 10
+                draft = false
+                authorId = author.id
+            }
+            row {
+                title = "B"
+                views = 30
+                draft = false
+                authorId = author.id
+            }
+            row {
+                title = "C"
+                views = 5
+                draft = true
+                authorId = author.id
+            }
+        }
+
+        val counter = java.util.concurrent.atomic.AtomicInteger()
+        val summary = countingClient(counter).post.aggregate {
+            where { draft eq false }
+            count()
+            sum { views }
+            average { views }
+            minimum { views }
+            maximum { title }
+        }
+
+        summary.count shouldBe 2
+        summary.sumOfViews shouldBe java.math.BigDecimal("40")
+        summary.averageOfViews shouldBe 20.0
+        summary.minimumOfViews shouldBe 10
+        summary.maximumOfTitle shouldBe "B"
+        counter.get() shouldBe 1
+    }
+
+    @Test
+    fun `summarising no rows tells them apart from summarising rows that add up to zero`() {
+        val summary = client.post.aggregate {
+            count()
+            sum { views }
+            maximum { title }
+        }
+
+        summary.count shouldBe 0
+        summary.sumOfViews.shouldBeNull()
+        summary.maximumOfTitle.shouldBeNull()
+    }
+
+    @Test
+    fun `a summary over a mapped column addresses the column the schema mapped it to`() {
+        val author = alice()
+        val summary = client.user.aggregate { maximum { createdAt } }
+        summary.maximumOfCreatedAt shouldBe author.createdAt
+    }
+
+    @Test
+    fun `reading a summary this query never asked for says how to ask for it`() {
+        alice()
+        val summary = client.user.aggregate { count() }
+        val failure = runCatching { summary.maximumOfCreatedAt }.exceptionOrNull()
+        (failure is VolanAggregateNotAskedException) shouldBe true
+        failure?.message.orEmpty() shouldContain "Ask for it in the `aggregate` block"
     }
 
     @Test

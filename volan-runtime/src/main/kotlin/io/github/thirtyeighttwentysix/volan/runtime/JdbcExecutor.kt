@@ -95,6 +95,22 @@ internal class JdbcExecutor(
         query(dialect.render(planner.exists(spec)), "checking whether any ${spec.model} matches") { it.next() }
 
     /**
+     * Works out summaries in one statement.
+     *
+     * Only the aliases the query asked for come back, so reading one it did not ask for can say so
+     * rather than handing back a zero that looks like an answer.
+     */
+    override fun aggregate(spec: AggregateSpec): Map<String, Any?> {
+        if (spec.aggregations.isEmpty()) return emptyMap()
+        val statement = dialect.render(planner.aggregate(spec))
+        return query(statement, "summarising ${spec.model}") { result ->
+            val values = LinkedHashMap<String, Any?>()
+            if (result.next()) spec.aggregations.forEach { values[it.alias] = result.getObject(it.alias) }
+            values
+        }
+    }
+
+    /**
      * Writes one row, and whatever it asked to write alongside it.
      *
      * A create with nested writes runs in one transaction: a shape that is half written is worse than

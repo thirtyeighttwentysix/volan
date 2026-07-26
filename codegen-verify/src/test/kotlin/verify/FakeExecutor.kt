@@ -1,6 +1,7 @@
 package verify
 
 import io.github.thirtyeighttwentysix.volan.Json
+import io.github.thirtyeighttwentysix.volan.runtime.AggregateSpec
 import io.github.thirtyeighttwentysix.volan.runtime.CreateSpec
 import io.github.thirtyeighttwentysix.volan.runtime.DeleteSpec
 import io.github.thirtyeighttwentysix.volan.runtime.QueryExecutor
@@ -21,8 +22,12 @@ import java.util.UUID
  * The point of these tests is the description the generated client produces and the objects it maps
  * back, so the database is exactly the part that should not be here.
  */
-class FakeExecutor(private val rows: List<Map<String, Any?>> = emptyList()) : QueryExecutor {
+class FakeExecutor(
+    private val rows: List<Map<String, Any?>> = emptyList(),
+    private val answers: Map<String, Any?> = emptyMap(),
+) : QueryExecutor {
     val queries: MutableList<QuerySpec> = mutableListOf()
+    val aggregates: MutableList<AggregateSpec> = mutableListOf()
     val creates: MutableList<CreateSpec> = mutableListOf()
     val updates: MutableList<UpdateSpec> = mutableListOf()
     val deletes: MutableList<DeleteSpec> = mutableListOf()
@@ -49,6 +54,11 @@ class FakeExecutor(private val rows: List<Map<String, Any?>> = emptyList()) : Qu
     override fun exists(spec: QuerySpec): Boolean {
         queries.add(spec)
         return rows.isNotEmpty()
+    }
+
+    override fun aggregate(spec: AggregateSpec): Map<String, Any?> {
+        aggregates.add(spec)
+        return spec.aggregations.associate { it.alias to answers[it.alias] }
     }
 
     override fun <T> create(spec: CreateSpec, mapper: RowMapper<T>): T {

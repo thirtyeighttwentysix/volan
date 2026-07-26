@@ -1,3 +1,67 @@
+public final class io/github/thirtyeighttwentysix/volan/runtime/AggregateFunction : java/lang/Enum {
+	public static final field AVERAGE Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;
+	public static final field COUNT Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;
+	public static final field MAXIMUM Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;
+	public static final field MINIMUM Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;
+	public static final field SUM Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;
+}
+
+public abstract class io/github/thirtyeighttwentysix/volan/runtime/AggregateScope {
+	protected fun <init> (Ljava/lang/String;)V
+	public final fun build ()Lio/github/thirtyeighttwentysix/volan/runtime/AggregateSpec;
+	protected final fun record (Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;Ljava/lang/String;Ljava/lang/String;)V
+	protected final fun recordFilter (Lio/github/thirtyeighttwentysix/volan/runtime/FilterScope;)V
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/AggregateSpec {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/AggregateSpec;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/AggregateSpec;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/AggregateSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAggregations ()Ljava/util/List;
+	public final fun getFilter ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun getModel ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/AggregateValues {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/runtime/AggregateValues;
+	public static final fun count (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)J
+	public static final fun decimal (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/math/BigDecimal;
+	public static final fun double (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Double;
+	public static final fun float (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Float;
+	public static final fun instant (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/time/Instant;
+	public static final fun int (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Integer;
+	public static final fun localDate (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/time/LocalDate;
+	public static final fun localTime (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/time/LocalTime;
+	public static final fun long (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Long;
+	public static final fun require (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;
+	public static final fun string (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun uuid (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/util/UUID;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Aggregation {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;Ljava/lang/String;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Aggregation;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/Aggregation;Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Aggregation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlias ()Ljava/lang/String;
+	public final fun getColumn ()Ljava/lang/String;
+	public final fun getFunction ()Lio/github/thirtyeighttwentysix/volan/runtime/AggregateFunction;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/runtime/ColumnMetadata {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZZ)V
 	public final fun component1 ()Ljava/lang/String;
@@ -368,6 +432,7 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Pagination$Compa
 }
 
 public abstract interface class io/github/thirtyeighttwentysix/volan/runtime/QueryExecutor {
+	public abstract fun aggregate (Lio/github/thirtyeighttwentysix/volan/runtime/AggregateSpec;)Ljava/util/Map;
 	public abstract fun count (Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;)J
 	public abstract fun create (Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;)Ljava/lang/Object;
 	public abstract fun createMany (Ljava/util/List;)J
@@ -688,6 +753,10 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Volan$Builder {
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/Volan$Companion {
 	public final fun builder ()Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanAggregateNotAskedException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public final fun getAlias ()Ljava/lang/String;
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/VolanConfigurationException : io/github/thirtyeighttwentysix/volan/VolanException {

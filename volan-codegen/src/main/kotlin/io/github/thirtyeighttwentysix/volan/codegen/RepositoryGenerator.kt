@@ -74,8 +74,23 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
                 "findFirst",
                 "Reads only the selected fields of the first matching row.",
             ),
+            aggregate(model),
         )
     }
+
+    private fun aggregate(model: Model): FunSpec = FunSpec.builder("aggregate")
+        .addKdoc(
+            "Works out summaries over the matching rows, in one statement.\n\n" +
+                "Only what the block asks for comes back; reading anything else from the result says so.\n",
+        )
+        .addParameter("block", lambdaOn(types.declared("${model.name}AggregateScope")))
+        .returns(types.declared("${model.name}Aggregate"))
+        .addStatement(
+            "return %T(executor.aggregate(%T().apply(block).build()))",
+            types.declared("${model.name}Aggregate"),
+            types.declared("${model.name}AggregateScope"),
+        )
+        .build()
 
     private fun writeFunctions(model: Model): List<FunSpec> = listOf(
         create(model),

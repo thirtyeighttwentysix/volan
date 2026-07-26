@@ -58,17 +58,12 @@ public object VolanGenerator {
     @JvmStatic
     public fun generate(schema: Schema, generator: GeneratorConfig): List<GeneratedFile> {
         val visible = visibleSchema(schema)
-        val types = TypeResolver(generator.packageName)
-        val entities = EntityGenerator(types)
-        val mapping = MappingGenerator(visible, types)
-        val dsl = DslGenerator(types)
-        val writes = WriteGenerator(visible, types)
-        val repositories = RepositoryGenerator(types)
+        val generators = Generators(visible, TypeResolver(generator.packageName))
 
         val files = ArrayList<GeneratedFile>()
-        visible.enums.forEach { files.add(file(generator, it.name, enumFile(generator, entities, it))) }
+        visible.enums.forEach { files.add(file(generator, it.name, enumFile(generator, generators.entities, it))) }
         visible.models.forEach { model ->
-            files.add(file(generator, model.name, modelFile(generator, model, entities, mapping, dsl, writes, repositories)))
+            files.add(file(generator, model.name, modelFile(generator, model, generators)))
         }
         files.add(
             file(
@@ -76,7 +71,7 @@ public object VolanGenerator {
                 "VolanClient",
                 FileSpec.builder(generator.packageName, "VolanClient")
                     .addFileComment(HEADER)
-                    .addType(repositories.client(visible, visible.models))
+                    .addType(generators.repositories.client(visible, visible.models))
                     .build(),
             ),
         )
@@ -102,40 +97,44 @@ public object VolanGenerator {
             .addType(entities.enumType(enumType))
             .build()
 
-    @Suppress("LongParameterList")
-    private fun modelFile(
-        generator: GeneratorConfig,
-        model: Model,
-        entities: EntityGenerator,
-        mapping: MappingGenerator,
-        dsl: DslGenerator,
-        writes: WriteGenerator,
-        repositories: RepositoryGenerator,
-    ): FileSpec {
+    private fun modelFile(generator: GeneratorConfig, model: Model, generators: Generators): FileSpec {
         val builder = FileSpec.builder(generator.packageName, model.name)
             .addFileComment(HEADER)
-            .addType(entities.entity(model))
-            .addType(mapping.tableMetadata(model))
-            .addType(mapping.rowMapper(model))
-            .addType(mapping.projection(model))
-            .addType(mapping.projectionMapper(model))
-            .addType(dsl.whereScope(model))
-            .addType(dsl.orderScope(model))
-            .addType(dsl.selectScope(model))
-            .addType(dsl.includeScope(model))
-            .addType(dsl.queryScope(model))
-            .addType(writes.createData(model))
-            .addType(writes.updateData(model))
-            .addType(writes.createManyScope(model))
-            .addType(writes.updateScope(model))
-            .addType(writes.upsertScope(model))
-            .addType(writes.deleteScope(model))
-            .addType(repositories.repository(model))
+            .addType(generators.entities.entity(model))
+            .addType(generators.mapping.tableMetadata(model))
+            .addType(generators.mapping.rowMapper(model))
+            .addType(generators.mapping.projection(model))
+            .addType(generators.mapping.projectionMapper(model))
+            .addType(generators.dsl.whereScope(model))
+            .addType(generators.dsl.orderScope(model))
+            .addType(generators.dsl.selectScope(model))
+            .addType(generators.dsl.includeScope(model))
+            .addType(generators.dsl.queryScope(model))
+            .addTypes(generators.aggregates.fieldScopes(model))
+            .addType(generators.aggregates.scope(model))
+            .addType(generators.aggregates.result(model))
+            .addType(generators.writes.createData(model))
+            .addType(generators.writes.updateData(model))
+            .addType(generators.writes.createManyScope(model))
+            .addType(generators.writes.updateScope(model))
+            .addType(generators.writes.upsertScope(model))
+            .addType(generators.writes.deleteScope(model))
+            .addType(generators.repositories.repository(model))
         model.relationFields.forEach { relation ->
-            builder.addType(dsl.relationFilter(model, relation))
-            builder.addType(writes.nestedWriteScope(model, relation))
+            builder.addType(generators.dsl.relationFilter(model, relation))
+            builder.addType(generators.writes.nestedWriteScope(model, relation))
         }
         return builder.build()
+    }
+
+    /** The generators that make up one client, held together so that adding one is one edit. */
+    private class Generators(schema: Schema, types: TypeResolver) {
+        val entities: EntityGenerator = EntityGenerator(types)
+        val mapping: MappingGenerator = MappingGenerator(schema, types)
+        val dsl: DslGenerator = DslGenerator(types)
+        val writes: WriteGenerator = WriteGenerator(schema, types)
+        val aggregates: AggregateGenerator = AggregateGenerator(types)
+        val repositories: RepositoryGenerator = RepositoryGenerator(types)
     }
 
     private fun file(generator: GeneratorConfig, name: String, spec: FileSpec): GeneratedFile = GeneratedFile(

@@ -1,6 +1,7 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
 import io.github.thirtyeighttwentysix.volan.dialect.Dialect
+import io.github.thirtyeighttwentysix.volan.dialect.SqlAggregate
 import io.github.thirtyeighttwentysix.volan.dialect.SqlAssignment
 import io.github.thirtyeighttwentysix.volan.dialect.SqlComparison
 import io.github.thirtyeighttwentysix.volan.dialect.SqlCondition
@@ -44,6 +45,33 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
         items = listOf(SqlSelectItem.CountAll(COUNT_ALIAS)),
         orderBy = emptyList(),
     )
+
+    /** Turns a request for summaries into one `SELECT` of aggregate expressions. */
+    fun aggregate(spec: AggregateSpec): SqlSelect {
+        val table = registry.require(spec.model)
+        val scope = Scope(table, Aliases())
+        return SqlSelect(
+            table = table.table,
+            alias = scope.alias,
+            items = spec.aggregations.map { item ->
+                val column = item.column
+                if (column == null) {
+                    SqlSelectItem.CountAll(item.alias)
+                } else {
+                    SqlSelectItem.Aggregate(sqlFunction(item.function), scope.column(column), item.alias)
+                }
+            },
+            condition = spec.filter?.let { condition(it, scope) },
+        )
+    }
+
+    private fun sqlFunction(function: AggregateFunction): SqlAggregate = when (function) {
+        AggregateFunction.COUNT -> SqlAggregate.COUNT
+        AggregateFunction.SUM -> SqlAggregate.SUM
+        AggregateFunction.AVERAGE -> SqlAggregate.AVERAGE
+        AggregateFunction.MINIMUM -> SqlAggregate.MINIMUM
+        AggregateFunction.MAXIMUM -> SqlAggregate.MAXIMUM
+    }
 
     fun exists(spec: QuerySpec): SqlSelect = select(spec).copy(
         items = listOf(SqlSelectItem.Column(SqlExpression.Keyword("1"), alias = null)),

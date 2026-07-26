@@ -6,7 +6,11 @@ package io.github.thirtyeighttwentysix.volan.runtime
  * Generated code never touches JDBC: it builds a [QuerySpec] or a write spec and hands it to an
  * executor. That boundary is what lets the same generated client run against a real database, inside
  * a transaction, or against a test double, without the generated code knowing the difference.
+ *
+ * It has one function per thing a repository can ask for. Splitting it up would only move the same
+ * count behind a second interface that every implementation would have to implement anyway.
  */
+@Suppress("TooManyFunctions")
 public interface QueryExecutor {
     /** Reads every row [spec] selects. */
     public fun <T> findMany(spec: QuerySpec, mapper: RowMapper<T>): List<T>
@@ -19,6 +23,9 @@ public interface QueryExecutor {
 
     /** Whether [spec] selects any row at all. */
     public fun exists(spec: QuerySpec): Boolean
+
+    /** Works out the summaries [spec] asks for, keyed by the alias each was asked under. */
+    public fun aggregate(spec: AggregateSpec): Map<String, Any?>
 
     /** Inserts one row and reads it back. */
     public fun <T> create(spec: CreateSpec, mapper: RowMapper<T>): T

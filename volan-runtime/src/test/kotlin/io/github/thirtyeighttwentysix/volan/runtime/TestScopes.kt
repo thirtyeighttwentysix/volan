@@ -70,6 +70,28 @@ internal class PostQuery : QueryScope("Post") {
     }
 }
 
+internal class UserNumericFields : SelectScope() {
+    val id: Unit get() = markSelected("id")
+}
+
+internal class UserAggregateScope : AggregateScope("User") {
+    fun where(block: UserWhere.() -> Unit) {
+        recordFilter(UserWhere().apply(block))
+    }
+
+    fun count() {
+        record(AggregateFunction.COUNT, null, "count")
+    }
+
+    fun sum(block: UserNumericFields.() -> Unit) {
+        UserNumericFields().apply(block).build().forEach { record(AggregateFunction.SUM, it, "sum_$it") }
+    }
+
+    fun average(block: UserNumericFields.() -> Unit) {
+        UserNumericFields().apply(block).build().forEach { record(AggregateFunction.AVERAGE, it, "avg_$it") }
+    }
+}
+
 internal class UserQuery : QueryScope("User") {
     fun where(block: UserWhere.() -> Unit) {
         recordFilter(UserWhere().apply(block))
