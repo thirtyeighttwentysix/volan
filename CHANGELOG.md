@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `volan-migrate`: a schema read as the database it describes, and a differ that says what has to change
+  for one database to become another. The plan is a value — inspectable, comparable in a test, and
+  rendered to SQL as a separate step — and every step that loses data carries a warning saying what.
+- A DDL model in `volan-dialect-api` and its renderer, so that migrations are described where queries
+  are described and written where queries are written: in the dialect and nowhere else.
 - Nested writes from an `update`: `disconnect`, `set`, nested `update` and nested `delete` alongside
   the `create`/`connect`/`connectOrCreate` a create already had, all in one transaction with the change
   itself. Each relation is offered exactly the operations its shape allows — a row cannot be detached

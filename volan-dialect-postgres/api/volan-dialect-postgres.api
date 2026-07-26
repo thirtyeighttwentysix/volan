@@ -1,4 +1,4 @@
-public final class io/github/thirtyeighttwentysix/volan/dialect/postgres/PostgresDialect : io/github/thirtyeighttwentysix/volan/dialect/SqlRenderer {
+public final class io/github/thirtyeighttwentysix/volan/dialect/postgres/PostgresDialect : io/github/thirtyeighttwentysix/volan/dialect/DdlRenderer {
 	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/dialect/postgres/PostgresDialect;
 	public fun getId ()Ljava/lang/String;
 }
