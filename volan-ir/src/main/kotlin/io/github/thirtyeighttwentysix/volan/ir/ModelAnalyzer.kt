@@ -57,8 +57,6 @@ internal class ModelAnalyzer(
         )
     }
 
-    // ---------------------------------------------------------------- fields
-
     private fun readFields(declaration: ModelDeclaration, scalars: MutableList<ScalarField>, relations: MutableList<RelationFieldDraft>) {
         val seen = HashMap<String, SourceSpan>()
         declaration.fields.forEach { field ->
@@ -194,8 +192,6 @@ internal class ModelAnalyzer(
         else -> expression.toString()
     }
 
-    // ---------------------------------------------------------------- field-level validation
-
     private fun validateIdField(uses: List<AttributeUse>, field: FieldDeclaration, cardinality: Cardinality) {
         val use = uses.firstOrNull { it.qualifiedName == "id" } ?: return
         if (cardinality == Cardinality.REQUIRED) return
@@ -231,8 +227,6 @@ internal class ModelAnalyzer(
             help = "declare it as `${field.name.text} DateTime @updatedAt`",
         )
     }
-
-    // ---------------------------------------------------------------- constraints
 
     /**
      * The primary key of a model, and whether resolving it already reported a problem — so that the
@@ -386,8 +380,6 @@ internal class ModelAnalyzer(
             }
         }
     }
-
-    // ---------------------------------------------------------------- attribute plumbing
 
     private fun validateNames(uses: List<AttributeUse>, allowed: Set<String>, marker: String, target: String) {
         uses.forEach { use ->

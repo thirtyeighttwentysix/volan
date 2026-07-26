@@ -63,8 +63,6 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         return ParseOutcome(document, diagnostics)
     }
 
-    // ---------------------------------------------------------------- declarations
-
     private fun parseDeclaration(trivia: Trivia): Declaration? {
         val token = peek()
         if (token.type != TokenType.IDENTIFIER) {
@@ -174,8 +172,6 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
             GeneratorDeclaration(name, entries, trivia.comments, trailingComment, trivia.blankLineBefore, body.trailingComments, span)
         }
     }
-
-    // ---------------------------------------------------------------- block bodies
 
     private class BlockBody<T>(
         val members: List<T>,
@@ -301,8 +297,6 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         )
     }
 
-    // ---------------------------------------------------------------- types
-
     private fun parseTypeReference(): TypeReference? {
         val token = peek()
         if (token.type != TokenType.IDENTIFIER) {
@@ -376,8 +370,6 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         }
         return TypeReference(name, TypeArity.OPTIONAL, SourceSpan(name.span.start, end))
     }
-
-    // ---------------------------------------------------------------- attributes
 
     /**
      * Reads the attributes that belong to the field or enum value just parsed.
@@ -515,8 +507,6 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         return Argument(Identifier(nameToken.value, nameToken.span), value, SourceSpan(nameToken.span.start, value.span.end))
     }
 
-    // ---------------------------------------------------------------- expressions
-
     private fun parseExpression(): Expression? {
         val token = peek()
         return when (token.type) {
@@ -581,8 +571,6 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
 
     private fun isListTerminator(): Boolean = check(TokenType.END_OF_FILE) || check(TokenType.RIGHT_BRACE) || check(TokenType.RIGHT_PAREN)
 
-    // ---------------------------------------------------------------- trivia and recovery
-
     private class Trivia(val comments: List<CommentLine>, val blankLineBefore: Boolean)
 
     private fun readTrivia(): Trivia {
@@ -616,8 +604,6 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
             advance()
         }
     }
-
-    // ---------------------------------------------------------------- expectations
 
     private fun expectDeclarationName(kind: String): Identifier? {
         val token = peek()
@@ -693,8 +679,6 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
             label = "expected $expectation",
         )
     }
-
-    // ---------------------------------------------------------------- token helpers
 
     private fun peek(offset: Int = 0): Token = tokens[minOf(index + offset, tokens.size - 1)]
 
