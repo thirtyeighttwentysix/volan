@@ -10,6 +10,8 @@ import io.github.thirtyeighttwentysix.volan.runtime.CreateSpec
 import io.github.thirtyeighttwentysix.volan.runtime.DeleteSpec
 import io.github.thirtyeighttwentysix.volan.runtime.EntityReader
 import io.github.thirtyeighttwentysix.volan.runtime.FilterScope
+import io.github.thirtyeighttwentysix.volan.runtime.GroupScope
+import io.github.thirtyeighttwentysix.volan.runtime.HavingScope
 import io.github.thirtyeighttwentysix.volan.runtime.IncludeScope
 import io.github.thirtyeighttwentysix.volan.runtime.NestedWrite
 import io.github.thirtyeighttwentysix.volan.runtime.NestedWrites
@@ -262,19 +264,16 @@ public class TagProjection(
 }
 
 /**
- * Reads the columns a `select` asked for into a [TagProjection].
+ * Reads the columns a `select` or a `by` asked for into a [TagProjection].
  */
 public class TagProjectionMapper(
-  private val fields: Set<String>,
+  private val selected: SelectedFields,
 ) : RowMapper<TagProjection> {
-  override fun map(row: Row): TagProjection {
-    val selection = SelectedFields.of(fields)
-    return TagProjection(
-      selected = selection,
-      idValue = if (fields.contains("id")) row.getInt("id") else null,
-      nameValue = if (fields.contains("name")) row.getString("name") else null,
-    )
-  }
+  override fun map(row: Row): TagProjection = TagProjection(
+    selected = selected,
+    idValue = if (selected.contains("id")) row.getInt("id") else null,
+    nameValue = if (selected.contains("name")) row.getString("name") else null,
+  )
 }
 
 /**
@@ -506,10 +505,232 @@ public class TagAggregate(
   private val values: Map<String, Any?>,
 ) {
   /**
-   * How many rows matched.
+   * How many rows there are.
    */
   public val count: Long
     get() = AggregateValues.count(values, "count", "how many `Tag` rows there are")
+
+  /**
+   * The total of `Tag.id`.
+   */
+  public val sumOfId: BigDecimal?
+    get() = AggregateValues.decimal(values, "sum_id", "the total of `Tag.id`")
+
+  /**
+   * The mean of `Tag.id`.
+   */
+  public val averageOfId: Double?
+    get() = AggregateValues.double(values, "avg_id", "the mean of `Tag.id`")
+
+  /**
+   * The smallest value of `Tag.id`.
+   */
+  public val minimumOfId: Int?
+    get() = AggregateValues.int(values, "min_id", "the smallest value of `Tag.id`")
+
+  /**
+   * The largest value of `Tag.id`.
+   */
+  public val maximumOfId: Int?
+    get() = AggregateValues.int(values, "max_id", "the largest value of `Tag.id`")
+
+  /**
+   * The smallest value of `Tag.name`.
+   */
+  public val minimumOfName: String?
+    get() = AggregateValues.string(values, "min_name", "the smallest value of `Tag.name`")
+
+  /**
+   * The largest value of `Tag.name`.
+   */
+  public val maximumOfName: String?
+    get() = AggregateValues.string(values, "max_name", "the largest value of `Tag.name`")
+}
+
+/**
+ * The fields of `Tag` whose values can define a group.
+ */
+public class TagGroupFields : SelectScope() {
+  /**
+   * Groups by `id`.
+   */
+  public val id: Unit
+    get() = markSelected("id")
+
+  /**
+   * Groups by `name`.
+   */
+  public val name: Unit
+    get() = markSelected("name")
+}
+
+/**
+ * Which groups of `Tag` survive, written over what was worked out about them.
+ *
+ * Only summaries are on offer here. A condition on a grouped field is the same condition on the rows that went into the group, which is what `where` is for — and `where` narrows before the grouping work is done rather than after it.
+ */
+public class TagHaving : HavingScope() {
+  /**
+   * How many rows are in the group.
+   */
+  public val count: OrderedFilterField<Long> =
+      aggregateField(AggregateFunction.COUNT, null, "count")
+
+  /**
+   * The total of `id` across the group.
+   */
+  public val sumOfId: OrderedFilterField<BigDecimal> =
+      aggregateField(AggregateFunction.SUM, "id", "sum_id")
+
+  /**
+   * The mean of `id` across the group.
+   */
+  public val averageOfId: OrderedFilterField<Double> =
+      aggregateField(AggregateFunction.AVERAGE, "id", "avg_id")
+
+  /**
+   * The smallest value of `id` across the group.
+   */
+  public val minimumOfId: OrderedFilterField<Int> =
+      aggregateField(AggregateFunction.MINIMUM, "id", "min_id")
+
+  /**
+   * The largest value of `id` across the group.
+   */
+  public val maximumOfId: OrderedFilterField<Int> =
+      aggregateField(AggregateFunction.MAXIMUM, "id", "max_id")
+
+  /**
+   * The smallest value of `name` across the group.
+   */
+  public val minimumOfName: OrderedFilterField<String> =
+      aggregateField(AggregateFunction.MINIMUM, "name", "min_name")
+
+  /**
+   * The largest value of `name` across the group.
+   */
+  public val maximumOfName: OrderedFilterField<String> =
+      aggregateField(AggregateFunction.MAXIMUM, "name", "max_name")
+}
+
+/**
+ * How to fold `Tag` into groups, and what to work out about each one.
+ */
+public class TagGroupScope : GroupScope("Tag") {
+  /**
+   * The fields whose values define a group.
+   */
+  public fun `by`(block: TagGroupFields.() -> Unit) {
+    recordGrouping(TagGroupFields().apply(block).build())
+  }
+
+  /**
+   * Which rows go into the groups at all.
+   */
+  public fun `where`(block: TagWhere.() -> Unit) {
+    recordFilter(TagWhere().apply(block))
+  }
+
+  /**
+   * Which groups survive, judged on what was worked out about them.
+   */
+  public fun having(block: TagHaving.() -> Unit) {
+    recordHaving(TagHaving().apply(block))
+  }
+
+  /**
+   * How to sort the groups, by the fields they are grouped on.
+   */
+  public fun orderBy(block: TagOrderBy.() -> Unit) {
+    recordOrder(TagOrderBy().apply(block))
+  }
+
+  /**
+   * Counts the matching rows.
+   */
+  public fun count() {
+    record(AggregateFunction.COUNT, null, "count")
+  }
+
+  /**
+   * Totals the named fields.
+   */
+  public fun sum(block: TagNumericFields.() -> Unit) {
+    TagNumericFields().apply(block).build().forEach { field ->
+      record(AggregateFunction.SUM, requireNotNull(TagTable.METADATA.column(field)).column, "sum_" + field)
+    }
+  }
+
+  /**
+   * Averages the named fields.
+   */
+  public fun average(block: TagNumericFields.() -> Unit) {
+    TagNumericFields().apply(block).build().forEach { field ->
+      record(AggregateFunction.AVERAGE, requireNotNull(TagTable.METADATA.column(field)).column, "avg_" + field)
+    }
+  }
+
+  /**
+   * Takes the smallest value of the named fields.
+   */
+  public fun minimum(block: TagOrderedFields.() -> Unit) {
+    TagOrderedFields().apply(block).build().forEach { field ->
+      record(AggregateFunction.MINIMUM, requireNotNull(TagTable.METADATA.column(field)).column, "min_" + field)
+    }
+  }
+
+  /**
+   * Takes the largest value of the named fields.
+   */
+  public fun maximum(block: TagOrderedFields.() -> Unit) {
+    TagOrderedFields().apply(block).build().forEach { field ->
+      record(AggregateFunction.MAXIMUM, requireNotNull(TagTable.METADATA.column(field)).column, "max_" + field)
+    }
+  }
+}
+
+/**
+ * One group of `Tag`: the values that define it, and what was worked out about it.
+ *
+ * A field the `by` block left out refuses to be read, because the group has no single value for it.
+ */
+public class TagGroup(
+  private val key: TagProjection,
+  private val values: Map<String, Any?>,
+) {
+  /**
+   * The value of `id` this group is for.
+   *
+   * @throws io.github.thirtyeighttwentysix.volan.runtime.VolanFieldNotSelectedException if the query did not group by it.
+   */
+  public val id: Int
+    get() = key.id
+
+  /**
+   * Whether the query grouped by `id`.
+   */
+  public val isIdGrouped: Boolean
+    get() = key.isIdSelected
+
+  /**
+   * The value of `name` this group is for.
+   *
+   * @throws io.github.thirtyeighttwentysix.volan.runtime.VolanFieldNotSelectedException if the query did not group by it.
+   */
+  public val name: String
+    get() = key.name
+
+  /**
+   * Whether the query grouped by `name`.
+   */
+  public val isNameGrouped: Boolean
+    get() = key.isNameSelected
+
+  /**
+   * How many rows are in this group.
+   */
+  public val count: Long
+    get() = AggregateValues.count(values, "count", "how many `Tag` rows are in this group")
 
   /**
    * The total of `Tag.id`.
@@ -786,7 +1007,7 @@ public class TagRepository(
    */
   public fun projectMany(block: TagQuery.() -> Unit): List<TagProjection> {
     val query = TagQuery().apply(block)
-    return executor.findMany(query.build(), TagProjectionMapper(query.selectedFields ?: ALL_FIELDS))
+    return executor.findMany(query.build(), TagProjectionMapper(SelectedFields.of(query.selectedFields ?: ALL_FIELDS)))
   }
 
   /**
@@ -796,7 +1017,7 @@ public class TagRepository(
    */
   public fun projectFirst(block: TagQuery.() -> Unit): TagProjection? {
     val query = TagQuery().apply(block)
-    return executor.findFirst(query.build(), TagProjectionMapper(query.selectedFields ?: ALL_FIELDS))
+    return executor.findFirst(query.build(), TagProjectionMapper(SelectedFields.of(query.selectedFields ?: ALL_FIELDS)))
   }
 
   /**
@@ -805,6 +1026,17 @@ public class TagRepository(
    * Only what the block asks for comes back; reading anything else from the result says so.
    */
   public fun aggregate(block: TagAggregateScope.() -> Unit): TagAggregate = TagAggregate(executor.aggregate(TagAggregateScope().apply(block).build()))
+
+  /**
+   * Folds the matching rows into groups and summarises each one, in one statement.
+   *
+   * A group carries values only for the fields the `by` block named; reading any other field of it says so.
+   */
+  public fun groupBy(block: TagGroupScope.() -> Unit): List<TagGroup> {
+    val scope = TagGroupScope().apply(block)
+    val mapper = TagProjectionMapper(SelectedFields.groupedBy(scope.groupedFields()))
+    return executor.groupBy(scope.build(), mapper).map { TagGroup(it.key, it.values) }
+  }
 
   /**
    * Inserts one row and reads it back.

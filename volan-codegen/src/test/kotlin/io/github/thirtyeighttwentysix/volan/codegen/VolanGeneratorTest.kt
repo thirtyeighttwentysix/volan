@@ -127,7 +127,20 @@ class VolanGeneratorTest {
         return SchemaLoader.loadOrThrow(SourceFile(fixture, text))
     }
 
-    private fun golden(name: String): String = requireNotNull(javaClass.getResourceAsStream("/golden/$name")) { "missing golden $name" }
-        .use { it.readBytes().toString(Charsets.UTF_8) }
-        .replace("\r\n", "\n")
+    /**
+     * The file the generator is expected to produce.
+     *
+     * Running with `-Dvolan.updateGolden=true` rewrites it from what the generator produces instead of
+     * comparing. Golden files are read by people reviewing a change, so they are worth keeping easy to
+     * regenerate — and worth reading the diff of afterwards.
+     */
+    private fun golden(name: String): String {
+        if (System.getProperty("volan.updateGolden") == "true") {
+            java.nio.file.Path.of("src/test/resources/golden/$name").toFile().writeText(contents(name))
+            return contents(name)
+        }
+        return requireNotNull(javaClass.getResourceAsStream("/golden/$name")) { "missing golden $name" }
+            .use { it.readBytes().toString(Charsets.UTF_8) }
+            .replace("\r\n", "\n")
+    }
 }

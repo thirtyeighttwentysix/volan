@@ -111,6 +111,26 @@ internal class JdbcExecutor(
     }
 
     /**
+     * Folds rows into groups in one statement.
+     *
+     * The key columns and the summaries come back in the same row, so each group is read twice over:
+     * once through the mapper for its key, once by alias for what was worked out about it.
+     */
+    override fun <K> groupBy(spec: GroupSpec, mapper: RowMapper<K>): List<GroupRow<K>> {
+        val statement = dialect.render(planner.group(spec))
+        return query(statement, "grouping ${spec.model}") { result ->
+            val groups = ArrayList<GroupRow<K>>()
+            val row = JdbcRow(result)
+            while (result.next()) {
+                val values = LinkedHashMap<String, Any?>()
+                spec.aggregations.forEach { values[it.alias] = result.getObject(it.alias) }
+                groups.add(GroupRow(mapper.map(row), values))
+            }
+            groups
+        }
+    }
+
+    /**
      * Writes one row, and whatever it asked to write alongside it.
      *
      * A create with nested writes runs in one transaction: a shape that is half written is worse than

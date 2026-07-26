@@ -75,6 +75,7 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
                 "Reads only the selected fields of the first matching row.",
             ),
             aggregate(model),
+            groupBy(model),
         )
     }
 
@@ -89,6 +90,26 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
             "return %T(executor.aggregate(%T().apply(block).build()))",
             types.declared("${model.name}Aggregate"),
             types.declared("${model.name}AggregateScope"),
+        )
+        .build()
+
+    private fun groupBy(model: Model): FunSpec = FunSpec.builder("groupBy")
+        .addKdoc(
+            "Folds the matching rows into groups and summarises each one, in one statement.\n\n" +
+                "A group carries values only for the fields the `by` block named; reading any other field " +
+                "of it says so.\n",
+        )
+        .addParameter("block", lambdaOn(types.declared("${model.name}GroupScope")))
+        .returns(LIST.parameterizedBy(types.declared("${model.name}Group")))
+        .addStatement("val scope = %T().apply(block)", types.declared("${model.name}GroupScope"))
+        .addStatement(
+            "val mapper = %T(%T.groupedBy(scope.groupedFields()))",
+            types.declared("${model.name}ProjectionMapper"),
+            Types.selectedFields,
+        )
+        .addStatement(
+            "return executor.groupBy(scope.build(), mapper).map { %T(it.key, it.values) }",
+            types.declared("${model.name}Group"),
         )
         .build()
 
@@ -137,9 +158,10 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
             .returns(returns)
             .addStatement("val query = %T().apply(block)", query)
             .addStatement(
-                "return executor.%L(query.build(), %T(query.selectedFields ?: ALL_FIELDS))",
+                "return executor.%L(query.build(), %T(%T.of(query.selectedFields ?: ALL_FIELDS)))",
                 executorCall,
                 projectionMapper,
+                Types.selectedFields,
             )
             .build()
     }

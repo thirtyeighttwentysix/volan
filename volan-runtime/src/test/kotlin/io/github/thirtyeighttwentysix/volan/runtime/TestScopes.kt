@@ -92,6 +92,42 @@ internal class UserAggregateScope : AggregateScope("User") {
     }
 }
 
+internal class UserGroupFields : SelectScope() {
+    val id: Unit get() = markSelected("id")
+    val role: Unit get() = markSelected("role")
+}
+
+internal class UserHaving : HavingScope() {
+    val count: OrderedFilterField<Long> = aggregateField(AggregateFunction.COUNT, null, "count")
+    val sumOfId: OrderedFilterField<java.math.BigDecimal> = aggregateField(AggregateFunction.SUM, "id", "sum_id")
+}
+
+internal class UserGroupScope : GroupScope("User") {
+    fun by(block: UserGroupFields.() -> Unit) {
+        recordGrouping(UserGroupFields().apply(block).build())
+    }
+
+    fun where(block: UserWhere.() -> Unit) {
+        recordFilter(UserWhere().apply(block))
+    }
+
+    fun having(block: UserHaving.() -> Unit) {
+        recordHaving(UserHaving().apply(block))
+    }
+
+    fun orderBy(block: UserOrderBy.() -> Unit) {
+        recordOrder(UserOrderBy().apply(block))
+    }
+
+    fun count() {
+        record(AggregateFunction.COUNT, null, "count")
+    }
+
+    fun sum(block: UserNumericFields.() -> Unit) {
+        UserNumericFields().apply(block).build().forEach { record(AggregateFunction.SUM, it, "sum_$it") }
+    }
+}
+
 internal class UserQuery : QueryScope("User") {
     fun where(block: UserWhere.() -> Unit) {
         recordFilter(UserWhere().apply(block))

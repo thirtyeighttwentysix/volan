@@ -65,6 +65,53 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
         )
     }
 
+    /**
+     * Turns a grouping into one `SELECT … GROUP BY`, with the grouped columns first.
+     *
+     * `HAVING` names its summaries by the alias they come back under, which no database will accept
+     * there, so each one is put back as the expression it stands for.
+     */
+    fun group(spec: GroupSpec): SqlSelect {
+        val table = registry.require(spec.model)
+        val scope = Scope(table, Aliases())
+        if (spec.by.isEmpty()) {
+            throw VolanQueryException(
+                "a `groupBy` on `${spec.model}` did not say what to group by.\n" +
+                    "  Name at least one field:  by { … }\n" +
+                    "  Or use `aggregate` to summarise every matching row as one.",
+                null,
+            )
+        }
+        val keys = spec.by.map { field -> scope.column(columnOf(table, field)) }
+        return SqlSelect(
+            table = table.table,
+            alias = scope.alias,
+            items = spec.by.mapIndexed { index, field -> SqlSelectItem.Column(keys[index], alias = columnOf(table, field)) } +
+                spec.aggregations.map { aggregateItem(it, scope) },
+            condition = spec.filter?.let { condition(it, scope) },
+            groupBy = keys,
+            having = spec.having?.let { condition(it, scope.over(spec.havingAggregations.mapValues { (_, it) -> summary(it, scope) })) },
+            orderBy = orderBy(spec.orderBy, scope),
+            limit = spec.pagination.take,
+            offset = spec.pagination.skip,
+        )
+    }
+
+    private fun aggregateItem(item: Aggregation, scope: Scope): SqlSelectItem {
+        val column = item.column ?: return SqlSelectItem.CountAll(item.alias)
+        return SqlSelectItem.Aggregate(sqlFunction(item.function), scope.column(column), item.alias)
+    }
+
+    private fun summary(item: Aggregation, scope: Scope): SqlExpression = SqlExpression.Call(
+        sqlFunction(item.function).function,
+        listOf(item.column?.let { scope.column(it) } ?: SqlExpression.Keyword("*")),
+    )
+
+    private fun columnOf(table: TableMetadata, field: String): String = table.column(field)?.column ?: throw VolanQueryException(
+        "`${table.model}` has no field called `$field` to group by.",
+        null,
+    )
+
     private fun sqlFunction(function: AggregateFunction): SqlAggregate = when (function) {
         AggregateFunction.COUNT -> SqlAggregate.COUNT
         AggregateFunction.SUM -> SqlAggregate.SUM
@@ -351,15 +398,29 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
         fun allocate(): String = "t${next++}"
     }
 
-    /** One level of a query: which table it reads and what that level is called inside the statement. */
+    /**
+     * One level of a query: which table it reads and what that level is called inside the statement.
+     *
+     * A `HAVING` level resolves names to the summaries they stand for rather than to columns, because
+     * no database accepts a summary there under the alias it comes back as.
+     */
     private class Scope(
         val table: TableMetadata,
         private val aliases: Aliases,
         val alias: String = aliases.allocate(),
+        private val summaries: Map<String, SqlExpression>? = null,
     ) {
-        fun column(name: String): SqlExpression.Column = SqlExpression.Column(alias, name)
+        fun column(name: String): SqlExpression = when {
+            summaries == null -> SqlExpression.Column(alias, name)
+            else -> summaries[name] ?: throw VolanQueryException(
+                "a `having` block on `${table.model}` named `$name`, which this query does not work out.",
+                null,
+            )
+        }
 
         fun nested(target: TableMetadata): Scope = Scope(target, aliases)
+
+        fun over(summaries: Map<String, SqlExpression>): Scope = Scope(table, aliases, alias, summaries)
     }
 
     private companion object {

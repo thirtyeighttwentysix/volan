@@ -33,6 +33,8 @@ internal object Types {
     val orderScope: ClassName = ClassName(RUNTIME, "OrderScope")
     val selectScope: ClassName = ClassName(RUNTIME, "SelectScope")
     val aggregateScope: ClassName = ClassName(RUNTIME, "AggregateScope")
+    val groupScope: ClassName = ClassName(RUNTIME, "GroupScope")
+    val havingScope: ClassName = ClassName(RUNTIME, "HavingScope")
     val aggregateFunction: ClassName = ClassName(RUNTIME, "AggregateFunction")
     val aggregateValues: ClassName = ClassName(RUNTIME, "AggregateValues")
     val includeScope: ClassName = ClassName(RUNTIME, "IncludeScope")

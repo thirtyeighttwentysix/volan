@@ -4,6 +4,8 @@ import io.github.thirtyeighttwentysix.volan.Json
 import io.github.thirtyeighttwentysix.volan.runtime.AggregateSpec
 import io.github.thirtyeighttwentysix.volan.runtime.CreateSpec
 import io.github.thirtyeighttwentysix.volan.runtime.DeleteSpec
+import io.github.thirtyeighttwentysix.volan.runtime.GroupRow
+import io.github.thirtyeighttwentysix.volan.runtime.GroupSpec
 import io.github.thirtyeighttwentysix.volan.runtime.QueryExecutor
 import io.github.thirtyeighttwentysix.volan.runtime.QuerySpec
 import io.github.thirtyeighttwentysix.volan.runtime.Row
@@ -28,6 +30,7 @@ class FakeExecutor(
 ) : QueryExecutor {
     val queries: MutableList<QuerySpec> = mutableListOf()
     val aggregates: MutableList<AggregateSpec> = mutableListOf()
+    val groups: MutableList<GroupSpec> = mutableListOf()
     val creates: MutableList<CreateSpec> = mutableListOf()
     val updates: MutableList<UpdateSpec> = mutableListOf()
     val deletes: MutableList<DeleteSpec> = mutableListOf()
@@ -59,6 +62,11 @@ class FakeExecutor(
     override fun aggregate(spec: AggregateSpec): Map<String, Any?> {
         aggregates.add(spec)
         return spec.aggregations.associate { it.alias to answers[it.alias] }
+    }
+
+    override fun <K> groupBy(spec: GroupSpec, mapper: RowMapper<K>): List<GroupRow<K>> {
+        groups.add(spec)
+        return rows.map { GroupRow(mapper.map(MapRow(it)), spec.aggregations.associate { item -> item.alias to answers[item.alias] }) }
     }
 
     override fun <T> create(spec: CreateSpec, mapper: RowMapper<T>): T {

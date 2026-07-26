@@ -263,20 +263,19 @@ internal class MappingGenerator(private val schema: Schema, private val types: T
 
     fun projectionMapper(model: Model): TypeSpec {
         val body = CodeBlock.builder()
-            .addStatement("val selection = %T.of(fields)", Types.selectedFields)
             .add("return %T(\n", types.declared("${model.name}Projection"))
-            .add("  selected = selection,\n")
+            .add("  selected = selected,\n")
         model.fields.forEach { field ->
-            body.add("  %LValue = if (fields.contains(%S)) %L else null,\n", field.name, field.name, readExpression(field))
+            body.add("  %LValue = if (selected.contains(%S)) %L else null,\n", field.name, field.name, readExpression(field))
         }
         body.add(")\n")
 
         return TypeSpec.classBuilder("${model.name}ProjectionMapper")
-            .addKdoc("Reads the columns a `select` asked for into a [%T].\n", types.declared("${model.name}Projection"))
+            .addKdoc("Reads the columns a `select` or a `by` asked for into a [%T].\n", types.declared("${model.name}Projection"))
             .addSuperinterface(Types.rowMapper.parameterizedBy(types.declared("${model.name}Projection")))
-            .primaryConstructor(FunSpec.constructorBuilder().addParameter("fields", SET.parameterizedBy(STRING)).build())
+            .primaryConstructor(FunSpec.constructorBuilder().addParameter("selected", Types.selectedFields).build())
             .addProperty(
-                PropertySpec.builder("fields", SET.parameterizedBy(STRING)).addModifiers(KModifier.PRIVATE).initializer("fields").build(),
+                PropertySpec.builder("selected", Types.selectedFields).addModifiers(KModifier.PRIVATE).initializer("selected").build(),
             )
             .addFunction(
                 FunSpec.builder("map")

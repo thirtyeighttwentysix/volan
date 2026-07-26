@@ -19,17 +19,21 @@ public class VolanRelationNotLoadedException internal constructor(public val mod
     )
 
 /**
- * Thrown when code reads a field that a partial `select` left out.
+ * Thrown when code reads a field the query never asked for: one a partial `select` left out, or one a
+ * `groupBy` did not group by.
  *
  * @property model the model the field is on.
  * @property field the field that was read.
  */
-public class VolanFieldNotSelectedException internal constructor(public val model: String, public val field: String) :
-    VolanException(
-        "`$model.$field` was not selected by the query that produced this row.\n" +
-            "  Add it to the query:  select { $field }\n" +
-            "  Or check first:       row.is${field.replaceFirstChar { it.uppercase() }}Selected",
-    )
+public class VolanFieldNotSelectedException internal constructor(
+    public val model: String,
+    public val field: String,
+    block: String,
+) : VolanException(
+    "`$model.$field` was not selected by the query that produced this row.\n" +
+        "  Add it to the query:  $block { $field }\n" +
+        "  Or check first:       row.is${field.replaceFirstChar { it.uppercase() }}Selected",
+)
 
 /**
  * Thrown by the `…OrThrow` operations when nothing matched.
@@ -124,7 +128,7 @@ public class VolanMappingException(message: String) : VolanException(message)
  * A projection carries one, so that reading a field the query left out fails with a message naming the
  * query to change rather than with a silent null.
  */
-public class SelectedFields(private val fields: Set<String>) {
+public class SelectedFields private constructor(private val fields: Set<String>, private val block: String) {
     /** Whether [field] was selected. */
     public fun contains(field: String): Boolean = fields.contains(field)
 
@@ -134,7 +138,7 @@ public class SelectedFields(private val fields: Set<String>) {
      * @throws VolanFieldNotSelectedException if it was not, naming [model] and [field] in the message.
      */
     public fun <T> require(model: String, field: String, value: T?): T {
-        if (!fields.contains(field)) throw VolanFieldNotSelectedException(model, field)
+        if (!fields.contains(field)) throw VolanFieldNotSelectedException(model, field, block)
         @Suppress("UNCHECKED_CAST")
         return value as T
     }
@@ -146,9 +150,19 @@ public class SelectedFields(private val fields: Set<String>) {
     override fun toString(): String = fields.joinToString(", ", prefix = "[", postfix = "]")
 
     public companion object {
-        /** A selection naming exactly [fields]. */
+        /** A selection naming exactly [fields], as a `select` block would. */
         @JvmStatic
-        public fun of(fields: Set<String>): SelectedFields = SelectedFields(fields)
+        public fun of(fields: Set<String>): SelectedFields = SelectedFields(fields, "select")
+
+        /**
+         * A selection naming exactly [fields], as the `by` block of a `groupBy` would.
+         *
+         * A group has values only for the columns it was grouped by, so reading anything else is the
+         * same mistake as reading a field a `select` left out — and it deserves the same message,
+         * pointing at the block that would add it.
+         */
+        @JvmStatic
+        public fun groupedBy(fields: Set<String>): SelectedFields = SelectedFields(fields, "by")
     }
 }
 

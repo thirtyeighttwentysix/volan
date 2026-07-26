@@ -27,6 +27,14 @@ public interface QueryExecutor {
     /** Works out the summaries [spec] asks for, keyed by the alias each was asked under. */
     public fun aggregate(spec: AggregateSpec): Map<String, Any?>
 
+    /**
+     * Folds rows into groups as [spec] describes, reading each group's key with [mapper].
+     *
+     * The key is read the same way a partial `select` is read, because that is what it is: the columns
+     * the grouping asked for, and nothing else.
+     */
+    public fun <K> groupBy(spec: GroupSpec, mapper: RowMapper<K>): List<GroupRow<K>>
+
     /** Inserts one row and reads it back. */
     public fun <T> create(spec: CreateSpec, mapper: RowMapper<T>): T
 

@@ -9,6 +9,7 @@ import com.example.blog.UserRowMapper
 import com.example.blog.UserTable
 import com.example.blog.VolanClient
 import io.github.thirtyeighttwentysix.volan.runtime.AggregateFunction
+import io.github.thirtyeighttwentysix.volan.runtime.Aggregation
 import io.github.thirtyeighttwentysix.volan.runtime.ComparisonOperator
 import io.github.thirtyeighttwentysix.volan.runtime.Filter
 import io.github.thirtyeighttwentysix.volan.runtime.RelationQuantifier
@@ -377,6 +378,71 @@ class GeneratedClientTest {
     fun `a boolean column is not offered as something to total or to order`() {
         val fields = PostNumericFields::class.java.methods.map { it.name } + PostOrderedFields::class.java.methods.map { it.name }
         fields.none { it.contains("draft", ignoreCase = true) } shouldBe true
+    }
+
+    @Test
+    fun `groupBy describes what defines a group, what to work out and which groups survive`() {
+        val executor = FakeExecutor()
+        VolanClient(executor).post.groupBy {
+            by { authorId }
+            where { draft eq false }
+            count()
+            sum { views }
+            having { sumOfViews gt java.math.BigDecimal("100") }
+            orderBy { authorId.asc() }
+            take = 10
+        }
+
+        val spec = executor.groups.single()
+        spec.by shouldContainExactly listOf("authorId")
+        spec.filter shouldBe Filter.Compare("draft", ComparisonOperator.EQUAL, false)
+        spec.aggregations.map { it.alias } shouldContainExactly listOf("count", "sum_views")
+        spec.having shouldBe Filter.Compare("sum_views", ComparisonOperator.GREATER_THAN, java.math.BigDecimal("100"))
+        spec.havingAggregations.getValue("sum_views") shouldBe
+            Aggregation(AggregateFunction.SUM, "views", "sum_views")
+        spec.orderBy.single().column shouldBe "authorId"
+        spec.pagination.take shouldBe 10
+    }
+
+    @Test
+    fun `a group hands back its key with the field's own type, and its summaries alongside`() {
+        val executor = FakeExecutor(
+            rows = listOf(mapOf("authorId" to 1)),
+            answers = mapOf("count" to 2L, "sum_views" to 40L),
+        )
+        val group = VolanClient(executor).post.groupBy {
+            by { authorId }
+            count()
+            sum { views }
+        }.single()
+
+        group.authorId shouldBe 1
+        group.isAuthorIdGrouped shouldBe true
+        group.count shouldBe 2L
+        group.sumOfViews shouldBe BigDecimal("40")
+    }
+
+    @Test
+    fun `a field the grouping left out refuses to be read, naming the block that would add it`() {
+        val executor = FakeExecutor(rows = listOf(mapOf("authorId" to 1)))
+        val group = VolanClient(executor).post.groupBy { by { authorId } }.single()
+
+        group.isTitleGrouped shouldBe false
+        val failure = shouldThrow<VolanFieldNotSelectedException> { group.title }
+        failure.message.shouldContain("by { title }")
+    }
+
+    @Test
+    fun `naming a field twice groups by it once`() {
+        val executor = FakeExecutor()
+        VolanClient(executor).post.groupBy {
+            by { authorId }
+            by {
+                authorId
+                draft
+            }
+        }
+        executor.groups.single().by shouldContainExactly listOf("authorId", "draft")
     }
 
     @Test

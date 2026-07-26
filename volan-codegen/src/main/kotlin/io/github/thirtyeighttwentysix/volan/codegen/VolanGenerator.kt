@@ -113,6 +113,10 @@ public object VolanGenerator {
             .addTypes(generators.aggregates.fieldScopes(model))
             .addType(generators.aggregates.scope(model))
             .addType(generators.aggregates.result(model))
+            .addType(generators.groups.fields(model))
+            .addType(generators.groups.having(model))
+            .addType(generators.groups.scope(model))
+            .addType(generators.groups.result(model))
             .addType(generators.writes.createData(model))
             .addType(generators.writes.updateData(model))
             .addType(generators.writes.createManyScope(model))
@@ -134,6 +138,7 @@ public object VolanGenerator {
         val dsl: DslGenerator = DslGenerator(types)
         val writes: WriteGenerator = WriteGenerator(schema, types)
         val aggregates: AggregateGenerator = AggregateGenerator(types)
+        val groups: GroupGenerator = GroupGenerator(types, aggregates)
         val repositories: RepositoryGenerator = RepositoryGenerator(types)
     }
 

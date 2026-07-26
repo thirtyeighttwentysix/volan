@@ -706,6 +706,134 @@ class PostgresIntegrationTest {
     }
 
     @Test
+    fun `groupBy folds rows into groups and summarises each one in a single statement`() {
+        val alice = alice()
+        val bob = client.user.create { email = "bob@acme.com" }
+        client.post.createMany {
+            row {
+                title = "A"
+                views = 10
+                authorId = alice.id
+            }
+            row {
+                title = "B"
+                views = 30
+                authorId = alice.id
+            }
+            row {
+                title = "C"
+                views = 5
+                authorId = bob.id
+            }
+        }
+
+        val counter = java.util.concurrent.atomic.AtomicInteger()
+        val groups = countingClient(counter).post.groupBy {
+            by { authorId }
+            count()
+            sum { views }
+            orderBy { authorId.asc() }
+        }
+
+        counter.get() shouldBe 1
+        groups.map { it.authorId } shouldContainExactly listOf(alice.id, bob.id)
+        groups.map { it.count } shouldContainExactly listOf(2L, 1L)
+        groups.map { it.sumOfViews } shouldContainExactly listOf(java.math.BigDecimal("40"), java.math.BigDecimal("5"))
+    }
+
+    @Test
+    fun `having is applied to the summaries, after the grouping rather than before it`() {
+        val alice = alice()
+        val bob = client.user.create { email = "bob@acme.com" }
+        client.post.createMany {
+            row {
+                title = "A"
+                views = 10
+                authorId = alice.id
+            }
+            row {
+                title = "B"
+                views = 30
+                authorId = alice.id
+            }
+            row {
+                title = "C"
+                views = 5
+                authorId = bob.id
+            }
+        }
+
+        val groups = client.post.groupBy {
+            by { authorId }
+            count()
+            sum { views }
+            having { sumOfViews gt java.math.BigDecimal("20") }
+        }
+
+        groups.map { it.authorId } shouldContainExactly listOf(alice.id)
+    }
+
+    @Test
+    fun `where narrows the rows that go into a group, which having cannot do`() {
+        val alice = alice()
+        client.post.createMany {
+            row {
+                title = "A"
+                views = 10
+                draft = false
+                authorId = alice.id
+            }
+            row {
+                title = "B"
+                views = 30
+                draft = true
+                authorId = alice.id
+            }
+        }
+
+        val group = client.post.groupBy {
+            by { authorId }
+            where { draft eq false }
+            count()
+            sum { views }
+        }.single()
+
+        group.count shouldBe 1
+        group.sumOfViews shouldBe java.math.BigDecimal("10")
+    }
+
+    @Test
+    fun `grouping by a mapped column addresses the column the schema mapped it to`() {
+        alice()
+        val group = client.user.groupBy {
+            by { createdAt }
+            count()
+        }.single()
+
+        group.count shouldBe 1
+        group.createdAt.shouldNotBeNull()
+    }
+
+    @Test
+    fun `a groupBy that says nothing to group by says so instead of summarising everything`() {
+        val failure = runCatching { client.post.groupBy { count() } }.exceptionOrNull()
+        failure?.message.orEmpty() shouldContain "did not say what to group by"
+    }
+
+    @Test
+    fun `a field the grouping left out refuses to be read from a group`() {
+        val alice = alice()
+        client.post.create {
+            title = "A"
+            authorId = alice.id
+        }
+
+        val group = client.post.groupBy { by { authorId } }.single()
+        group.isTitleGrouped shouldBe false
+        runCatching { group.title }.exceptionOrNull()?.message.orEmpty() shouldContain "by { title }"
+    }
+
+    @Test
     fun `timestamps survive the round trip`() {
         val before = Instant.now().minusSeconds(1)
         val user = alice()
