@@ -10,8 +10,8 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M1** | Schema language: lexer, parser, AST, Rust-style diagnostics, formatter | The reference schema parses; 34 negative fixtures assert exact diagnostics | ✅ |
 | **M2** | IR: name resolution, type checking, relation pairing, composite keys, cycle detection | IR snapshot tests | ✅ |
 | **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections, plus the query description layer they compile against | Golden-file tests, and `codegen-verify` generates a client during the build, compiles it and exercises it | ✅ |
-| **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters | Testcontainers PostgreSQL integration suite covering every must-have operation | 🚧 |
-| **M5** | Relations and nested writes: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M | Statement-count assertions prove the absence of N+1 | ⬜ |
+| **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters, raw SQL | Testcontainers PostgreSQL integration suite covering every must-have operation | ✅ |
+| **M5** | Relations and nested writes: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M | Statement-count assertions prove the absence of N+1 | 🚧 |
 | **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ⬜ |
 | **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; signature check finds no Kotlin-only types in public API | ⬜ |
 | **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The same integration suite passes on every dialect | ⬜ |
@@ -45,8 +45,18 @@ main branch.
 - **Provider-specific native types.** `@db.…` is parsed, validated for shape and carried into the IR,
   but whether `@db.VarChar(200)` exists for the configured database is a question only a dialect can
   answer. That check lands with the dialects in M8.
-- **Aggregations and `groupBy`.** The repository operations that need them are read-path work that only
-  means something once SQL is being produced, so they land with the executor in M4.
+- **Aggregations and `groupBy`.** The SQL model renders them and the golden tests cover that; the
+  repository operations that expose them are scheduled with relation loading in M5, because both need
+  the same grouped-result machinery.
+- **Loading relations.** Until M5, a query with an `include` is refused with a message naming the
+  milestone rather than answered without the relations it asked for. A wrong answer in the shape of a
+  right one is the one outcome worth failing to avoid.
+- **Cursors combined with an explicit `orderBy`.** Resuming after a row requires knowing that row's
+  position in that order, which the key alone does not give. A cursor on its own pages by primary key;
+  combining the two is refused with an explanation until keyset paging over arbitrary orderings lands.
+- **Reading a written row back without `RETURNING`.** PostgreSQL has it, so `create`, `update` and
+  `delete` read the row back in one statement. The follow-up-select fallback the other databases need
+  arrives with them in M8.
 - **Nested writes.** `create { posts.create { … } }` is M5; until then a write carries the model's own
   columns, including its foreign keys.
 - **Filters and ordering on list columns.** A `String[]` column is read and written, but has no filter

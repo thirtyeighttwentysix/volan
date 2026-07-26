@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `volan-dialect-api` and `volan-dialect-postgres`: Volan's own SQL model, the `Dialect` interface, a
+  capability record the planner reads instead of naming databases, and a renderer that implements
+  standard SQL once. Dialects are discovered through `ServiceLoader`, so the runtime depends on no
+  database in particular.
+- The execution core: a planner that turns a query description into that SQL model, a JDBC executor,
+  a HikariCP pool, transactions with isolation levels and savepoint nesting, and `SQLState`
+  translation into the Volan exception hierarchy.
+- `Volan.builder()`, and a generated `VolanClient.builder()` that carries its own schema's tables, so
+  connecting reads the way the documentation shows.
+- Raw SQL: `rawQuery` and `rawExecute`, where the statement text is yours and the values are still
+  bound as parameters.
 - `volan-codegen`: the generator. From a validated schema it produces entities with fluent builders,
   table metadata, row mappers, the `where`/`orderBy`/`select`/`include` DSLs, relation filters, write
   payloads that know a null from an unset field, repositories and the client that hands them out.

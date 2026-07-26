@@ -39,6 +39,69 @@ public class VolanFieldNotSelectedException internal constructor(public val mode
 public class VolanNotFoundException(public val model: String, message: String) : VolanException(message)
 
 /**
+ * Thrown when the client and the database it is pointed at do not fit together.
+ *
+ * A bad JDBC URL, a dialect nothing on the classpath can handle, or a generated client asking about a
+ * model its registry has never heard of all land here — problems of assembly rather than of data.
+ */
+public class VolanConfigurationException(message: String, cause: Throwable? = null) : VolanException(message, cause)
+
+/**
+ * Thrown when a feature exists in the API but not yet behind it.
+ *
+ * Volan would rather say so than answer a question it cannot answer correctly. The message names the
+ * milestone the capability is scheduled for, so the answer is checkable rather than open-ended.
+ */
+public class VolanUnsupportedException(message: String) : VolanException(message)
+
+/**
+ * Thrown when a write would break a unique constraint.
+ *
+ * @property constraint the constraint the database named, when it named one.
+ */
+public class VolanUniqueConstraintException(
+    public val constraint: String?,
+    message: String,
+    cause: Throwable?,
+) : VolanException(message, cause)
+
+/**
+ * Thrown when a write would leave a foreign key pointing at nothing, or would orphan a row.
+ *
+ * @property constraint the constraint the database named, when it named one.
+ */
+public class VolanForeignKeyException(
+    public val constraint: String?,
+    message: String,
+    cause: Throwable?,
+) : VolanException(message, cause)
+
+/** Thrown when a write breaks a check constraint or a not-null column. */
+public class VolanConstraintException(message: String, cause: Throwable?) : VolanException(message, cause)
+
+/** Thrown when Volan cannot reach the database, or the pool has nothing left to hand out. */
+public class VolanConnectionException(message: String, cause: Throwable?) : VolanException(message, cause)
+
+/** Thrown when a statement or a pool checkout took longer than it was allowed to. */
+public class VolanTimeoutException(message: String, cause: Throwable?) : VolanException(message, cause)
+
+/**
+ * Thrown when a transaction cannot be completed: a deadlock, a serialization failure, or a block that
+ * asked for a rollback.
+ *
+ * @property retryable whether running the same block again could succeed. Serialization failures and
+ *   deadlocks are the cases where it can.
+ */
+public class VolanTransactionException(
+    public val retryable: Boolean,
+    message: String,
+    cause: Throwable?,
+) : VolanException(message, cause)
+
+/** Thrown when a statement failed for a reason Volan could not classify further. */
+public class VolanQueryException(message: String, cause: Throwable?) : VolanException(message, cause)
+
+/**
  * Thrown when a write is missing something the schema requires, before any statement is sent.
  *
  * Catching this at the boundary is the difference between a clear message about a field that was

@@ -43,6 +43,11 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.kotest.assertions)
     testRuntimeOnly(libs.junit.platform.launcher)
+
+    testImplementation(project(":volan-dialect-postgres"))
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.testcontainers.postgres)
+    testRuntimeOnly(libs.jdbc.postgres)
 }
 
 java {

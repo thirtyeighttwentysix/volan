@@ -45,11 +45,13 @@ internal class MappingGenerator(private val schema: Schema, private val types: T
         model.relationFields.forEach { field ->
             val relation = schema.relations.first { it.name == field.relationName }
             relations.add(
-                "  %T(field = %S, target = %S, isList = %L, foreignKeyColumns = %L, referencedColumns = %L, joinTable = %L),\n",
+                "  %T(field = %S, target = %S, isList = %L, ownsForeignKey = %L, foreignKeyColumns = %L, " +
+                    "referencedColumns = %L, joinTable = %L),\n",
                 Types.relationMetadata,
                 field.name,
                 field.targetModel,
                 field.cardinality == Cardinality.LIST,
+                relation.from.model == model.name && relation.from.field == field.name,
                 stringList(columnsOf(relation.from.model, relation.foreignKeyFields)),
                 stringList(columnsOf(relation.to.model, relation.referencedFields)),
                 relation.joinTable?.let { "\"$it\"" } ?: "null",

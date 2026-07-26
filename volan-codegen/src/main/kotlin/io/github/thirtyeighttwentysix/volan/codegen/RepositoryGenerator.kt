@@ -1,8 +1,11 @@
 package io.github.thirtyeighttwentysix.volan.codegen
 
+import com.squareup.kotlinpoet.ANY
 import com.squareup.kotlinpoet.BOOLEAN
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.INT
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.LIST
 import com.squareup.kotlinpoet.LONG
@@ -14,6 +17,7 @@ import com.squareup.kotlinpoet.SET
 import com.squareup.kotlinpoet.STRING
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.TypeVariableName
 import com.squareup.kotlinpoet.UNIT
 import io.github.thirtyeighttwentysix.volan.ir.Model
 import io.github.thirtyeighttwentysix.volan.ir.Schema
@@ -215,15 +219,41 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
     }
 
     fun client(schema: Schema, models: List<Model>): TypeSpec {
+        val client = types.declared("VolanClient")
         val builder = TypeSpec.classBuilder("VolanClient")
             .addKdoc(
                 "The generated client for this schema.\n\n" +
                     "It targets `${schema.datasource.provider.id}` and hands out one repository per model. " +
-                    "Everything it does goes through the executor it was given.\n",
+                    "Everything it does goes through the executor it was given, which is what lets the same " +
+                    "client run against a database, inside a transaction, or against a test double.\n",
             )
-            .primaryConstructor(FunSpec.constructorBuilder().addParameter("executor", Types.queryExecutor).build())
+            .addSuperinterface(ClassName("java.lang", "AutoCloseable"))
+            .primaryConstructor(
+                FunSpec.constructorBuilder()
+                    .addModifiers(KModifier.PRIVATE)
+                    .addParameter("connection", Types.volan.copy(nullable = true))
+                    .addParameter("executor", Types.queryExecutor)
+                    .build(),
+            )
             .addProperty(
-                PropertySpec.builder("executor", Types.queryExecutor).addModifiers(KModifier.PRIVATE).initializer("executor").build(),
+                PropertySpec.builder("connection", Types.volan.copy(nullable = true))
+                    .addModifiers(KModifier.PRIVATE)
+                    .initializer("connection")
+                    .build(),
+            )
+            .addFunction(
+                FunSpec.constructorBuilder()
+                    .addKdoc("Builds a client over an executor, which is how a test puts a double in place of a database.\n")
+                    .addParameter("executor", Types.queryExecutor)
+                    .callThisConstructor("null", "executor")
+                    .build(),
+            )
+            .addFunction(
+                FunSpec.constructorBuilder()
+                    .addKdoc("Builds a client over a connected database.\n")
+                    .addParameter("connection", Types.volan)
+                    .callThisConstructor("connection", "connection.executor")
+                    .build(),
             )
         models.forEach { model ->
             builder.addProperty(
@@ -233,7 +263,168 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
                     .build(),
             )
         }
-        return builder.build()
+        return builder
+            .addFunction(clientTransaction(client))
+            .addFunctions(clientRawAccess())
+            .addFunction(clientClose())
+            .addType(clientCompanion(models))
+            .addType(clientBuilder(client))
+            .build()
+    }
+
+    private fun clientTransaction(client: ClassName): FunSpec = FunSpec.builder("transaction")
+        .addKdoc(
+            "Runs [block] in one transaction, committing when it returns and rolling back when it throws.\n\n" +
+                "The client handed to the block is this one: statements find the transaction through the thread " +
+                "that opened it, so nothing has to be threaded through by hand. A transaction inside a " +
+                "transaction becomes a savepoint.\n\n" +
+                "@throws io.github.thirtyeighttwentysix.volan.runtime.VolanConfigurationException if this client " +
+                "was built over a bare executor rather than a connected database.\n",
+        )
+        .addAnnotation(ClassName("kotlin.jvm", "JvmOverloads"))
+        .addTypeVariable(TypeVariableName("T"))
+        .addParameter(
+            ParameterSpec.builder("isolation", Types.isolation).defaultValue("%T.DEFAULT", Types.isolation).build(),
+        )
+        .addParameter(
+            ParameterSpec.builder("retry", Types.retryPolicy).defaultValue("%T.NONE", Types.retryPolicy).build(),
+        )
+        .addParameter(
+            "block",
+            ClassName("java.util.function", "Function").parameterizedBy(client, TypeVariableName("T")),
+        )
+        .returns(TypeVariableName("T"))
+        .addStatement(
+            "val volan = connection ?: throw %T(%S)",
+            Types.configurationException,
+            "this client was built over an executor, not a database, so it has no transactions to open.",
+        )
+        .addStatement("return volan.transaction(isolation, retry) { block.apply(this) }")
+        .build()
+
+    /**
+     * Raw SQL, for the questions a generated API does not ask.
+     *
+     * Values still travel as parameters: the escape hatch is the statement text, not the safety.
+     */
+    private fun clientRawAccess(): List<FunSpec> {
+        val type = TypeVariableName("T")
+        val database = CodeBlock.of(
+            "connection ?: throw %T(%S)",
+            Types.configurationException,
+            "this client was built over an executor, not a database, so it cannot run raw SQL.",
+        )
+        return listOf(
+            FunSpec.builder("rawQuery")
+                .addKdoc(
+                    "Runs a statement Volan did not build, and maps what comes back.\n\n" +
+                        "Put values in [parameters] rather than in [sql]; that is what keeps this as safe as " +
+                        "everything the client generates.\n",
+                )
+                .addTypeVariable(type)
+                .addParameter("sql", STRING)
+                .addParameter("parameters", LIST.parameterizedBy(ANY.copy(nullable = true)))
+                .addParameter("mapper", Types.rowMapper.parameterizedBy(type))
+                .returns(LIST.parameterizedBy(type))
+                .addStatement("val database = %L", database)
+                .addStatement("return database.rawQuery(sql, parameters, mapper)")
+                .build(),
+            FunSpec.builder("rawExecute")
+                .addKdoc("Runs a statement Volan did not build, returning how many rows it changed.\n")
+                .addParameter("sql", STRING)
+                .addParameter(
+                    ParameterSpec.builder("parameters", LIST.parameterizedBy(ANY.copy(nullable = true)))
+                        .defaultValue("emptyList()")
+                        .build(),
+                )
+                .returns(LONG)
+                .addStatement("val database = %L", database)
+                .addStatement("return database.rawExecute(sql, parameters)")
+                .build(),
+        )
+    }
+
+    private fun clientClose(): FunSpec = FunSpec.builder("close")
+        .addKdoc("Closes the pool, when this client owns one.\n")
+        .addModifiers(KModifier.OVERRIDE)
+        .addStatement("connection?.close()")
+        .build()
+
+    private fun clientCompanion(models: List<Model>): TypeSpec {
+        val tables = CodeBlock.builder().add("listOf(\n")
+        models.forEach { tables.add("  %T.METADATA,\n", types.declared("${it.name}Table")) }
+        tables.add(")")
+        return TypeSpec.companionObjectBuilder()
+            .addProperty(
+                PropertySpec.builder("TABLES", LIST.parameterizedBy(Types.tableMetadata))
+                    .addKdoc("What the runtime needs to know about this schema's models.\n")
+                    .addAnnotation(ClassName("kotlin.jvm", "JvmField"))
+                    .initializer(tables.build())
+                    .build(),
+            )
+            .addFunction(
+                FunSpec.builder("builder")
+                    .addKdoc("Starts configuring a connection for this schema.\n")
+                    .addAnnotation(ClassName("kotlin.jvm", "JvmStatic"))
+                    .returns(types.declared("VolanClient").nestedClass("Builder"))
+                    .addStatement("return Builder()")
+                    .build(),
+            )
+            .build()
+    }
+
+    /**
+     * A builder that carries the schema's tables for the caller, so connecting reads the way the
+     * documentation shows rather than requiring two objects to be wired together.
+     */
+    private fun clientBuilder(client: ClassName): TypeSpec {
+        val builderType = client.nestedClass("Builder")
+        val options = listOf(
+            Triple("url", STRING, "The JDBC URL to connect to. It also decides which dialect is used."),
+            Triple("username", STRING.copy(nullable = true), "The user to connect as, when the URL does not carry it."),
+            Triple("password", STRING.copy(nullable = true), "The password to connect with, when the URL does not carry it."),
+            Triple("maxPoolSize", INT, "How many connections the pool may open."),
+            Triple("connectionTimeout", LONG, "How long to wait for a connection from the pool, in milliseconds."),
+            Triple("poolName", STRING, "The name the pool reports itself under."),
+        )
+        val builder = TypeSpec.classBuilder("Builder")
+            .addKdoc("Configures a [%T].\n", client)
+            .primaryConstructor(FunSpec.constructorBuilder().addModifiers(KModifier.INTERNAL).build())
+            .addProperty(
+                PropertySpec.builder("delegate", Types.volanBuilder)
+                    .addModifiers(KModifier.PRIVATE)
+                    .initializer("%T.builder().tables(TABLES)", Types.volan)
+                    .build(),
+            )
+        options.forEach { (name, type, kdoc) ->
+            builder.addFunction(
+                FunSpec.builder(name)
+                    .addKdoc("%L\n", kdoc)
+                    .addParameter("value", type)
+                    .returns(builderType)
+                    .addStatement("delegate.%L(value)", name)
+                    .addStatement("return this")
+                    .build(),
+            )
+        }
+        return builder
+            .addFunction(
+                FunSpec.builder("clock")
+                    .addKdoc("The clock `@updatedAt` columns are written from. Tests set this to make time stand still.\n")
+                    .addParameter("value", ClassName("java.time", "Clock"))
+                    .returns(builderType)
+                    .addStatement("delegate.clock(value)")
+                    .addStatement("return this")
+                    .build(),
+            )
+            .addFunction(
+                FunSpec.builder("build")
+                    .addKdoc("Opens the pool and returns a connected client.\n")
+                    .returns(client)
+                    .addStatement("return %T(delegate.build())", client)
+                    .build(),
+            )
+            .build()
     }
 
     private fun lambdaOn(receiver: TypeName): TypeName = LambdaTypeName.get(receiver = receiver, returnType = UNIT)

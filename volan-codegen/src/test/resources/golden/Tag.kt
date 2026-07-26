@@ -146,7 +146,7 @@ public object TagTable {
       ),
         primaryKey = listOf("id"),
         relations = listOf(
-        RelationMetadata(field = "posts", target = "Post", isList = true, foreignKeyColumns = emptyList(), referencedColumns = emptyList(), joinTable = "_PostTags"),
+        RelationMetadata(field = "posts", target = "Post", isList = true, ownsForeignKey = false, foreignKeyColumns = emptyList(), referencedColumns = emptyList(), joinTable = "_PostTags"),
       ),
       )
 

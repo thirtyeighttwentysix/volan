@@ -33,6 +33,11 @@ public final class io/github/thirtyeighttwentysix/volan/dialect/DialectCapabilit
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class io/github/thirtyeighttwentysix/volan/dialect/DialectProvider {
+	public abstract fun dialect ()Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;
+	public abstract fun supports (Ljava/lang/String;)Z
+}
+
 public final class io/github/thirtyeighttwentysix/volan/dialect/SqlAggregate : java/lang/Enum {
 	public static final field AVERAGE Lio/github/thirtyeighttwentysix/volan/dialect/SqlAggregate;
 	public static final field COUNT Lio/github/thirtyeighttwentysix/volan/dialect/SqlAggregate;

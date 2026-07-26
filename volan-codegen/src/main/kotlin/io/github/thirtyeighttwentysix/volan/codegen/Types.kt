@@ -56,6 +56,11 @@ internal object Types {
     val notFoundException: ClassName = ClassName(RUNTIME, "VolanNotFoundException")
     val mappingException: ClassName = ClassName(RUNTIME, "VolanMappingException")
     val validationException: ClassName = ClassName(RUNTIME, "VolanValidationException")
+    val configurationException: ClassName = ClassName(RUNTIME, "VolanConfigurationException")
+    val volan: ClassName = ClassName(RUNTIME, "Volan")
+    val volanBuilder: ClassName = volan.nestedClass("Builder")
+    val isolation: ClassName = ClassName(RUNTIME, "Isolation")
+    val retryPolicy: ClassName = ClassName(RUNTIME, "RetryPolicy")
 
     /** `Map<String, Any?>`, the shape write specs carry their values in. */
     val valueMap: TypeName = MAP.parameterizedBy(STRING, ANY.copy(nullable = true))

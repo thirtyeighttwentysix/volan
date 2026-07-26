@@ -3,3 +3,9 @@ public final class io/github/thirtyeighttwentysix/volan/dialect/postgres/Postgre
 	public fun getId ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/dialect/postgres/PostgresDialectProvider : io/github/thirtyeighttwentysix/volan/dialect/DialectProvider {
+	public fun <init> ()V
+	public fun dialect ()Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;
+	public fun supports (Ljava/lang/String;)Z
+}
+

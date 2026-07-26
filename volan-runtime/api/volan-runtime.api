@@ -213,6 +213,17 @@ public abstract class io/github/thirtyeighttwentysix/volan/runtime/IncludeScope 
 	protected final fun includeRelation (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;)V
 }
 
+public final class io/github/thirtyeighttwentysix/volan/runtime/Isolation : java/lang/Enum {
+	public static final field DEFAULT Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;
+	public static final field READ_COMMITTED Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;
+	public static final field READ_UNCOMMITTED Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;
+	public static final field REPEATABLE_READ Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;
+	public static final field SERIALIZABLE Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/runtime/NullsOrder : java/lang/Enum {
 	public static final field DEFAULT Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;
 	public static final field FIRST Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;
@@ -340,19 +351,21 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/QuerySpec {
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/RelationMetadata {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;Ljava/util/List;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Z
-	public final fun component4 ()Ljava/util/List;
+	public final fun component4 ()Z
 	public final fun component5 ()Ljava/util/List;
-	public final fun component6 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;Ljava/util/List;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
-	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getField ()Ljava/lang/String;
 	public final fun getForeignKeyColumns ()Ljava/util/List;
 	public final fun getJoinTable ()Ljava/lang/String;
+	public final fun getOwnsForeignKey ()Z
 	public final fun getReferencedColumns ()Ljava/util/List;
 	public final fun getTarget ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -399,6 +412,28 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/RelationSlot {
 public final class io/github/thirtyeighttwentysix/volan/runtime/RelationSlot$Companion {
 	public final fun loaded (Ljava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationSlot;
 	public final fun notLoaded ()Lio/github/thirtyeighttwentysix/volan/runtime/RelationSlot;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/RetryPolicy {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy$Companion;
+	public static final field DEFAULT Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy;
+	public static final field NONE Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy;
+	public fun <init> (IJD)V
+	public synthetic fun <init> (IJDILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()J
+	public final fun component3 ()D
+	public final fun copy (IJD)Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy;IJDILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAttempts ()I
+	public final fun getInitialDelay ()J
+	public final fun getMultiplier ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/RetryPolicy$Companion {
 }
 
 public abstract interface class io/github/thirtyeighttwentysix/volan/runtime/Row {
@@ -487,6 +522,15 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/TableMetadata {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/runtime/TableRegistry {
+	public fun <init> (Ljava/util/List;)V
+	public final fun find (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/TableMetadata;
+	public final fun getModels ()Ljava/util/List;
+	public final fun require (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/TableMetadata;
+	public final fun requireColumn (Ljava/lang/String;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/ColumnMetadata;
+	public final fun requireRelation (Ljava/lang/String;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/runtime/TextFilterField : io/github/thirtyeighttwentysix/volan/runtime/OrderedFilterField {
 	public final fun contains (Ljava/lang/String;)V
 	public final fun endsWith (Ljava/lang/String;)V
@@ -534,9 +578,61 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/UpsertSpec {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/runtime/Volan : java/lang/AutoCloseable {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Companion;
+	public static final fun builder ()Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public fun close ()V
+	public final fun getDialect ()Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;
+	public final fun getExecutor ()Lio/github/thirtyeighttwentysix/volan/runtime/QueryExecutor;
+	public final fun getTables ()Lio/github/thirtyeighttwentysix/volan/runtime/TableRegistry;
+	public final fun rawExecute (Ljava/lang/String;Ljava/util/List;)J
+	public static synthetic fun rawExecute$default (Lio/github/thirtyeighttwentysix/volan/runtime/Volan;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)J
+	public final fun rawQuery (Ljava/lang/String;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;)Ljava/util/List;
+	public fun toString ()Ljava/lang/String;
+	public final fun transaction (Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy;Ljava/util/function/Function;)Ljava/lang/Object;
+	public final fun transaction (Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;Ljava/util/function/Function;)Ljava/lang/Object;
+	public final fun transaction (Ljava/util/function/Function;)Ljava/lang/Object;
+	public static synthetic fun transaction$default (Lio/github/thirtyeighttwentysix/volan/runtime/Volan;Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy;Ljava/util/function/Function;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Volan$Builder {
+	public final fun build ()Lio/github/thirtyeighttwentysix/volan/runtime/Volan;
+	public final fun clock (Ljava/time/Clock;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public final fun connectionTimeout (J)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public final fun dialect (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public final fun maxPoolSize (I)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public final fun password (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public final fun poolName (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public final fun tables (Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public final fun url (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public final fun username (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Volan$Companion {
+	public final fun builder ()Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanConfigurationException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanConnectionException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanConstraintException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
 public final class io/github/thirtyeighttwentysix/volan/runtime/VolanFieldNotSelectedException : io/github/thirtyeighttwentysix/volan/VolanException {
 	public final fun getField ()Ljava/lang/String;
 	public final fun getModel ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanForeignKeyException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public final fun getConstraint ()Ljava/lang/String;
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/VolanMappingException : io/github/thirtyeighttwentysix/volan/VolanException {
@@ -548,9 +644,31 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/VolanNotFoundExc
 	public final fun getModel ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanQueryException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
 public final class io/github/thirtyeighttwentysix/volan/runtime/VolanRelationNotLoadedException : io/github/thirtyeighttwentysix/volan/VolanException {
 	public final fun getModel ()Ljava/lang/String;
 	public final fun getRelation ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanTimeoutException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanTransactionException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (ZLjava/lang/String;Ljava/lang/Throwable;)V
+	public final fun getRetryable ()Z
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanUniqueConstraintException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public final fun getConstraint ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanUnsupportedException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;)V
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/VolanValidationException : io/github/thirtyeighttwentysix/volan/VolanException {

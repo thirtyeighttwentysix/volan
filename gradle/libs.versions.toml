@@ -53,10 +53,10 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 kotest-assertions = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property-jvm", version.ref = "kotest" }
 testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
-testcontainers-junit = { module = "org.testcontainers:junit-jupiter" }
-testcontainers-postgres = { module = "org.testcontainers:postgresql" }
-testcontainers-mysql = { module = "org.testcontainers:mysql" }
-testcontainers-mariadb = { module = "org.testcontainers:mariadb" }
+testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+testcontainers-postgres = { module = "org.testcontainers:testcontainers-postgresql" }
+testcontainers-mysql = { module = "org.testcontainers:testcontainers-mysql" }
+testcontainers-mariadb = { module = "org.testcontainers:testcontainers-mariadb" }
 
 # Plugin marker coordinates, used by the `build-logic` included build.
 build-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
