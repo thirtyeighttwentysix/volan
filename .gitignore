@@ -4,6 +4,8 @@ build/
 out/
 bin/
 
+.claude/settings.local.json
+
 .idea/
 *.iml
 *.ipr

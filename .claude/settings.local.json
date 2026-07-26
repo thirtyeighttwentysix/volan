@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "PowerShell(Get-ChildItem -Force d:\\\\Projects\\\\Volan | Select-Object Name, Length; \"---JAVA---\"; try { & java -version } catch { \"no java\" }; \"---GRADLE---\"; try { \\(Get-Command gradle -ErrorAction Stop\\).Source } catch { \"no gradle\" }; \"---GIT---\"; try { & git --version } catch { \"no git\" })"
-    ]
-  }
-}
