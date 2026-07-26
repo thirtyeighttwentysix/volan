@@ -1,0 +1,81 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider     = "volan-kotlin"
+  package      = "com.example.blog"
+  output       = "build/generated/volan"
+  javaFriendly = true
+}
+
+/// What a person is allowed to do.
+enum Role {
+  USER
+  ADMIN @map("administrator")
+
+  @@map("user_role")
+}
+
+/// Someone who can sign in.
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(320)
+  name      String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  profile   Profile?
+  posts     Post[]
+  comments  Comment[]
+
+  /// Who this person reports to, if anyone.
+  manager   User?    @relation("Reports", fields: [managerId], references: [id], onDelete: SetNull)
+  managerId Int?
+  reports   User[]   @relation("Reports")
+
+  @@index([email, createdAt])
+  @@map("users")
+}
+
+model Profile {
+  id     Int     @id @default(autoincrement())
+  bio    String?
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int     @unique
+}
+
+model Post {
+  id       Long      @id @default(autoincrement())
+  title    String    @db.VarChar(200)
+  body     String?
+  views    Int       @default(0)
+  draft    Boolean   @default(true)
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId Int
+  tags     Tag[]     @relation("PostTags")
+  comments Comment[]
+
+  @@index([authorId])
+  @@fulltext([title, body])
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  posts Post[] @relation("PostTags")
+}
+
+model Comment {
+  postId    Long
+  authorId  Int
+  body      String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@id([postId, authorId])
+  @@map("post_comments")
+}

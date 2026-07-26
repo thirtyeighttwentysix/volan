@@ -7,3 +7,13 @@ description = "Semantic analysis and the normalized intermediate representation 
 dependencies {
     api(project(":volan-schema"))
 }
+
+kover {
+    reports {
+        verify {
+            rule {
+                bound { minValue = 85 }
+            }
+        }
+    }
+}

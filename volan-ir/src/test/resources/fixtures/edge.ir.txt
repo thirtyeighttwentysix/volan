@@ -1,0 +1,25 @@
+datasource db
+  provider = sqlite
+  url = "file:./dev.db"
+
+generator client
+  provider = volan-kotlin
+  package = com.example.edge
+  output = generated
+  javaFriendly = false
+
+model Account -> "accounts"
+  key: Uuid required [default=uuid()]
+  tenant: String required [default=cuid()]
+  balance: Decimal required [default=0.0]
+  labels: String list [default=[]]
+  token: String required [default=dbgenerated("gen_random_uuid()")]
+  legacy: Int required [default=dbgenerated()]
+  note: String optional [ignored]
+  primary key (key, tenant) -> "account_pk"
+  unique (tenant, balance) -> "account_tenant_balance"
+  index (balance) btree -> "account_balance_idx"
+
+model LegacyAudit ignored
+  body: String required
+  no primary key

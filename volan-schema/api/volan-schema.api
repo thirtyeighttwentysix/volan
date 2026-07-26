@@ -21,40 +21,8 @@ public final class io/github/thirtyeighttwentysix/volan/schema/Diagnostic {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/github/thirtyeighttwentysix/volan/schema/DiagnosticCode : java/lang/Enum {
-	public static final field ATTRIBUTE_NOT_ALLOWED_HERE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field BLOCK_COMMENT_NOT_SUPPORTED Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field DANGLING_DOC_COMMENT Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EMPTY_ENUM Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EMPTY_MODEL Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EXPECTED_ARGUMENT_VALUE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EXPECTED_ATTRIBUTE_MEMBER Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EXPECTED_ATTRIBUTE_NAME Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EXPECTED_CONFIGURATION_VALUE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EXPECTED_DECLARATION Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EXPECTED_EQUALS Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EXPECTED_EXPRESSION Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EXPECTED_FIELD_TYPE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EXPECTED_NAME Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field EXPECTED_OPENING_BRACE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field INVALID_ESCAPE_SEQUENCE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field MALFORMED_NUMBER Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field NESTED_LIST_TYPE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field OPTIONAL_LIST_TYPE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field REPEATED_OPTIONAL_MARKER Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field UNCLOSED_ARGUMENT_LIST Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field UNCLOSED_BLOCK Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field UNCLOSED_LIST Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field UNEXPECTED_CHARACTER Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field UNEXPECTED_TOKEN_IN_BLOCK Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field UNEXPECTED_TOP_LEVEL_TOKEN Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field UNTERMINATED_STRING Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static final field WRONG_ATTRIBUTE_FORM Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public final fun getId ()Ljava/lang/String;
-	public fun toString ()Ljava/lang/String;
-	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
-	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+public abstract interface class io/github/thirtyeighttwentysix/volan/schema/DiagnosticCode {
+	public abstract fun getId ()Ljava/lang/String;
 }
 
 public final class io/github/thirtyeighttwentysix/volan/schema/DiagnosticRenderer {
@@ -138,7 +106,49 @@ public final class io/github/thirtyeighttwentysix/volan/schema/SourceSpan {
 	public final fun union (Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/schema/Suggestions {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/schema/Suggestions;
+	public static final fun closest (Ljava/lang/String;Ljava/util/List;)Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/SyntaxCode : java/lang/Enum, io/github/thirtyeighttwentysix/volan/schema/DiagnosticCode {
+	public static final field ATTRIBUTE_NOT_ALLOWED_HERE Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field BLOCK_COMMENT_NOT_SUPPORTED Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field DANGLING_DOC_COMMENT Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EMPTY_ENUM Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EMPTY_MODEL Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EXPECTED_ARGUMENT_VALUE Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EXPECTED_ATTRIBUTE_MEMBER Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EXPECTED_ATTRIBUTE_NAME Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EXPECTED_CONFIGURATION_VALUE Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EXPECTED_DECLARATION Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EXPECTED_EQUALS Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EXPECTED_EXPRESSION Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EXPECTED_FIELD_TYPE Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EXPECTED_NAME Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field EXPECTED_OPENING_BRACE Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field INVALID_ESCAPE_SEQUENCE Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field MALFORMED_NUMBER Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field NESTED_LIST_TYPE Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field OPTIONAL_LIST_TYPE Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field REPEATED_OPTIONAL_MARKER Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field UNCLOSED_ARGUMENT_LIST Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field UNCLOSED_BLOCK Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field UNCLOSED_LIST Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field UNEXPECTED_CHARACTER Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field UNEXPECTED_TOKEN_IN_BLOCK Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field UNEXPECTED_TOP_LEVEL_TOKEN Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field UNTERMINATED_STRING Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static final field WRONG_ATTRIBUTE_FORM Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public fun getId ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/schema/SyntaxCode;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/schema/VolanSchemaException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
 	public final fun getDiagnostics ()Ljava/util/List;
 }
 

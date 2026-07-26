@@ -20,12 +20,24 @@ public enum class Severity {
  * A stable identifier for a class of schema problem.
  *
  * The identifiers are part of the user-visible contract: they appear in rendered diagnostics and in
- * the documentation, so they are never renumbered or reused. `E0xxx` codes come from the lexer,
- * `E01xx` codes from the parser.
+ * the documentation, so they are never renumbered or reused.
+ *
+ * Each layer declares its own codes — [SyntaxCode] here, semantic codes in `volan-ir` — so that no
+ * module has to enumerate the failures of a module above it. The ranges are disjoint by convention:
+ * `E00xx` for the lexer, `E01xx` for the parser, `E02xx` for semantic analysis.
+ */
+public interface DiagnosticCode {
+    /** The code as it appears in diagnostics, for example `E0104`. */
+    public val id: String
+}
+
+/**
+ * The problems the lexer and the parser can report: everything that makes a document malformed,
+ * regardless of what the model it describes would mean.
  *
  * @property id the code as it appears in diagnostics, for example `E0104`.
  */
-public enum class DiagnosticCode(public val id: String) {
+public enum class SyntaxCode(override val id: String) : DiagnosticCode {
     /** A string literal was opened but never closed before the end of the line. */
     UNTERMINATED_STRING("E0001"),
 

@@ -1,0 +1,32 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "volan-kotlin"
+  package  = "com.example.edge"
+  output   = "generated"
+}
+
+model Account {
+  key     Uuid     @default(uuid())
+  tenant  String   @default(cuid())
+  balance Decimal  @default(0.0)
+  labels  String[] @default([])
+  token   String   @default(dbgenerated("gen_random_uuid()"))
+  legacy  Int      @default(dbgenerated())
+  note    String?  @ignore
+
+  @@id([key, tenant], map: "account_pk")
+  @@unique([tenant, balance], map: "account_tenant_balance")
+  @@index([balance], map: "account_balance_idx")
+  @@map("accounts")
+}
+
+/// A table Volan does not generate a client for.
+model LegacyAudit {
+  body String
+
+  @@ignore
+}

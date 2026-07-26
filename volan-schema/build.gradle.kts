@@ -9,3 +9,13 @@ dependencies {
 
     testImplementation(libs.kotest.property)
 }
+
+kover {
+    reports {
+        verify {
+            rule {
+                bound { minValue = 85 }
+            }
+        }
+    }
+}

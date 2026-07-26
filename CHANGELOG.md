@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `volan-ir`: semantic analysis and the normalized schema model. Resolves every type, pairs up both
+  ends of every relation, applies `@map`, and validates keys, defaults, constraints and referential
+  actions. `SchemaLoader.load(…)` turns schema text into a `Schema` or into diagnostics.
+- Validation warnings that do not fail a build: a connection URL written into the schema instead of
+  read with `env()`, and a chain of `onDelete: Cascade` that loops back on itself.
+- Kover coverage gate of 85 % on `volan-schema` and `volan-ir`.
 - `volan-schema`: the `schema.volan` language. Hand-written lexer and recursive-descent parser, a
   fully spanned AST, and a canonical formatter that preserves comments and the blank lines used to
   group fields.
@@ -20,7 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Quality gates wired into `check`: ktlint, detekt (with `TODO`/`FIXME` and `NotImplementedError` as
   build errors), Kover coverage reporting and Kotlin ABI validation exposed as `apiCheck` / `apiDump`.
 - Continuous integration across JDK 17/21 and Linux/macOS/Windows.
-- Project documentation: `ARCHITECTURE.md`, `ROADMAP.md`, the schema language reference and the first
-  ten architecture decision records.
+- Project documentation: `ARCHITECTURE.md`, `ROADMAP.md`, the schema language reference — including
+  every diagnostic code — and the first ten architecture decision records.
+
+### Changed
+
+- Diagnostic codes are now an interface with one enum per layer (`SyntaxCode`, `SemanticCode`) instead
+  of a single enum, so no module has to enumerate the failures of a module above it.
 
 [Unreleased]: https://github.com/thirtyeighttwentysix/volan/commits/main

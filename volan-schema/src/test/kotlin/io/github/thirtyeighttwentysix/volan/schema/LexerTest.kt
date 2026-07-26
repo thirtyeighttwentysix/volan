@@ -74,7 +74,7 @@ class LexerTest {
     @Test
     fun `keeps lexing after an unexpected character`() {
         val result = tokenize("a # b")
-        result.diagnostics.single().code shouldBe DiagnosticCode.UNEXPECTED_CHARACTER
+        result.diagnostics.single().code shouldBe SyntaxCode.UNEXPECTED_CHARACTER
         result.tokens.map { it.type } shouldContainExactly
             listOf(TokenType.IDENTIFIER, TokenType.IDENTIFIER, TokenType.END_OF_FILE)
     }

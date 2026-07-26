@@ -57,7 +57,7 @@ internal class Lexer(private val source: SourceFile) {
         if (charAt(offset) == '.' && charAt(offset + 1)?.isDigit() == true) {
             while (offset < text.length && (text[offset].isDigit() || text[offset] == '.')) offset++
             report(
-                code = DiagnosticCode.MALFORMED_NUMBER,
+                code = SyntaxCode.MALFORMED_NUMBER,
                 span = SourceSpan(start, offset),
                 message = "malformed number literal `${text.substring(start, offset)}`",
                 label = "a number has at most one decimal point",
@@ -92,7 +92,7 @@ internal class Lexer(private val source: SourceFile) {
         }
         if (!terminated) {
             report(
-                code = DiagnosticCode.UNTERMINATED_STRING,
+                code = SyntaxCode.UNTERMINATED_STRING,
                 span = SourceSpan(start, offset),
                 message = "unterminated string literal",
                 label = "the closing `\"` is missing",
@@ -123,7 +123,7 @@ internal class Lexer(private val source: SourceFile) {
             escaped == 'u' -> readUnicodeEscape(decoded, start)
             else -> {
                 report(
-                    code = DiagnosticCode.INVALID_ESCAPE_SEQUENCE,
+                    code = SyntaxCode.INVALID_ESCAPE_SEQUENCE,
                     span = SourceSpan(start, minOf(start + 2, text.length)),
                     message = "invalid escape sequence in string literal",
                     label = "this is not an escape the schema language knows",
@@ -145,7 +145,7 @@ internal class Lexer(private val source: SourceFile) {
         val code = digits?.toIntOrNull(radix = HEX_RADIX)
         if (code == null) {
             report(
-                code = DiagnosticCode.INVALID_ESCAPE_SEQUENCE,
+                code = SyntaxCode.INVALID_ESCAPE_SEQUENCE,
                 span = SourceSpan(start, minOf(digitsEnd, text.length)),
                 message = "invalid unicode escape sequence",
                 label = "expected exactly four hexadecimal digits",
@@ -188,7 +188,7 @@ internal class Lexer(private val source: SourceFile) {
             offset++
         }
         report(
-            code = DiagnosticCode.BLOCK_COMMENT_NOT_SUPPORTED,
+            code = SyntaxCode.BLOCK_COMMENT_NOT_SUPPORTED,
             span = SourceSpan(start, offset),
             message = "block comments are not supported",
             label = "the schema language only has line comments",
@@ -203,7 +203,7 @@ internal class Lexer(private val source: SourceFile) {
         if (type == null) {
             offset++
             report(
-                code = DiagnosticCode.UNEXPECTED_CHARACTER,
+                code = SyntaxCode.UNEXPECTED_CHARACTER,
                 span = SourceSpan(start, offset),
                 message = "unexpected character `$current`",
                 label = "this character has no meaning in a schema",

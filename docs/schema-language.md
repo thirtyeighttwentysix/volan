@@ -178,6 +178,71 @@ rather than only the first.
 | `E0120` | Attribute in a `datasource` or `generator` block |
 | `E0121` | Unexpected token inside a block |
 
+## Validation
+
+Parsing only decides that a document is well formed. Everything below is checked afterwards, once the
+whole schema is known — which is why these problems are reported with their own `E02xx` codes.
+
+- **Names.** Models and enums share one namespace. Field names are unique within a model, value names
+  within an enum, and no two models may map to the same table or two fields to the same column.
+- **Types.** Every field's type must be a scalar, an enum or a model in this schema. A misspelling is
+  reported with the closest match.
+- **Keys.** Every model needs a primary key, written as `@id` on one field or `@@id([a, b])` for
+  several — not both, and not twice. Key fields are required and hold a single value. A model marked
+  `@@ignore` is exempt: Volan generates no client for it, and it may describe a table that has no key.
+- **Defaults.** A default has to fit its field: `autoincrement()` on `Int` or `Long`, `now()` on a
+  temporal type, `uuid()` on `Uuid` or `String`, an enum value that the enum actually has, and only
+  `[]` on a list.
+- **Relations.** Both ends must exist and name each other. Exactly one side carries
+  `fields`/`references`, and it is the side holding a single row; the two lists pair up one to one, the
+  types match, and the referenced fields identify a row — a primary key or a unique constraint. A
+  one-to-one relation additionally needs a unique foreign key. Many-to-many relations carry no foreign
+  key at all; Volan keeps the pairs in a join table named after the relation.
+- **Referential actions.** `onDelete: SetNull` requires a foreign key that can hold null.
+- **Warnings.** Two things are reported without failing the build: a connection URL written into the
+  schema rather than read with `env()`, and a chain of `onDelete: Cascade` that loops back to where it
+  started.
+
+### Validation codes
+
+| Code | Meaning |
+|---|---|
+| `E0200` | Two declarations share a name |
+| `E0201` | Unknown field type |
+| `E0202` | Duplicate field, enum value or property |
+| `E0203` | No `datasource` block |
+| `E0204` | More than one `datasource` block |
+| `E0205` | Unknown database provider |
+| `E0206` | Required block property missing |
+| `E0207` | Unknown block property |
+| `E0208` | Property or argument of the wrong kind |
+| `E0209` | Model without a primary key |
+| `E0210` | Primary key declared twice |
+| `E0211` | Field cannot be part of a primary key |
+| `E0212` | Unknown attribute |
+| `E0213` | Unknown attribute argument |
+| `E0214` | Missing attribute argument |
+| `E0215` | Attribute not allowed on this target |
+| `E0216` | Attribute applied twice |
+| `E0217` | `@default` does not fit the field |
+| `E0218` | `@updatedAt` on a field it cannot maintain |
+| `E0219` | Attribute refers to an unknown field |
+| `E0220` | Relation has no matching field on the other model |
+| `E0221` | Several relation fields could pair up |
+| `E0222` | `fields` and `references` do not line up |
+| `E0223` | Foreign key declared on the wrong side, on both, or on neither |
+| `E0224` | `references` does not identify a row |
+| `E0225` | Foreign key and referenced field have different types |
+| `E0226` | Referential action unknown or impossible |
+| `E0227` | Two models or fields map to one database name |
+| `E0228` | Cascade loops back on itself (warning) |
+| `E0229` | `@unique` on a field that cannot carry it |
+| `E0230` | Constraint declared over no fields |
+| `E0231` | Unknown attribute namespace |
+| `E0232` | A model requires a row of itself |
+| `E0233` | One-to-one foreign key is not unique |
+| `E0234` | Connection URL written into the schema (warning) |
+
 ## Grammar
 
 ```ebnf

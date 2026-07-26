@@ -103,7 +103,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         // to parse is already reporting the real problem, and "declares no fields" would just be noise.
         if (body.closed && diagnostics.size == errorsBefore && body.members.none { it is FieldDeclaration }) {
             report(
-                code = DiagnosticCode.EMPTY_MODEL,
+                code = SyntaxCode.EMPTY_MODEL,
                 span = SourceSpan(name.span.start, body.endOffset),
                 message = "model `${name.text}` declares no fields",
                 label = "a model needs at least one field",
@@ -135,7 +135,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         val body = parseBlockBody("enum", name) { memberTrivia -> parseEnumMember(memberTrivia) }
         if (body.closed && diagnostics.size == errorsBefore && body.members.none { it is EnumValueDeclaration }) {
             report(
-                code = DiagnosticCode.EMPTY_ENUM,
+                code = SyntaxCode.EMPTY_ENUM,
                 span = SourceSpan(name.span.start, body.endOffset),
                 message = "enum `${name.text}` declares no values",
                 label = "an enum needs at least one value",
@@ -261,7 +261,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
     private fun parseConfigEntry(trivia: Trivia, kind: String): ConfigEntry? {
         if (check(TokenType.AT) || check(TokenType.AT_AT)) {
             report(
-                code = DiagnosticCode.ATTRIBUTE_NOT_ALLOWED_HERE,
+                code = SyntaxCode.ATTRIBUTE_NOT_ALLOWED_HERE,
                 span = peek().span,
                 message = "attributes are not allowed in a `$kind` block",
                 label = "only `name = value` properties belong here",
@@ -271,7 +271,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         val keyToken = advance()
         if (!check(TokenType.EQUALS)) {
             report(
-                code = DiagnosticCode.EXPECTED_EQUALS,
+                code = SyntaxCode.EXPECTED_EQUALS,
                 span = peek().span,
                 message = "expected `=` after `${keyToken.value}`",
                 label = "found ${describe(peek())}",
@@ -282,7 +282,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         advance()
         if (!canStartExpression(peek())) {
             report(
-                code = DiagnosticCode.EXPECTED_CONFIGURATION_VALUE,
+                code = SyntaxCode.EXPECTED_CONFIGURATION_VALUE,
                 span = peek().span,
                 message = "expected a value for `${keyToken.value}`",
                 label = "found ${describe(peek())}",
@@ -307,7 +307,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         val token = peek()
         if (token.type != TokenType.IDENTIFIER) {
             report(
-                code = DiagnosticCode.EXPECTED_FIELD_TYPE,
+                code = SyntaxCode.EXPECTED_FIELD_TYPE,
                 span = token.span,
                 message = "expected a field type",
                 label = "found ${describe(token)}",
@@ -328,7 +328,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         val open = advance()
         if (!check(TokenType.RIGHT_BRACKET)) {
             report(
-                code = DiagnosticCode.UNCLOSED_LIST,
+                code = SyntaxCode.UNCLOSED_LIST,
                 span = open.span,
                 message = "expected `]` to close the list type",
                 label = "found ${describe(peek())}",
@@ -341,7 +341,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
             val extra = advance()
             if (check(TokenType.RIGHT_BRACKET)) end = advance().span.end
             report(
-                code = DiagnosticCode.NESTED_LIST_TYPE,
+                code = SyntaxCode.NESTED_LIST_TYPE,
                 span = SourceSpan(extra.span.start, end),
                 message = "nested list types are not supported",
                 label = "remove this `[]`",
@@ -352,7 +352,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
             val question = advance()
             end = question.span.end
             report(
-                code = DiagnosticCode.OPTIONAL_LIST_TYPE,
+                code = SyntaxCode.OPTIONAL_LIST_TYPE,
                 span = question.span,
                 message = "a list type cannot be optional",
                 label = "remove this `?`",
@@ -368,7 +368,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
             val extra = advance()
             end = extra.span.end
             report(
-                code = DiagnosticCode.REPEATED_OPTIONAL_MARKER,
+                code = SyntaxCode.REPEATED_OPTIONAL_MARKER,
                 span = extra.span,
                 message = "a type carries at most one `?`",
                 label = "remove this `?`",
@@ -391,7 +391,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         while ((check(TokenType.AT) || check(TokenType.AT_AT)) && !peek().newlineBefore) {
             if (check(TokenType.AT_AT)) {
                 report(
-                    code = DiagnosticCode.WRONG_ATTRIBUTE_FORM,
+                    code = SyntaxCode.WRONG_ATTRIBUTE_FORM,
                     span = peek().span,
                     message = "field attributes are written with a single `@`",
                     label = "found `@@`, which applies to the whole model",
@@ -409,7 +409,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
     private fun parseBlockAttribute(trivia: Trivia, wrongForm: Boolean): BlockAttributeDeclaration? {
         if (wrongForm) {
             report(
-                code = DiagnosticCode.WRONG_ATTRIBUTE_FORM,
+                code = SyntaxCode.WRONG_ATTRIBUTE_FORM,
                 span = peek().span,
                 message = "attributes that apply to the whole block are written with `@@`",
                 label = "found `@`, which applies to a single field",
@@ -439,7 +439,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
     private fun parseAttributeName(): AttributeName? {
         if (!check(TokenType.IDENTIFIER)) {
             report(
-                code = DiagnosticCode.EXPECTED_ATTRIBUTE_NAME,
+                code = SyntaxCode.EXPECTED_ATTRIBUTE_NAME,
                 span = peek().span,
                 message = "expected an attribute name",
                 label = "found ${describe(peek())}",
@@ -454,7 +454,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         advance()
         if (!check(TokenType.IDENTIFIER)) {
             report(
-                code = DiagnosticCode.EXPECTED_ATTRIBUTE_MEMBER,
+                code = SyntaxCode.EXPECTED_ATTRIBUTE_MEMBER,
                 span = peek().span,
                 message = "expected a name after `${first.value}.`",
                 label = "found ${describe(peek())}",
@@ -476,7 +476,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         while (!check(TokenType.RIGHT_PAREN)) {
             if (check(TokenType.END_OF_FILE) || check(TokenType.RIGHT_BRACE)) {
                 report(
-                    code = DiagnosticCode.UNCLOSED_ARGUMENT_LIST,
+                    code = SyntaxCode.UNCLOSED_ARGUMENT_LIST,
                     span = open.span,
                     message = "expected `)` to close the argument list",
                     label = "this `(` is never closed",
@@ -503,7 +503,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         advance()
         if (!canStartExpression(peek())) {
             report(
-                code = DiagnosticCode.EXPECTED_ARGUMENT_VALUE,
+                code = SyntaxCode.EXPECTED_ARGUMENT_VALUE,
                 span = peek().span,
                 message = "named argument `${nameToken.value}` has no value",
                 label = "found ${describe(peek())}",
@@ -532,7 +532,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
             TokenType.IDENTIFIER -> parseIdentifierExpression()
             else -> {
                 report(
-                    code = DiagnosticCode.EXPECTED_EXPRESSION,
+                    code = SyntaxCode.EXPECTED_EXPRESSION,
                     span = token.span,
                     message = "expected a value",
                     label = "found ${describe(token)}",
@@ -563,7 +563,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
         while (!check(TokenType.RIGHT_BRACKET)) {
             if (isListTerminator()) {
                 report(
-                    code = DiagnosticCode.UNCLOSED_LIST,
+                    code = SyntaxCode.UNCLOSED_LIST,
                     span = open.span,
                     message = "expected `]` to close the list",
                     label = "this `[` is never closed",
@@ -626,7 +626,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
             return Identifier(token.value, token.span)
         }
         report(
-            code = DiagnosticCode.EXPECTED_NAME,
+            code = SyntaxCode.EXPECTED_NAME,
             span = token.span,
             message = "expected a name for the $kind",
             label = "found ${describe(token)}",
@@ -645,7 +645,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
             return true
         }
         report(
-            code = DiagnosticCode.EXPECTED_OPENING_BRACE,
+            code = SyntaxCode.EXPECTED_OPENING_BRACE,
             span = peek().span,
             message = "expected `{` after `$kind ${name.text}`",
             label = "found ${describe(peek())}",
@@ -656,7 +656,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
 
     private fun reportUnclosedBlock(kind: String, name: Identifier) {
         report(
-            code = DiagnosticCode.UNCLOSED_BLOCK,
+            code = SyntaxCode.UNCLOSED_BLOCK,
             span = name.span,
             message = "unclosed $kind `${name.text}`",
             label = "this block is never closed",
@@ -665,9 +665,9 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
     }
 
     private fun reportUnknownDeclaration(token: Token) {
-        val suggestion = suggest(token.value, DECLARATION_KEYWORDS)
+        val suggestion = Suggestions.closest(token.value, DECLARATION_KEYWORDS)
         report(
-            code = DiagnosticCode.EXPECTED_DECLARATION,
+            code = SyntaxCode.EXPECTED_DECLARATION,
             span = token.span,
             message = "unknown top-level declaration `${token.value}`",
             label = "expected `model`, `enum`, `datasource` or `generator`",
@@ -678,7 +678,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
 
     private fun reportUnexpectedTopLevelToken(token: Token) {
         report(
-            code = DiagnosticCode.UNEXPECTED_TOP_LEVEL_TOKEN,
+            code = SyntaxCode.UNEXPECTED_TOP_LEVEL_TOKEN,
             span = token.span,
             message = "expected a top-level declaration, found ${describe(token)}",
             label = "expected `model`, `enum`, `datasource` or `generator`",
@@ -687,7 +687,7 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
 
     private fun reportUnexpectedTokenInBlock(token: Token, expectation: String) {
         report(
-            code = DiagnosticCode.UNEXPECTED_TOKEN_IN_BLOCK,
+            code = SyntaxCode.UNEXPECTED_TOKEN_IN_BLOCK,
             span = token.span,
             message = "unexpected ${describe(token)}",
             label = "expected $expectation",
@@ -728,32 +728,5 @@ internal class Parser(private val source: SourceFile, private val tokens: List<T
 
     private companion object {
         private val DECLARATION_KEYWORDS = listOf("datasource", "generator", "model", "enum")
-        private const val MAX_SUGGESTION_DISTANCE = 2
-
-        /** Returns the closest candidate to [word], or `null` when none is close enough to be worth suggesting. */
-        private fun suggest(word: String, candidates: List<String>): String? {
-            val lowered = word.lowercase()
-            return candidates
-                .map { it to editDistance(lowered, it) }
-                .filter { it.second <= MAX_SUGGESTION_DISTANCE }
-                .minByOrNull { it.second }
-                ?.first
-        }
-
-        private fun editDistance(left: String, right: String): Int {
-            var previousRow = IntArray(right.length + 1) { it }
-            var currentRow = IntArray(right.length + 1)
-            for (i in 1..left.length) {
-                currentRow[0] = i
-                for (j in 1..right.length) {
-                    val substitution = previousRow[j - 1] + if (left[i - 1] == right[j - 1]) 0 else 1
-                    currentRow[j] = minOf(previousRow[j] + 1, currentRow[j - 1] + 1, substitution)
-                }
-                val swap = previousRow
-                previousRow = currentRow
-                currentRow = swap
-            }
-            return previousRow[right.length]
-        }
     }
 }

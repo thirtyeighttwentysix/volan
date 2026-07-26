@@ -8,8 +8,8 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 |---|---|---|---|
 | **M0** | Project skeleton: multi-module Gradle build, version catalog, ktlint/detekt/Kover/ABI validation, CI, licence, docs skeleton | `./gradlew build` green | ✅ |
 | **M1** | Schema language: lexer, parser, AST, Rust-style diagnostics, formatter | The reference schema parses; 34 negative fixtures assert exact diagnostics | ✅ |
-| **M2** | IR: name resolution, type checking, relation pairing, composite keys, cycle detection | IR snapshot tests | 🚧 |
-| **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections | Golden-file tests + the generated sources actually compile | ⬜ |
+| **M2** | IR: name resolution, type checking, relation pairing, composite keys, cycle detection | IR snapshot tests | ✅ |
+| **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections | Golden-file tests + the generated sources actually compile | 🚧 |
 | **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters | Testcontainers PostgreSQL integration suite covering every must-have operation | ⬜ |
 | **M5** | Relations and nested writes: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M | Statement-count assertions prove the absence of N+1 | ⬜ |
 | **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ⬜ |
@@ -27,8 +27,15 @@ main branch.
 
 ### Deferred within the road to 1.0
 
-- **Coverage gate.** The ≥ 85 % Kover verification rule is switched on together with the first real
-  runtime code in M4; enforcing it against empty modules is meaningless.
+- **Coverage gate.** The ≥ 85 % Kover verification rule is on for `volan-schema` and `volan-ir` as of
+  M2. It is added to `volan-runtime` and `volan-migrate` in the milestone that fills them, because
+  enforcing a coverage floor on an empty module measures nothing.
+- **Provider-specific native types.** `@db.…` is parsed, validated for shape and carried into the IR,
+  but whether `@db.VarChar(200)` exists for the configured database is a question only a dialect can
+  answer. That check lands with the dialects in M8.
+- **Cycles of required relations across models.** A self-relation that requires itself is rejected in
+  M2. Two models that require each other are not yet detected; the check needs the same traversal as
+  the cascade-cycle pass and is scheduled with the migration ordering work in M6.
 - **Publishing configuration.** Signing, POM metadata and the Central Portal release job land in M12.
 - **`volan-cli`, `volan-gradle-plugin`, `volan-maven-plugin`, `java-compat-tests` modules.** Created
   in the milestone that first fills them (M9 / M7), so that the main branch never contains an empty

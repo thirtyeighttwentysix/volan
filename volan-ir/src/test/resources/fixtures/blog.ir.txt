@@ -1,0 +1,95 @@
+datasource db
+  provider = postgresql
+  url = env(DATABASE_URL)
+
+generator client
+  provider = volan-kotlin
+  package = com.example.blog
+  output = build/generated/volan
+  javaFriendly = true
+
+enum Role -> "user_role"
+  USER
+  ADMIN -> "administrator"
+
+model User -> "users"
+  id: Int required [id, default=autoincrement()]
+  email: String required [unique, db.VarChar(320)]
+  name: String optional
+  role: Role required [default=Role.USER]
+  createdAt: DateTime required -> "created_at" [default=now()]
+  updatedAt: DateTime required -> "updated_at" [updatedAt]
+  managerId: Int optional
+  ~ profile: Profile optional (relation ProfileToUser)
+  ~ posts: Post list (relation PostToUser)
+  ~ comments: Comment list (relation CommentToUser)
+  ~ manager: User optional (relation Reports)
+  ~ reports: User list (relation Reports)
+  primary key (id)
+  index (email, createdAt) btree
+
+model Profile
+  id: Int required [id, default=autoincrement()]
+  bio: String optional
+  userId: Int required [unique]
+  ~ user: User required (relation ProfileToUser)
+  primary key (id)
+
+model Post
+  id: Long required [id, default=autoincrement()]
+  title: String required [db.VarChar(200)]
+  body: String optional
+  views: Int required [default=0]
+  draft: Boolean required [default=true]
+  authorId: Int required
+  ~ author: User required (relation PostToUser)
+  ~ tags: Tag list (relation PostTags)
+  ~ comments: Comment list (relation CommentToPost)
+  primary key (id)
+  index (authorId) btree
+  index (title, body) fulltext
+
+model Tag
+  id: Int required [id, default=autoincrement()]
+  name: String required [unique]
+  ~ posts: Post list (relation PostTags)
+  primary key (id)
+
+model Comment -> "post_comments"
+  postId: Long required
+  authorId: Int required
+  body: String required
+  createdAt: DateTime required [default=now()]
+  ~ post: Post required (relation CommentToPost)
+  ~ author: User required (relation CommentToUser)
+  primary key (postId, authorId)
+
+relation CommentToPost one-to-many
+  from Comment.post (required) fk (postId)
+  to Post.comments (list) references (id)
+  onDelete Cascade
+
+relation CommentToUser one-to-many
+  from Comment.author (required) fk (authorId)
+  to User.comments (list) references (id)
+  onDelete Cascade
+
+relation PostTags many-to-many
+  from Post.tags (list)
+  to Tag.posts (list)
+  join table "_PostTags"
+
+relation PostToUser one-to-many
+  from Post.author (required) fk (authorId)
+  to User.posts (list) references (id)
+  onDelete Cascade
+
+relation ProfileToUser one-to-one
+  from Profile.user (required) fk (userId)
+  to User.profile (optional) references (id)
+  onDelete Cascade
+
+relation Reports one-to-many
+  from User.manager (optional) fk (managerId)
+  to User.reports (list) references (id)
+  onDelete SetNull

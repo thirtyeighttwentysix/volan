@@ -12,7 +12,7 @@ import io.github.thirtyeighttwentysix.volan.schema.ast.SchemaDocument
  *
  * @property diagnostics every problem found, in source order.
  */
-public class VolanSchemaException internal constructor(message: String, public val diagnostics: List<Diagnostic>) : VolanException(message)
+public class VolanSchemaException(message: String, public val diagnostics: List<Diagnostic>) : VolanException(message)
 
 /**
  * The outcome of parsing one schema document.

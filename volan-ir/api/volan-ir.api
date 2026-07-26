@@ -1,0 +1,608 @@
+public final class io/github/thirtyeighttwentysix/volan/ir/AnalysisResult {
+	public final fun getDiagnostics ()Ljava/util/List;
+	public final fun getErrors ()Ljava/util/List;
+	public final fun getHasErrors ()Z
+	public final fun getSchema ()Lio/github/thirtyeighttwentysix/volan/ir/Schema;
+	public final fun getSource ()Lio/github/thirtyeighttwentysix/volan/schema/SourceFile;
+	public final fun getWarnings ()Ljava/util/List;
+	public final fun render ()Ljava/lang/String;
+	public final fun schemaOrThrow ()Lio/github/thirtyeighttwentysix/volan/ir/Schema;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/Cardinality : java/lang/Enum {
+	public static final field LIST Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public static final field OPTIONAL Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public static final field REQUIRED Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun isList ()Z
+	public final fun isOptional ()Z
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/ir/ConnectionUrl {
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/ConnectionUrl$Environment : io/github/thirtyeighttwentysix/volan/ir/ConnectionUrl {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl$Environment;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl$Environment;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl$Environment;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getVariable ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/ConnectionUrl$Literal : io/github/thirtyeighttwentysix/volan/ir/ConnectionUrl {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl$Literal;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl$Literal;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl$Literal;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DatasourceConfig {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/Provider;Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/Provider;Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/ir/DatasourceConfig;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/DatasourceConfig;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/Provider;Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/DatasourceConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getProvider ()Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+	public final fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getUrl ()Lio/github/thirtyeighttwentysix/volan/ir/ConnectionUrl;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DefaultValue$AutoIncrement : io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$AutoIncrement;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DefaultValue$BooleanValue : io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$BooleanValue;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$BooleanValue;ZILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$BooleanValue;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DefaultValue$Cuid : io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$Cuid;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DefaultValue$DatabaseGenerated : io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$DatabaseGenerated;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$DatabaseGenerated;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$DatabaseGenerated;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExpression ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DefaultValue$EmptyList : io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$EmptyList;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DefaultValue$EnumValueRef : io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$EnumValueRef;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$EnumValueRef;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$EnumValueRef;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnumName ()Ljava/lang/String;
+	public final fun getValueName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DefaultValue$Now : io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$Now;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DefaultValue$NumberValue : io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$NumberValue;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$NumberValue;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$NumberValue;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DefaultValue$StringValue : io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$StringValue;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$StringValue;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$StringValue;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/DefaultValue$Uuid : io/github/thirtyeighttwentysix/volan/ir/DefaultValue {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue$Uuid;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/EnumType {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/ir/EnumType;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/EnumType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/EnumType;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDbName ()Ljava/lang/String;
+	public final fun getDocumentation ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getValues ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public final fun value (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/EnumValue;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/EnumValue {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/ir/EnumValue;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/EnumValue;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/EnumValue;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDbName ()Ljava/lang/String;
+	public final fun getDocumentation ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/ir/Field {
+	public abstract fun getCardinality ()Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public abstract fun getDbName ()Ljava/lang/String;
+	public abstract fun getDocumentation ()Ljava/lang/String;
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public abstract fun isIgnored ()Z
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/ir/FieldType {
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/FieldType$EnumRef : io/github/thirtyeighttwentysix/volan/ir/FieldType {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/FieldType$EnumRef;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/FieldType$EnumRef;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/FieldType$EnumRef;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnumName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/FieldType$Scalar : io/github/thirtyeighttwentysix/volan/ir/FieldType {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;)Lio/github/thirtyeighttwentysix/volan/ir/FieldType$Scalar;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/FieldType$Scalar;Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/FieldType$Scalar;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getType ()Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/GeneratorConfig {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Z
+	public final fun component6 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/ir/GeneratorConfig;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/GeneratorConfig;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/GeneratorConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getJavaFriendly ()Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getOutputDirectory ()Ljava/lang/String;
+	public final fun getPackageName ()Ljava/lang/String;
+	public final fun getProvider ()Ljava/lang/String;
+	public final fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/Index {
+	public fun <init> (Ljava/util/List;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/IndexKind;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/ir/IndexKind;
+	public final fun copy (Ljava/util/List;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/IndexKind;)Lio/github/thirtyeighttwentysix/volan/ir/Index;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/Index;Ljava/util/List;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/IndexKind;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/Index;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDbName ()Ljava/lang/String;
+	public final fun getFields ()Ljava/util/List;
+	public final fun getKind ()Lio/github/thirtyeighttwentysix/volan/ir/IndexKind;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/IndexKind : java/lang/Enum {
+	public static final field BTREE Lio/github/thirtyeighttwentysix/volan/ir/IndexKind;
+	public static final field FULLTEXT Lio/github/thirtyeighttwentysix/volan/ir/IndexKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/IndexKind;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/ir/IndexKind;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/Model {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/ir/PrimaryKey;Ljava/util/List;Ljava/util/List;ZLjava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Lio/github/thirtyeighttwentysix/volan/ir/PrimaryKey;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Ljava/util/List;
+	public final fun component8 ()Z
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/ir/PrimaryKey;Ljava/util/List;Ljava/util/List;ZLjava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/ir/Model;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/Model;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/ir/PrimaryKey;Ljava/util/List;Ljava/util/List;ZLjava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/Model;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun field (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/ScalarField;
+	public final fun getDbName ()Ljava/lang/String;
+	public final fun getDocumentation ()Ljava/lang/String;
+	public final fun getFields ()Ljava/util/List;
+	public final fun getIndexes ()Ljava/util/List;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPrimaryKey ()Lio/github/thirtyeighttwentysix/volan/ir/PrimaryKey;
+	public final fun getPrimaryKeyFields ()Ljava/util/List;
+	public final fun getRelationFields ()Ljava/util/List;
+	public final fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getUniques ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun isIgnored ()Z
+	public final fun relationField (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/RelationField;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/NativeType {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/ir/NativeType;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/NativeType;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/NativeType;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArguments ()Ljava/util/List;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/PrimaryKey {
+	public fun <init> (Ljava/util/List;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/util/List;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/PrimaryKey;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/PrimaryKey;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/PrimaryKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDbName ()Ljava/lang/String;
+	public final fun getFields ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/Provider : java/lang/Enum {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/ir/Provider$Companion;
+	public static final field H2 Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+	public static final field MARIADB Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+	public static final field MYSQL Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+	public static final field POSTGRESQL Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+	public static final field SQLITE Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+	public static final fun fromId (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getId ()Ljava/lang/String;
+	public static final fun ids ()Ljava/util/List;
+	public fun toString ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/Provider$Companion {
+	public final fun fromId (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/Provider;
+	public final fun ids ()Ljava/util/List;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/ReferentialAction : java/lang/Enum {
+	public static final field CASCADE Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction$Companion;
+	public static final field NO_ACTION Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public static final field RESTRICT Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public static final field SET_DEFAULT Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public static final field SET_NULL Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public static final fun fromId (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getId ()Ljava/lang/String;
+	public static final fun ids ()Ljava/util/List;
+	public fun toString ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/ReferentialAction$Companion {
+	public final fun fromId (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public final fun ids ()Ljava/util/List;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/Relation {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/RelationKind;Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/ir/RelationKind;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;
+	public final fun component5 ()Ljava/util/List;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public final fun component8 ()Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/RelationKind;Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/Relation;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/Relation;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/RelationKind;Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/Relation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getForeignKeyFields ()Ljava/util/List;
+	public final fun getFrom ()Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;
+	public final fun getJoinTable ()Ljava/lang/String;
+	public final fun getKind ()Lio/github/thirtyeighttwentysix/volan/ir/RelationKind;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getOnDelete ()Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public final fun getOnUpdate ()Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public final fun getReferencedFields ()Ljava/util/List;
+	public final fun getTo ()Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;
+	public fun hashCode ()I
+	public final fun isSelfRelation ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/RelationEnd {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;)Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/RelationEnd;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCardinality ()Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public final fun getField ()Ljava/lang/String;
+	public final fun getModel ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/RelationField : io/github/thirtyeighttwentysix/volan/ir/Field {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;ZLjava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component11 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/List;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public final fun component8 ()Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public final fun component9 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;ZLjava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/ir/RelationField;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/RelationField;Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;ZLjava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/RelationField;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCardinality ()Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public fun getDbName ()Ljava/lang/String;
+	public fun getDocumentation ()Ljava/lang/String;
+	public final fun getFields ()Ljava/util/List;
+	public fun getName ()Ljava/lang/String;
+	public final fun getOnDelete ()Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public final fun getOnUpdate ()Lio/github/thirtyeighttwentysix/volan/ir/ReferentialAction;
+	public final fun getReferences ()Ljava/util/List;
+	public final fun getRelationName ()Ljava/lang/String;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getTargetModel ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun isIgnored ()Z
+	public final fun isOwningSide ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/RelationKind : java/lang/Enum {
+	public static final field MANY_TO_MANY Lio/github/thirtyeighttwentysix/volan/ir/RelationKind;
+	public static final field ONE_TO_MANY Lio/github/thirtyeighttwentysix/volan/ir/RelationKind;
+	public static final field ONE_TO_ONE Lio/github/thirtyeighttwentysix/volan/ir/RelationKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/RelationKind;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/ir/RelationKind;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/ScalarField : io/github/thirtyeighttwentysix/volan/ir/Field {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/FieldType;Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;ZZZZLio/github/thirtyeighttwentysix/volan/ir/DefaultValue;Lio/github/thirtyeighttwentysix/volan/ir/NativeType;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Lio/github/thirtyeighttwentysix/volan/ir/NativeType;
+	public final fun component11 ()Ljava/lang/String;
+	public final fun component12 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/ir/FieldType;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public final fun component5 ()Z
+	public final fun component6 ()Z
+	public final fun component7 ()Z
+	public final fun component8 ()Z
+	public final fun component9 ()Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/FieldType;Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;ZZZZLio/github/thirtyeighttwentysix/volan/ir/DefaultValue;Lio/github/thirtyeighttwentysix/volan/ir/NativeType;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/ir/ScalarField;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/ScalarField;Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/ir/FieldType;Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;ZZZZLio/github/thirtyeighttwentysix/volan/ir/DefaultValue;Lio/github/thirtyeighttwentysix/volan/ir/NativeType;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/ScalarField;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCardinality ()Lio/github/thirtyeighttwentysix/volan/ir/Cardinality;
+	public fun getDbName ()Ljava/lang/String;
+	public final fun getDefault ()Lio/github/thirtyeighttwentysix/volan/ir/DefaultValue;
+	public fun getDocumentation ()Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public final fun getNativeType ()Lio/github/thirtyeighttwentysix/volan/ir/NativeType;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getType ()Lio/github/thirtyeighttwentysix/volan/ir/FieldType;
+	public fun hashCode ()I
+	public final fun isId ()Z
+	public fun isIgnored ()Z
+	public final fun isUnique ()Z
+	public final fun isUpdatedAt ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/ScalarType : java/lang/Enum {
+	public static final field BOOLEAN Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field BYTES Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/ir/ScalarType$Companion;
+	public static final field DATE Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field DATE_TIME Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field DECIMAL Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field DOUBLE Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field FLOAT Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field INT Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field JSON Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field LONG Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field STRING Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field TIME Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final field UUID Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static final fun fromSchemaName (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getSchemaName ()Ljava/lang/String;
+	public static final fun names ()Ljava/util/List;
+	public fun toString ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/ScalarType$Companion {
+	public final fun fromSchemaName (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;
+	public final fun names ()Ljava/util/List;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/Schema {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/ir/DatasourceConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/ir/DatasourceConfig;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/util/List;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/ir/DatasourceConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/ir/Schema;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/Schema;Lio/github/thirtyeighttwentysix/volan/ir/DatasourceConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/Schema;
+	public final fun enumType (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/EnumType;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDatasource ()Lio/github/thirtyeighttwentysix/volan/ir/DatasourceConfig;
+	public final fun getEnums ()Ljava/util/List;
+	public final fun getGenerators ()Ljava/util/List;
+	public final fun getModels ()Ljava/util/List;
+	public final fun getRelations ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun model (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/Model;
+	public final fun relationsOf (Ljava/lang/String;)Ljava/util/List;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/SchemaLoader {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/ir/SchemaLoader;
+	public static final fun analyze (Lio/github/thirtyeighttwentysix/volan/schema/ParseResult;)Lio/github/thirtyeighttwentysix/volan/ir/AnalysisResult;
+	public static final fun load (Lio/github/thirtyeighttwentysix/volan/schema/SourceFile;)Lio/github/thirtyeighttwentysix/volan/ir/AnalysisResult;
+	public static final fun load (Ljava/lang/String;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/AnalysisResult;
+	public static final fun loadOrThrow (Lio/github/thirtyeighttwentysix/volan/schema/SourceFile;)Lio/github/thirtyeighttwentysix/volan/ir/Schema;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/SemanticCode : java/lang/Enum, io/github/thirtyeighttwentysix/volan/schema/DiagnosticCode {
+	public static final field CASCADE_CYCLE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field CONNECTION_URL_IN_SCHEMA Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field DUPLICATE_ATTRIBUTE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field DUPLICATE_DATASOURCE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field DUPLICATE_DECLARATION Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field DUPLICATE_MAPPED_NAME Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field DUPLICATE_MEMBER Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field DUPLICATE_PRIMARY_KEY Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field EMPTY_FIELD_LIST Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field INVALID_ATTRIBUTE_TARGET Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field INVALID_DEFAULT Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field INVALID_ID_FIELD Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field INVALID_OPTION_VALUE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field INVALID_REFERENTIAL_ACTION Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field INVALID_UNIQUE_FIELD Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field INVALID_UPDATED_AT Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field MISSING_ATTRIBUTE_ARGUMENT Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field MISSING_DATASOURCE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field MISSING_OPTION Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field MISSING_PRIMARY_KEY Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field RELATION_AMBIGUOUS Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field RELATION_ARGUMENT_MISMATCH Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field RELATION_FOREIGN_KEY_NOT_UNIQUE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field RELATION_INVALID_SIDE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field RELATION_MISSING_OPPOSITE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field RELATION_REFERENCE_NOT_UNIQUE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field RELATION_TYPE_MISMATCH Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field UNKNOWN_ATTRIBUTE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field UNKNOWN_ATTRIBUTE_ARGUMENT Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field UNKNOWN_ATTRIBUTE_NAMESPACE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field UNKNOWN_FIELD_REFERENCE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field UNKNOWN_OPTION Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field UNKNOWN_PROVIDER Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field UNKNOWN_TYPE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field UNSATISFIABLE_REQUIRED_RELATION Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public fun getId ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/ir/UniqueConstraint {
+	public fun <init> (Ljava/util/List;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/util/List;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/ir/UniqueConstraint;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/ir/UniqueConstraint;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/ir/UniqueConstraint;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDbName ()Ljava/lang/String;
+	public final fun getFields ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
