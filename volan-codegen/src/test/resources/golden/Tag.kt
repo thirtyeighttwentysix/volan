@@ -4,6 +4,7 @@ package com.example.blog
 import io.github.thirtyeighttwentysix.volan.runtime.ColumnMetadata
 import io.github.thirtyeighttwentysix.volan.runtime.CreateSpec
 import io.github.thirtyeighttwentysix.volan.runtime.DeleteSpec
+import io.github.thirtyeighttwentysix.volan.runtime.EntityReader
 import io.github.thirtyeighttwentysix.volan.runtime.FilterScope
 import io.github.thirtyeighttwentysix.volan.runtime.IncludeScope
 import io.github.thirtyeighttwentysix.volan.runtime.OrderField
@@ -22,6 +23,7 @@ import io.github.thirtyeighttwentysix.volan.runtime.TableMetadata
 import io.github.thirtyeighttwentysix.volan.runtime.TextFilterField
 import io.github.thirtyeighttwentysix.volan.runtime.UpdateSpec
 import io.github.thirtyeighttwentysix.volan.runtime.UpsertSpec
+import io.github.thirtyeighttwentysix.volan.runtime.VolanConfigurationException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanNotFoundException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanValidationException
 import kotlin.Any
@@ -86,6 +88,14 @@ public class Tag(
   }
 
   override fun toString(): String = """Tag(id=$id, name=$name)"""
+
+  /**
+   * Returns a copy of this row with `relation` loaded to `value`.
+   */
+  internal fun withRelationValue(relation: String, `value`: Any?): Tag = when (relation) {
+    "posts" -> Tag(id, name, postsSlot = RelationSlot.loaded(value as List<Post>))
+    else -> this
+  }
 
   /**
    * Builds a [Tag] field by field.
@@ -164,13 +174,38 @@ public object TagTable {
 }
 
 /**
- * Reads one row of `Tag` into a [Tag].
+ * Reads one row of `Tag` into a [Tag], and gives the relation loader the two things it needs: this row's key, and a copy of it with a relation filled in.
  */
-public object TagRowMapper : RowMapper<Tag> {
+public object TagRowMapper : EntityReader<Tag> {
+  /**
+   * The model these rows belong to.
+   */
+  override val model: String = "Tag"
+
   override fun map(row: Row): Tag = Tag(
     id = row.getInt("id"),
     name = row.getString("name"),
   )
+
+  /**
+   * Reads the values of `columns` out of `entity`, in order.
+   */
+  override fun key(entity: Tag, columns: List<String>): List<Any?> = columns.map { column ->
+    when (column) {
+      "id" -> entity.id
+      "name" -> entity.name
+      else -> throw VolanConfigurationException("""`Tag` has no column named `$column`, so it cannot be part of a key.""")
+    }
+  }
+
+  /**
+   * Returns a copy of `entity` with `relation` loaded to `value`.
+   */
+  override fun withRelation(
+    entity: Tag,
+    relation: String,
+    `value`: Any?,
+  ): Tag = entity.withRelationValue(relation, value)
 }
 
 /**

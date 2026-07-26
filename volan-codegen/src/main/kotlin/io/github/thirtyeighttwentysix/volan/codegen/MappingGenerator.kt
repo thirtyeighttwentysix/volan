@@ -1,5 +1,6 @@
 package io.github.thirtyeighttwentysix.volan.codegen
 
+import com.squareup.kotlinpoet.ANY
 import com.squareup.kotlinpoet.BOOLEAN
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
@@ -91,23 +92,75 @@ internal class MappingGenerator(private val schema: Schema, private val types: T
     }
 
     fun rowMapper(model: Model): TypeSpec {
-        val body = CodeBlock.builder().add("return %T(\n", types.declared(model.name))
+        val entity = types.declared(model.name)
+        val body = CodeBlock.builder().add("return %T(\n", entity)
         model.fields.forEach { field ->
             body.add("  %L = %L,\n", field.name, readExpression(field))
         }
         body.add(")\n")
         return TypeSpec.objectBuilder("${model.name}RowMapper")
-            .addKdoc("Reads one row of `${model.dbName}` into a [%T].\n", types.declared(model.name))
-            .addSuperinterface(Types.rowMapper.parameterizedBy(types.declared(model.name)))
+            .addKdoc(
+                "Reads one row of `${model.dbName}` into a [%T], and gives the relation loader the two " +
+                    "things it needs: this row's key, and a copy of it with a relation filled in.\n",
+                entity,
+            )
+            .addSuperinterface(Types.entityReader.parameterizedBy(entity))
+            .addProperty(
+                PropertySpec.builder("model", STRING)
+                    .addKdoc("The model these rows belong to.\n")
+                    .addModifiers(KModifier.OVERRIDE)
+                    .initializer("%S", model.name)
+                    .build(),
+            )
             .addFunction(
                 FunSpec.builder("map")
                     .addModifiers(KModifier.OVERRIDE)
                     .addParameter("row", Types.row)
-                    .returns(types.declared(model.name))
+                    .returns(entity)
                     .addCode(body.build())
                     .build(),
             )
+            .addFunction(keyFunction(model, entity))
+            .addFunction(withRelationFunction(model, entity))
             .build()
+    }
+
+    private fun keyFunction(model: Model, entity: TypeName): FunSpec {
+        val body = CodeBlock.builder()
+            .add("return columns.map { column ->\n")
+            .indent()
+            .add("when (column) {\n")
+            .indent()
+        model.fields.forEach { field -> body.add("%S -> entity.%L\n", field.dbName, field.name) }
+        body.add(
+            "else -> throw %T(%P)\n",
+            Types.configurationException,
+            "`${model.name}` has no column named `\$column`, so it cannot be part of a key.",
+        )
+        body.unindent().add("}\n").unindent().add("}\n")
+        return FunSpec.builder("key")
+            .addKdoc("Reads the values of `columns` out of `entity`, in order.\n")
+            .addModifiers(KModifier.OVERRIDE)
+            .addParameter("entity", entity)
+            .addParameter("columns", LIST.parameterizedBy(STRING))
+            .returns(LIST.parameterizedBy(ANY.copy(nullable = true)))
+            .addCode(body.build())
+            .build()
+    }
+
+    private fun withRelationFunction(model: Model, entity: TypeName): FunSpec {
+        val builder = FunSpec.builder("withRelation")
+            .addKdoc("Returns a copy of `entity` with `relation` loaded to `value`.\n")
+            .addModifiers(KModifier.OVERRIDE)
+            .addParameter("entity", entity)
+            .addParameter("relation", STRING)
+            .addParameter("value", ANY.copy(nullable = true))
+            .returns(entity)
+        return if (model.relationFields.isEmpty()) {
+            builder.addStatement("return entity").build()
+        } else {
+            builder.addStatement("return entity.withRelationValue(relation, value)").build()
+        }
     }
 
     fun projection(model: Model): TypeSpec {

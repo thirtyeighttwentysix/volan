@@ -10,10 +10,12 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.LIST
 import com.squareup.kotlinpoet.LONG
 import com.squareup.kotlinpoet.LambdaTypeName
+import com.squareup.kotlinpoet.MAP
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.SET
+import com.squareup.kotlinpoet.STAR
 import com.squareup.kotlinpoet.STRING
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
@@ -354,12 +356,25 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
         val tables = CodeBlock.builder().add("listOf(\n")
         models.forEach { tables.add("  %T.METADATA,\n", types.declared("${it.name}Table")) }
         tables.add(")")
+        val readers = CodeBlock.builder().add("mapOf(\n")
+        models.forEach { readers.add("  %S to %T,\n", it.name, types.declared("${it.name}RowMapper")) }
+        readers.add(")")
         return TypeSpec.companionObjectBuilder()
             .addProperty(
                 PropertySpec.builder("TABLES", LIST.parameterizedBy(Types.tableMetadata))
                     .addKdoc("What the runtime needs to know about this schema's models.\n")
                     .addAnnotation(ClassName("kotlin.jvm", "JvmField"))
                     .initializer(tables.build())
+                    .build(),
+            )
+            .addProperty(
+                PropertySpec.builder(
+                    "READERS",
+                    MAP.parameterizedBy(STRING, Types.entityReader.parameterizedBy(STAR)),
+                )
+                    .addKdoc("How to read each model, which is what loading a relation needs.\n")
+                    .addAnnotation(ClassName("kotlin.jvm", "JvmField"))
+                    .initializer(readers.build())
                     .build(),
             )
             .addFunction(
@@ -393,7 +408,7 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
             .addProperty(
                 PropertySpec.builder("delegate", Types.volanBuilder)
                     .addModifiers(KModifier.PRIVATE)
-                    .initializer("%T.builder().tables(TABLES)", Types.volan)
+                    .initializer("%T.builder().tables(TABLES).readers(READERS)", Types.volan)
                     .build(),
             )
         options.forEach { (name, type, kdoc) ->

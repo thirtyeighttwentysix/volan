@@ -2,8 +2,11 @@ package verify
 
 import com.example.blog.Role
 import com.example.blog.VolanClient
+import io.github.thirtyeighttwentysix.volan.dialect.postgres.PostgresDialect
 import io.github.thirtyeighttwentysix.volan.runtime.Isolation
+import io.github.thirtyeighttwentysix.volan.runtime.Volan
 import io.github.thirtyeighttwentysix.volan.runtime.VolanNotFoundException
+import io.github.thirtyeighttwentysix.volan.runtime.VolanRelationNotLoadedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanUniqueConstraintException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanUnsupportedException
 import io.kotest.matchers.collections.shouldContainExactly
@@ -21,6 +24,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 import java.sql.DriverManager
 import java.time.Instant
+import javax.sql.DataSource
 
 /**
  * Whether there is a Docker daemon to run PostgreSQL in.
@@ -321,11 +325,126 @@ class PostgresIntegrationTest {
     }
 
     @Test
-    fun `loading a relation says it is not available yet rather than answering wrongly`() {
+    fun `include loads a to-many relation and hands each row its own share`() {
+        val user = alice()
+        val other = client.user.create { email = "bob@acme.com" }
+        client.post.create {
+            title = "First"
+            authorId = user.id
+        }
+        client.post.create {
+            title = "Second"
+            authorId = user.id
+        }
+        client.post.create {
+            title = "Bob's"
+            authorId = other.id
+        }
+
+        val users = client.user.findMany {
+            orderBy { id.asc() }
+            include { posts { orderBy { title.asc() } } }
+        }
+        users.first { it.id == user.id }.posts.map { it.title } shouldContainExactly listOf("First", "Second")
+        users.first { it.id == other.id }.posts.map { it.title } shouldContainExactly listOf("Bob's")
+    }
+
+    @Test
+    fun `include loads a to-one relation, and absent is different from not loaded`() {
+        val user = alice()
+        client.profile.create {
+            bio = "Writes things"
+            userId = user.id
+        }
+        val other = client.user.create { email = "bob@acme.com" }
+
+        val users = client.user.findMany { include { profile { } } }
+        users.first { it.id == user.id }.profile.shouldNotBeNull().bio shouldBe "Writes things"
+        val bob = users.first { it.id == other.id }
+        bob.isProfileLoaded shouldBe true
+        bob.profile.shouldBeNull()
+    }
+
+    @Test
+    fun `a relation that was not asked for still refuses to be read`() {
         alice()
-        val thrown = runCatching { client.user.findMany { include { posts { } } } }.exceptionOrNull()
+        val user = client.user.findMany { include { posts { } } }.single()
+        user.isPostsLoaded shouldBe true
+        val thrown = runCatching { user.profile }.exceptionOrNull()
+        (thrown is VolanRelationNotLoadedException) shouldBe true
+    }
+
+    @Test
+    fun `an include can be filtered and paged on its own side`() {
+        val user = alice()
+        listOf("Kotlin one", "Kotlin two", "Java one").forEach { subject ->
+            client.post.create {
+                title = subject
+                authorId = user.id
+            }
+        }
+        val loaded = client.user.findMany {
+            include {
+                posts {
+                    where { title startsWith "Kotlin" }
+                    orderBy { title.desc() }
+                    take = 1
+                }
+            }
+        }.single()
+        loaded.posts.map { it.title } shouldContainExactly listOf("Kotlin two")
+    }
+
+    @Test
+    fun `includes nest, and each level costs one statement rather than one per row`() {
+        val counter = java.util.concurrent.atomic.AtomicInteger()
+        countingClient(counter).use { counted ->
+            val user = alice()
+            repeat(3) { index ->
+                val post = client.post.create {
+                    title = "Post $index"
+                    authorId = user.id
+                }
+                client.comment.create {
+                    postId = post.id
+                    authorId = user.id
+                    body = "Comment on $index"
+                }
+            }
+
+            counter.set(0)
+            val users = counted.user.findMany { include { posts { include { comments { } } } } }
+            users.single().posts.size shouldBe 3
+            users.single().posts.first().comments.size shouldBe 1
+
+            // One statement for the users, one for every post, one for every comment: three in total,
+            // whatever the number of rows at each level.
+            counter.get() shouldBe 3
+        }
+    }
+
+    @Test
+    fun `loading a many-to-many relation says it is not available yet rather than answering wrongly`() {
+        val user = alice()
+        client.post.create {
+            title = "Tagged"
+            authorId = user.id
+        }
+        val thrown = runCatching { client.post.findMany { include { tags { } } } }.exceptionOrNull()
         (thrown is VolanUnsupportedException) shouldBe true
-        thrown?.message.orEmpty() shouldContain "arrives in M5"
+        thrown?.message.orEmpty() shouldContain "arrives with nested writes in M5"
+    }
+
+    @Test
+    fun `asking for a relation alongside a partial select is a question with no answer`() {
+        alice()
+        val thrown = runCatching {
+            client.user.projectMany {
+                select { email }
+                include { posts { } }
+            }
+        }.exceptionOrNull()
+        thrown?.message.orEmpty() shouldContain "nowhere to put the relations"
     }
 
     @Test
@@ -345,6 +464,41 @@ class PostgresIntegrationTest {
         (user.createdAt >= before) shouldBe true
         (user.updatedAt >= before) shouldBe true
     }
+
+    /**
+     * A client whose connections count the statements prepared on them.
+     *
+     * Proving the absence of N+1 means counting statements, and the honest place to count them is
+     * where they are prepared. The proxies stand in for the two JDBC interfaces without reimplementing
+     * their fifty-odd methods.
+     */
+    private fun countingClient(counter: java.util.concurrent.atomic.AtomicInteger): VolanClient {
+        val loader = javaClass.classLoader
+        val connections = DataSource::class.java
+        val plain = java.lang.reflect.Proxy.newProxyInstance(loader, arrayOf(connections)) { _, method, arguments ->
+            val values = arguments ?: emptyArray()
+            if (method.name != "getConnection") {
+                return@newProxyInstance method.invoke(fallbackDataSource(), *values)
+            }
+            val connection = DriverManager.getConnection(container.jdbcUrl, container.username, container.password)
+            java.lang.reflect.Proxy.newProxyInstance(loader, arrayOf(java.sql.Connection::class.java)) { _, call, callArguments ->
+                if (call.name == "prepareStatement") counter.incrementAndGet()
+                call.invoke(connection, *(callArguments ?: emptyArray()))
+            }
+        } as DataSource
+        return VolanClient(
+            Volan.builder()
+                .tables(VolanClient.TABLES)
+                .readers(VolanClient.READERS)
+                .dialect(PostgresDialect)
+                .dataSource(plain)
+                .build(),
+        )
+    }
+
+    private fun fallbackDataSource(): DataSource = throw UnsupportedOperationException(
+        "the counting data source only hands out connections",
+    )
 
     private fun readSingleValue(sql: String): String =
         DriverManager.getConnection(container.jdbcUrl, container.username, container.password).use { connection ->

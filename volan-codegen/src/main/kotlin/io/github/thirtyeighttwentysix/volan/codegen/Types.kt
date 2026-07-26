@@ -44,6 +44,7 @@ internal object Types {
     val selectedFields: ClassName = ClassName(RUNTIME, "SelectedFields")
     val row: ClassName = ClassName(RUNTIME, "Row")
     val rowMapper: ClassName = ClassName(RUNTIME, "RowMapper")
+    val entityReader: ClassName = ClassName(RUNTIME, "EntityReader")
     val queryExecutor: ClassName = ClassName(RUNTIME, "QueryExecutor")
     val querySpec: ClassName = ClassName(RUNTIME, "QuerySpec")
     val createSpec: ClassName = ClassName(RUNTIME, "CreateSpec")

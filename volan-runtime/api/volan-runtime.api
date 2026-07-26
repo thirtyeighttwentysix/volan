@@ -58,6 +58,12 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/DeleteSpec {
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class io/github/thirtyeighttwentysix/volan/runtime/EntityReader : io/github/thirtyeighttwentysix/volan/runtime/RowMapper {
+	public abstract fun getModel ()Ljava/lang/String;
+	public abstract fun key (Ljava/lang/Object;Ljava/util/List;)Ljava/util/List;
+	public abstract fun withRelation (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/runtime/EnumFilterField : io/github/thirtyeighttwentysix/volan/runtime/EqualityFilterField {
 	public synthetic fun encode$io_github_thirtyeighttwentysix_volan_runtime (Ljava/lang/Object;)Ljava/lang/Object;
 }
@@ -599,10 +605,12 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Volan$Builder {
 	public final fun build ()Lio/github/thirtyeighttwentysix/volan/runtime/Volan;
 	public final fun clock (Ljava/time/Clock;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public final fun connectionTimeout (J)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public final fun dataSource (Ljavax/sql/DataSource;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public final fun dialect (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public final fun maxPoolSize (I)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public final fun password (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public final fun poolName (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
+	public final fun readers (Ljava/util/Map;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public final fun tables (Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public final fun url (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public final fun username (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;

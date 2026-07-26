@@ -24,7 +24,6 @@ import java.time.Instant
  */
 internal class QueryPlanner(private val registry: TableRegistry, private val dialect: Dialect) {
     fun select(spec: QuerySpec): SqlSelect {
-        rejectUnsupported(spec)
         val table = registry.require(spec.model)
         val scope = Scope(table, Aliases())
         val columns = spec.columns ?: table.columns.map { it.column }
@@ -90,22 +89,6 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
             condition = spec.filter?.let { condition(it, scope) },
             returning = if (returning) table.columns.map { it.column } else emptyList(),
         )
-    }
-
-    /**
-     * Refuses the parts of a description this milestone cannot answer correctly.
-     *
-     * Returning rows without the relations that were asked for would be a wrong answer wearing the
-     * shape of a right one.
-     */
-    private fun rejectUnsupported(spec: QuerySpec) {
-        if (spec.includes.isNotEmpty()) {
-            val names = spec.includes.joinToString(", ") { "`${it.relation}`" }
-            throw VolanUnsupportedException(
-                "loading relations is not available yet, so this query cannot answer for $names.\n" +
-                    "  Read them with a second query for now; batched relation loading arrives in M5.",
-            )
-        }
     }
 
     private fun condition(filter: Filter, scope: Scope): SqlCondition = when (filter) {

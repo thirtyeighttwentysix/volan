@@ -25,20 +25,43 @@ internal class JdbcExecutor(
     private val connections: ConnectionSource,
     private val planner: QueryPlanner,
     private val dialect: Dialect,
+    private val loader: RelationLoader,
     private val clock: Clock,
 ) : QueryExecutor {
-    override fun <T> findMany(spec: QuerySpec, mapper: RowMapper<T>): List<T> =
-        query(dialect.render(planner.select(spec)), "reading ${spec.model}") { result ->
-            val rows = ArrayList<T>()
+    override fun <T> findMany(spec: QuerySpec, mapper: RowMapper<T>): List<T> {
+        val rows = query(dialect.render(planner.select(spec)), "reading ${spec.model}") { result ->
+            val read = ArrayList<T>()
             val row = JdbcRow(result)
-            while (result.next()) rows.add(mapper.map(row))
-            rows
+            while (result.next()) read.add(mapper.map(row))
+            read
         }
+        return withRelations(spec, mapper, rows)
+    }
 
     override fun <T> findFirst(spec: QuerySpec, mapper: RowMapper<T>): T? {
         val limited = spec.copy(pagination = spec.pagination.copy(take = 1))
-        return query(dialect.render(planner.select(limited)), "reading ${spec.model}") { result ->
+        val row = query(dialect.render(planner.select(limited)), "reading ${spec.model}") { result ->
             if (result.next()) mapper.map(JdbcRow(result)) else null
+        }
+        return row?.let { withRelations(spec, mapper, listOf(it)).single() }
+    }
+
+    /**
+     * Fills in whatever the query asked to `include`.
+     *
+     * Only an entity can hold a relation, so asking for one alongside a partial `select` is a question
+     * with no answer rather than a feature that is missing.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> withRelations(spec: QuerySpec, mapper: RowMapper<T>, rows: List<T>): List<T> {
+        if (spec.includes.isEmpty()) return rows
+        val reader = mapper as? EntityReader<T> ?: throw VolanQueryException(
+            "`${spec.model}` was read into a projection, which has nowhere to put the relations this query " +
+                "asked to include.\n  Use `findMany` for rows with relations, and `projectMany` for chosen columns.",
+            null,
+        )
+        return loader.load(rows, reader, spec.includes) { childSpec, childReader ->
+            findMany(childSpec, childReader as RowMapper<Any?>)
         }
     }
 

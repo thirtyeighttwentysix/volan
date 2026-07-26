@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Batched relation loading for one-to-one and one-to-many relations: `include` costs one statement per
+  relation level, whatever the number of rows, and includes nest to any depth. Generated mappers hand
+  the loader the two things it needs — a row's key, and a copy of that row with a relation filled in.
+- `Volan.Builder.dataSource(…)`, for fitting into a container that owns connection management.
 - `volan-dialect-api` and `volan-dialect-postgres`: Volan's own SQL model, the `Dialect` interface, a
   capability record the planner reads instead of naming databases, and a renderer that implements
   standard SQL once. Dialects are discovered through `ServiceLoader`, so the runtime depends on no

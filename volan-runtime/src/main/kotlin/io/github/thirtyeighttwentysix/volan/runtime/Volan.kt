@@ -7,6 +7,7 @@ import io.github.thirtyeighttwentysix.volan.dialect.DialectProvider
 import java.time.Clock
 import java.util.ServiceLoader
 import java.util.function.Function
+import javax.sql.DataSource
 
 /**
  * A connected database: a pool, a dialect, and the executor generated clients run through.
@@ -15,15 +16,22 @@ import java.util.function.Function
  * belongs to the thread that opened it.
  */
 public class Volan internal constructor(
-    private val dataSource: HikariDataSource,
+    private val pool: AutoCloseable?,
     private val connections: ConnectionSource,
     private val registry: TableRegistry,
     /** The dialect in use, which is decided by the JDBC URL. */
     public val dialect: Dialect,
+    readers: Map<String, EntityReader<*>>,
     clock: Clock,
 ) : AutoCloseable {
     /** What generated repositories run their descriptions through. */
-    public val executor: QueryExecutor = JdbcExecutor(connections, QueryPlanner(registry, dialect), dialect, clock)
+    public val executor: QueryExecutor = JdbcExecutor(
+        connections = connections,
+        planner = QueryPlanner(registry, dialect),
+        dialect = dialect,
+        loader = RelationLoader(registry, readers, chunkSize(dialect)),
+        clock = clock,
+    )
 
     /** What the runtime knows about the models of this schema. */
     public val tables: TableRegistry get() = registry
@@ -65,9 +73,9 @@ public class Volan internal constructor(
      */
     public fun rawExecute(sql: String, parameters: List<Any?> = emptyList()): Long = (executor as JdbcExecutor).rawExecute(sql, parameters)
 
-    /** Closes the pool. Statements in flight on other threads will fail. */
+    /** Closes the pool, when Volan opened one. A data source the caller supplied is left alone. */
     override fun close() {
-        dataSource.close()
+        pool?.close()
     }
 
     override fun toString(): String = "Volan(${dialect.id}, ${registry.models.size} models)"
@@ -76,6 +84,16 @@ public class Volan internal constructor(
         /** Starts configuring a connection. */
         @JvmStatic
         public fun builder(): Builder = Builder()
+
+        private const val DEFAULT_CHUNK = 500
+
+        /**
+         * How many parent keys go into one relation query.
+         *
+         * Chunking keeps a large page from exceeding the number of parameters a statement may carry,
+         * which is a hard limit on every database and a silent failure on some.
+         */
+        private fun chunkSize(dialect: Dialect): Int = minOf(DEFAULT_CHUNK, dialect.capabilities.maximumParameters / 2)
     }
 
     /**
@@ -92,8 +110,10 @@ public class Volan internal constructor(
         private var connectionTimeout: Long = DEFAULT_CONNECTION_TIMEOUT
         private var poolName: String = "volan"
         private var tables: List<TableMetadata> = emptyList()
+        private var readers: Map<String, EntityReader<*>> = emptyMap()
         private var dialect: Dialect? = null
         private var clock: Clock = Clock.systemUTC()
+        private var dataSource: DataSource? = null
 
         /** The JDBC URL to connect to. It also decides which dialect is used. */
         public fun url(url: String): Builder = apply { this.url = url }
@@ -116,6 +136,21 @@ public class Volan internal constructor(
         /** The models of the schema. Generated clients pass their own. */
         public fun tables(tables: List<TableMetadata>): Builder = apply { this.tables = tables.toList() }
 
+        /**
+         * The mappers that read each model, keyed by model name. Generated clients pass their own.
+         *
+         * Loading a relation means reading rows of another model, which is what these are for.
+         */
+        public fun readers(readers: Map<String, EntityReader<*>>): Builder = apply { this.readers = readers.toMap() }
+
+        /**
+         * Uses a data source the application already has, instead of opening a pool.
+         *
+         * This is how Volan fits into a container that owns connection management — Spring, for
+         * instance. Volan will not close a data source it did not open.
+         */
+        public fun dataSource(dataSource: DataSource): Builder = apply { this.dataSource = dataSource }
+
         /** Overrides the dialect the URL would have chosen. */
         public fun dialect(dialect: Dialect): Builder = apply { this.dialect = dialect }
 
@@ -129,6 +164,14 @@ public class Volan internal constructor(
          *   knows how to talk to it.
          */
         public fun build(): Volan {
+            val supplied = dataSource
+            if (supplied != null) {
+                val resolved = dialect ?: url?.let { discover(it) } ?: throw VolanConfigurationException(
+                    "a data source was given but no dialect could be chosen.\n" +
+                        "  Set `url(…)` so the dialect can be inferred, or name it with `dialect(…)`.",
+                )
+                return Volan(null, ConnectionSource(supplied), TableRegistry(tables), resolved, readers, clock)
+            }
             val jdbcUrl = url ?: throw VolanConfigurationException(
                 "no database URL was given.\n  Set one with `url(…)`, reading it from the environment as the schema does.",
             )
@@ -141,8 +184,8 @@ public class Volan internal constructor(
                 this.connectionTimeout = this@Builder.connectionTimeout
                 this.poolName = this@Builder.poolName
             }
-            val dataSource = HikariDataSource(configuration)
-            return Volan(dataSource, ConnectionSource(dataSource), TableRegistry(tables), resolved, clock)
+            val pool = HikariDataSource(configuration)
+            return Volan(pool, ConnectionSource(pool), TableRegistry(tables), resolved, readers, clock)
         }
 
         /**

@@ -101,13 +101,54 @@ internal class EntityGenerator(private val types: TypeResolver) {
             addRelation(builder, constructor, model, relation)
         }
 
-        return builder
+        builder
             .primaryConstructor(constructor.build())
             .addFunction(equals(model, entityName))
             .addFunction(hashCode(model))
             .addFunction(toString(model))
+        if (model.relationFields.isNotEmpty()) builder.addFunction(withRelationValue(model))
+        return builder
             .addType(entityBuilder(model))
             .addType(entityCompanion(model))
+            .build()
+    }
+
+    /**
+     * Returns a copy carrying one loaded relation.
+     *
+     * It lives on the entity because only the entity can see its own slots, and it is internal because
+     * only the generated mapper calls it — applications get relations from a query, not by hand.
+     */
+    private fun withRelationValue(model: Model): FunSpec {
+        val body = CodeBlock.builder().beginControlFlow("return when (relation)")
+        model.relationFields.forEach { relation ->
+            val arguments = (
+                model.fields.map { it.name } +
+                    model.relationFields.map { other ->
+                        if (other.name == relation.name) {
+                            "${other.name}Slot = %T.loaded(value as %T)"
+                        } else {
+                            "${other.name}Slot = ${other.name}Slot"
+                        }
+                    }
+                ).joinToString(", ")
+            body.addStatement(
+                "%S -> %T($arguments)",
+                relation.name,
+                types.declared(model.name),
+                Types.relationSlot,
+                relationType(relation),
+            )
+        }
+        body.addStatement("else -> this")
+        body.endControlFlow()
+        return FunSpec.builder("withRelationValue")
+            .addKdoc("Returns a copy of this row with `relation` loaded to `value`.\n")
+            .addModifiers(KModifier.INTERNAL)
+            .addParameter("relation", STRING)
+            .addParameter("value", ANY.copy(nullable = true))
+            .returns(types.declared(model.name))
+            .addCode(body.build())
             .build()
     }
 

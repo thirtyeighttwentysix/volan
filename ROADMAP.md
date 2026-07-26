@@ -48,9 +48,10 @@ main branch.
 - **Aggregations and `groupBy`.** The SQL model renders them and the golden tests cover that; the
   repository operations that expose them are scheduled with relation loading in M5, because both need
   the same grouped-result machinery.
-- **Loading relations.** Until M5, a query with an `include` is refused with a message naming the
-  milestone rather than answered without the relations it asked for. A wrong answer in the shape of a
-  right one is the one outcome worth failing to avoid.
+- **Many-to-many loading, nested writes and aggregations.** One-to-one and one-to-many relations load
+  as of M5; a query that includes a many-to-many relation is refused with a message naming the
+  milestone rather than answered without it. A wrong answer in the shape of a right one is the one
+  outcome worth failing to avoid.
 - **Cursors combined with an explicit `orderBy`.** Resuming after a row requires knowing that row's
   position in that order, which the key alone does not give. A cursor on its own pages by primary key;
   combining the two is refused with an explanation until keyset paging over arbitrary orderings lands.
