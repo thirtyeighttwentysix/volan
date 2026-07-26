@@ -5,6 +5,7 @@ plugins {
 description = "Volan runtime: query planning, JDBC execution, result mapping, transactions and pooling."
 
 dependencies {
+    api(project(":volan-core"))
     api(project(":volan-dialect-api"))
     api(libs.jspecify)
     implementation(libs.hikari)

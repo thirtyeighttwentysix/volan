@@ -1,0 +1,531 @@
+public final class io/github/thirtyeighttwentysix/volan/runtime/ColumnMetadata {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZZ)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZZZ)Lio/github/thirtyeighttwentysix/volan/runtime/ColumnMetadata;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/ColumnMetadata;Ljava/lang/String;Ljava/lang/String;ZZZILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/ColumnMetadata;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumn ()Ljava/lang/String;
+	public final fun getField ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isGenerated ()Z
+	public final fun isNullable ()Z
+	public final fun isUpdatedAt ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator : java/lang/Enum {
+	public static final field CONTAINS Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public static final field ENDS_WITH Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public static final field EQUAL Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public static final field GREATER_THAN Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public static final field GREATER_THAN_OR_EQUAL Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public static final field LESS_THAN Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public static final field LESS_THAN_OR_EQUAL Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public static final field NOT_EQUAL Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public static final field STARTS_WITH Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/CreateSpec {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getModel ()Ljava/lang/String;
+	public final fun getValues ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/DeleteSpec {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)Lio/github/thirtyeighttwentysix/volan/runtime/DeleteSpec;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/DeleteSpec;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/DeleteSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun getModel ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/EnumFilterField : io/github/thirtyeighttwentysix/volan/runtime/EqualityFilterField {
+	public synthetic fun encode$io_github_thirtyeighttwentysix_volan_runtime (Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public class io/github/thirtyeighttwentysix/volan/runtime/EqualityFilterField {
+	public final fun eq (Ljava/lang/Object;)V
+	public final fun isNotNull ()V
+	public final fun isNull ()V
+	public final fun notEq (Ljava/lang/Object;)V
+	public final fun notOneOf (Ljava/util/Collection;)V
+	public final fun oneOf (Ljava/util/Collection;)V
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Companion;
+	public static fun all (Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public static fun any (Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$And : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$And;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/Filter$And;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$And;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilters ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$Between : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Object;
+	public final fun component3 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Between;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Between;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Between;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumn ()Ljava/lang/String;
+	public final fun getLower ()Ljava/lang/Object;
+	public final fun getUpper ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$Companion {
+	public final fun all (Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun any (Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$Compare : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;Ljava/lang/Object;Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;Ljava/lang/Object;Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public final fun component3 ()Ljava/lang/Object;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;Ljava/lang/Object;Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Compare;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Compare;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;Ljava/lang/Object;Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Compare;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumn ()Ljava/lang/String;
+	public final fun getMode ()Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;
+	public final fun getOperator ()Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$InList : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Z)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$InList;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/Filter$InList;Ljava/lang/String;Ljava/util/List;ZILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$InList;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumn ()Ljava/lang/String;
+	public final fun getNegated ()Z
+	public final fun getValues ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$IsNull : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/lang/String;Z)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$IsNull;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/Filter$IsNull;Ljava/lang/String;ZILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$IsNull;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumn ()Ljava/lang/String;
+	public final fun getNegated ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$Not : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Not;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Not;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Not;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$Or : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Or;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Or;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Or;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilters ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$Related : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Related;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Related;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter$Related;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun getQuantifier ()Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;
+	public final fun getRelation ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class io/github/thirtyeighttwentysix/volan/runtime/FilterScope {
+	protected fun <init> ()V
+	public final fun build ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	protected final fun enumField (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/github/thirtyeighttwentysix/volan/runtime/EnumFilterField;
+	protected final fun equalityField (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/EqualityFilterField;
+	protected final fun orderedField (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/OrderedFilterField;
+	protected final fun record (Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)V
+	protected final fun recordAllOf (Lio/github/thirtyeighttwentysix/volan/runtime/FilterScope;)V
+	protected final fun recordAnyOf (Lio/github/thirtyeighttwentysix/volan/runtime/FilterScope;)V
+	protected final fun recordNoneOf (Lio/github/thirtyeighttwentysix/volan/runtime/FilterScope;)V
+	protected final fun recordRelated (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;Lio/github/thirtyeighttwentysix/volan/runtime/FilterScope;)V
+	protected final fun textField (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/TextFilterField;
+}
+
+public abstract class io/github/thirtyeighttwentysix/volan/runtime/IncludeScope {
+	protected fun <init> ()V
+	public final fun build ()Ljava/util/List;
+	protected final fun includeRelation (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;)V
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/NullsOrder : java/lang/Enum {
+	public static final field DEFAULT Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;
+	public static final field FIRST Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;
+	public static final field LAST Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/OrderField {
+	public final fun asc ()V
+	public final fun ascNullsFirst ()V
+	public final fun ascNullsLast ()V
+	public final fun desc ()V
+	public final fun descNullsFirst ()V
+	public final fun descNullsLast ()V
+}
+
+public abstract class io/github/thirtyeighttwentysix/volan/runtime/OrderScope {
+	protected fun <init> ()V
+	public final fun build ()Ljava/util/List;
+	protected final fun orderField (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/OrderField;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/OrderTerm {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;)Lio/github/thirtyeighttwentysix/volan/runtime/OrderTerm;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/OrderTerm;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/OrderTerm;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumn ()Ljava/lang/String;
+	public final fun getDirection ()Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;
+	public final fun getNulls ()Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public class io/github/thirtyeighttwentysix/volan/runtime/OrderedFilterField : io/github/thirtyeighttwentysix/volan/runtime/EqualityFilterField {
+	public final fun between (Ljava/lang/Comparable;Ljava/lang/Comparable;)V
+	public final fun gt (Ljava/lang/Comparable;)V
+	public final fun gte (Ljava/lang/Comparable;)V
+	public final fun lt (Ljava/lang/Comparable;)V
+	public final fun lte (Ljava/lang/Comparable;)V
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Pagination {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/runtime/Pagination$Companion;
+	public static final field NONE Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;Z)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun component4 ()Z
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;Z)Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;ZILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCursor ()Ljava/util/Map;
+	public final fun getSkip ()Ljava/lang/Integer;
+	public final fun getSkipCursorRow ()Z
+	public final fun getTake ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/Pagination$Companion {
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/runtime/QueryExecutor {
+	public abstract fun count (Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;)J
+	public abstract fun create (Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;)Ljava/lang/Object;
+	public abstract fun createMany (Ljava/util/List;)J
+	public abstract fun delete (Lio/github/thirtyeighttwentysix/volan/runtime/DeleteSpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;)Ljava/lang/Object;
+	public abstract fun deleteMany (Lio/github/thirtyeighttwentysix/volan/runtime/DeleteSpec;)J
+	public abstract fun exists (Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;)Z
+	public abstract fun findFirst (Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;)Ljava/lang/Object;
+	public abstract fun findMany (Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;)Ljava/util/List;
+	public abstract fun update (Lio/github/thirtyeighttwentysix/volan/runtime/UpdateSpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;)Ljava/lang/Object;
+	public abstract fun updateMany (Lio/github/thirtyeighttwentysix/volan/runtime/UpdateSpec;)J
+}
+
+public abstract class io/github/thirtyeighttwentysix/volan/runtime/QueryScope {
+	protected fun <init> (Ljava/lang/String;)V
+	public final fun build ()Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;
+	public final fun getDistinct ()Ljava/util/List;
+	public final fun getSkip ()Ljava/lang/Integer;
+	public final fun getTake ()Ljava/lang/Integer;
+	protected final fun recordCursor (Ljava/util/Map;Z)V
+	protected final fun recordFilter (Lio/github/thirtyeighttwentysix/volan/runtime/FilterScope;)V
+	protected final fun recordIncludes (Lio/github/thirtyeighttwentysix/volan/runtime/IncludeScope;)V
+	protected final fun recordOrder (Lio/github/thirtyeighttwentysix/volan/runtime/OrderScope;)V
+	protected final fun recordSelection (Ljava/util/List;)V
+	public final fun setDistinct (Ljava/util/List;)V
+	public final fun setSkip (Ljava/lang/Integer;)V
+	public final fun setTake (Ljava/lang/Integer;)V
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/QuerySpec {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;
+	public final fun component5 ()Ljava/util/List;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;Ljava/util/List;Ljava/util/List;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumns ()Ljava/util/List;
+	public final fun getDistinct ()Ljava/util/List;
+	public final fun getFilter ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun getIncludes ()Ljava/util/List;
+	public final fun getModel ()Ljava/lang/String;
+	public final fun getOrderBy ()Ljava/util/List;
+	public final fun getPagination ()Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/RelationMetadata {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;Ljava/util/List;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/util/List;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;Ljava/util/List;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getField ()Ljava/lang/String;
+	public final fun getForeignKeyColumns ()Ljava/util/List;
+	public final fun getJoinTable ()Ljava/lang/String;
+	public final fun getReferencedColumns ()Ljava/util/List;
+	public final fun getTarget ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isList ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier : java/lang/Enum {
+	public static final field EVERY Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;
+	public static final field IS Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;
+	public static final field IS_NOT Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;
+	public static final field NONE Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;
+	public static final field SOME Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/runtime/RelationQuantifier;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/RelationRequest {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationRequest;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/RelationRequest;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRelation ()Ljava/lang/String;
+	public final fun getSpec ()Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/RelationSlot {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/runtime/RelationSlot$Companion;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun get (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;
+	public fun hashCode ()I
+	public final fun isLoaded ()Z
+	public static final fun loaded (Ljava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationSlot;
+	public static final fun notLoaded ()Lio/github/thirtyeighttwentysix/volan/runtime/RelationSlot;
+	public final fun orNull ()Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/RelationSlot$Companion {
+	public final fun loaded (Ljava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationSlot;
+	public final fun notLoaded ()Lio/github/thirtyeighttwentysix/volan/runtime/RelationSlot;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/runtime/Row {
+	public abstract fun getBoolean (Ljava/lang/String;)Z
+	public abstract fun getBooleanOrNull (Ljava/lang/String;)Ljava/lang/Boolean;
+	public abstract fun getBytes (Ljava/lang/String;)[B
+	public abstract fun getBytesOrNull (Ljava/lang/String;)[B
+	public abstract fun getDecimal (Ljava/lang/String;)Ljava/math/BigDecimal;
+	public abstract fun getDecimalOrNull (Ljava/lang/String;)Ljava/math/BigDecimal;
+	public abstract fun getDouble (Ljava/lang/String;)D
+	public abstract fun getDoubleOrNull (Ljava/lang/String;)Ljava/lang/Double;
+	public abstract fun getFloat (Ljava/lang/String;)F
+	public abstract fun getFloatOrNull (Ljava/lang/String;)Ljava/lang/Float;
+	public abstract fun getInstant (Ljava/lang/String;)Ljava/time/Instant;
+	public abstract fun getInstantOrNull (Ljava/lang/String;)Ljava/time/Instant;
+	public abstract fun getInt (Ljava/lang/String;)I
+	public abstract fun getIntOrNull (Ljava/lang/String;)Ljava/lang/Integer;
+	public abstract fun getJson (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/Json;
+	public abstract fun getJsonOrNull (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/Json;
+	public abstract fun getLocalDate (Ljava/lang/String;)Ljava/time/LocalDate;
+	public abstract fun getLocalDateOrNull (Ljava/lang/String;)Ljava/time/LocalDate;
+	public abstract fun getLocalTime (Ljava/lang/String;)Ljava/time/LocalTime;
+	public abstract fun getLocalTimeOrNull (Ljava/lang/String;)Ljava/time/LocalTime;
+	public abstract fun getLong (Ljava/lang/String;)J
+	public abstract fun getLongOrNull (Ljava/lang/String;)Ljava/lang/Long;
+	public abstract fun getString (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun getStringOrNull (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun getUuid (Ljava/lang/String;)Ljava/util/UUID;
+	public abstract fun getUuidOrNull (Ljava/lang/String;)Ljava/util/UUID;
+	public abstract fun isNull (Ljava/lang/String;)Z
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/runtime/RowMapper {
+	public abstract fun map (Lio/github/thirtyeighttwentysix/volan/runtime/Row;)Ljava/lang/Object;
+}
+
+public abstract class io/github/thirtyeighttwentysix/volan/runtime/SelectScope {
+	protected fun <init> ()V
+	public final fun build ()Ljava/util/Set;
+	protected final fun markSelected (Ljava/lang/String;)V
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/SelectedFields {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/runtime/SelectedFields$Companion;
+	public fun <init> (Ljava/util/Set;)V
+	public final fun contains (Ljava/lang/String;)Z
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public static final fun of (Ljava/util/Set;)Lio/github/thirtyeighttwentysix/volan/runtime/SelectedFields;
+	public final fun require (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/SelectedFields$Companion {
+	public final fun of (Ljava/util/Set;)Lio/github/thirtyeighttwentysix/volan/runtime/SelectedFields;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/SortDirection : java/lang/Enum {
+	public static final field ASCENDING Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;
+	public static final field DESCENDING Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/TableMetadata {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public final fun column (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/ColumnMetadata;
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/TableMetadata;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/TableMetadata;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/TableMetadata;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumns ()Ljava/util/List;
+	public final fun getModel ()Ljava/lang/String;
+	public final fun getPrimaryKey ()Ljava/util/List;
+	public final fun getRelations ()Ljava/util/List;
+	public final fun getTable ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun relation (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/TextFilterField : io/github/thirtyeighttwentysix/volan/runtime/OrderedFilterField {
+	public final fun contains (Ljava/lang/String;)V
+	public final fun endsWith (Ljava/lang/String;)V
+	public final fun ignoringCase ()Lio/github/thirtyeighttwentysix/volan/runtime/TextFilterField;
+	public final fun startsWith (Ljava/lang/String;)V
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/TextMatchMode : java/lang/Enum {
+	public static final field INSENSITIVE Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;
+	public static final field SENSITIVE Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/UpdateSpec {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/Map;)Lio/github/thirtyeighttwentysix/volan/runtime/UpdateSpec;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/UpdateSpec;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/Map;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/UpdateSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun getModel ()Ljava/lang/String;
+	public final fun getValues ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanFieldNotSelectedException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public final fun getField ()Ljava/lang/String;
+	public final fun getModel ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanNotFoundException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getModel ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/VolanRelationNotLoadedException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public final fun getModel ()Ljava/lang/String;
+	public final fun getRelation ()Ljava/lang/String;
+}
+

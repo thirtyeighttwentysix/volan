@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `volan-runtime`: the query description layer generated clients are built on — filter, ordering,
+  paging and selection trees, table metadata, the `Row`/`RowMapper` reading contract, and the
+  `QueryExecutor` boundary that keeps JDBC out of generated code. No SQL is produced here: values stay
+  values from the moment they enter the DSL.
+- `RelationSlot` and `SelectedFields`: reading a relation that was not included, or a field a partial
+  `select` left out, fails with a message naming the query to change instead of returning a silent null.
+- `Json`, the value type of a `Json` column, in `volan-core`.
 - `volan-ir`: semantic analysis and the normalized schema model. Resolves every type, pairs up both
   ends of every relation, applies `@map`, and validates keys, defaults, constraints and referential
   actions. `SchemaLoader.load(…)` turns schema text into a `Schema` or into diagnostics.

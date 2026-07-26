@@ -9,7 +9,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M0** | Project skeleton: multi-module Gradle build, version catalog, ktlint/detekt/Kover/ABI validation, CI, licence, docs skeleton | `./gradlew build` green | ✅ |
 | **M1** | Schema language: lexer, parser, AST, Rust-style diagnostics, formatter | The reference schema parses; 34 negative fixtures assert exact diagnostics | ✅ |
 | **M2** | IR: name resolution, type checking, relation pairing, composite keys, cycle detection | IR snapshot tests | ✅ |
-| **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections | Golden-file tests + the generated sources actually compile | 🚧 |
+| **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections. Split in two: the query description layer generated code compiles against (done), then the generator itself | Golden-file tests + the generated sources actually compile | 🚧 |
 | **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters | Testcontainers PostgreSQL integration suite covering every must-have operation | ⬜ |
 | **M5** | Relations and nested writes: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M | Statement-count assertions prove the absence of N+1 | ⬜ |
 | **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ⬜ |
@@ -19,6 +19,18 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M10** | Coroutines, interceptors, Micrometer metrics | `suspend` API covered by tests; cancellation cancels the in-flight statement | ⬜ |
 | **M11** | Examples and documentation site: `kotlin-basic`, `java-basic`, `spring-boot`, `ktor`; Getting Started (Kotlin/Java), references, migration guides | Every example runs from its own README and has a CI smoke test | ⬜ |
 | **M12** | Benchmarks and the 1.0 release: JMH suite, Maven Central publication, changelog | Artifacts install into a clean project from a Central staging repository | ⬜ |
+
+## Deliberately different from the original specification
+
+Three names and one shape differ from the brief, each because the brief's version cannot be built on
+the JVM without giving up something the brief also asks for.
+
+| Brief | Volan | Why |
+|---|---|---|
+| `select { … }` returns `UserEmailNameProjection` | returns `UserProjection`, whose unselected fields refuse to be read | A named type per select shape means one generated type per subset of fields. Without seeing the call site — which only a compiler plugin could — the generator would have to emit all of them. Prisma gets this from TypeScript conditional types, which the JVM has no equivalent of |
+| `include`d relations typed into the result | relation properties throw `VolanRelationNotLoadedException` naming the query to change | Same reason, made worse by nesting: the type of an included `Post` depends on `Post`'s own includes, so the set of types is not merely exponential but unbounded. The alternative, generic slots, produces `User<List<Post<NotLoaded, NotLoaded>>, NotLoaded>` in Java signatures, which contradicts ADR-0006 |
+| `in`, `notIn` | `oneOf`, `notOneOf` | `in` is a hard keyword in Kotlin; `` `in` `` at every call site is worse than a different word |
+| `is`, `isNot` on to-one relation filters | `matches`, `notMatches` | Same reason |
 
 ## Deliberately deferred
 
