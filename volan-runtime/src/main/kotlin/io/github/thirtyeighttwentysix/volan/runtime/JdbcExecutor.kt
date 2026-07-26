@@ -27,7 +27,26 @@ internal class JdbcExecutor(
     private val dialect: Dialect,
     private val loader: RelationLoader,
     private val clock: Clock,
-) : QueryExecutor {
+) : QueryExecutor,
+    RelationSource {
+    @Suppress("UNCHECKED_CAST")
+    override fun read(spec: QuerySpec, reader: EntityReader<*>): List<Any?> = findMany(spec, reader as RowMapper<Any?>)
+
+    override fun joinPairs(
+        table: String,
+        localColumns: List<String>,
+        targetColumns: List<String>,
+        keys: List<List<Any?>>,
+    ): List<Pair<List<Any?>, List<Any?>>> {
+        val statement = dialect.render(planner.joinSelect(table, localColumns, targetColumns, keys))
+        return query(statement, "reading the `$table` join table") { result ->
+            val pairs = ArrayList<Pair<List<Any?>, List<Any?>>>()
+            while (result.next()) {
+                pairs.add(localColumns.map { result.getObject(it) } to targetColumns.map { result.getObject(it) })
+            }
+            pairs
+        }
+    }
     override fun <T> findMany(spec: QuerySpec, mapper: RowMapper<T>): List<T> {
         val rows = query(dialect.render(planner.select(spec)), "reading ${spec.model}") { result ->
             val read = ArrayList<T>()
@@ -60,9 +79,7 @@ internal class JdbcExecutor(
                 "asked to include.\n  Use `findMany` for rows with relations, and `projectMany` for chosen columns.",
             null,
         )
-        return loader.load(rows, reader, spec.includes) { childSpec, childReader ->
-            findMany(childSpec, childReader as RowMapper<Any?>)
-        }
+        return loader.load(rows, reader, spec.includes, this)
     }
 
     override fun count(spec: QuerySpec): Long = query(dialect.render(planner.count(spec)), "counting ${spec.model}") { result ->

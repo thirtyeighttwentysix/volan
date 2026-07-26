@@ -357,7 +357,8 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/QuerySpec {
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/RelationMetadata {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Z
@@ -365,12 +366,16 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/RelationMetadata
 	public final fun component5 ()Ljava/util/List;
 	public final fun component6 ()Ljava/util/List;
 	public final fun component7 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
-	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
+	public final fun component8 ()Ljava/util/List;
+	public final fun component9 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/RelationMetadata;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getField ()Ljava/lang/String;
 	public final fun getForeignKeyColumns ()Ljava/util/List;
+	public final fun getJoinLocalColumns ()Ljava/util/List;
 	public final fun getJoinTable ()Ljava/lang/String;
+	public final fun getJoinTargetColumns ()Ljava/util/List;
 	public final fun getOwnsForeignKey ()Z
 	public final fun getReferencedColumns ()Ljava/util/List;
 	public final fun getTarget ()Ljava/lang/String;

@@ -51,6 +51,34 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
         limit = 1,
     )
 
+    /**
+     * Reads the pairs of a many-to-many join table for the given local keys.
+     *
+     * A join table is not a model — nothing generates a client for it — so this is built here rather
+     * than described as a [QuerySpec].
+     */
+    fun joinSelect(table: String, localColumns: List<String>, targetColumns: List<String>, keys: List<List<Any?>>): SqlSelect {
+        val columns = (localColumns + targetColumns).map { SqlSelectItem.Column(SqlExpression.Column(null, it), alias = null) }
+        val condition = if (localColumns.size == 1) {
+            SqlCondition.InList(SqlExpression.Column(null, localColumns.single()), keys.map { SqlExpression.Parameter(it.single()) })
+        } else {
+            SqlCondition.Or(
+                keys.map { key ->
+                    SqlCondition.And(
+                        localColumns.zip(key).map { (column, value) ->
+                            SqlCondition.Compare(
+                                SqlExpression.Column(null, column),
+                                SqlComparison.EQUAL,
+                                SqlExpression.Parameter(value),
+                            )
+                        },
+                    )
+                },
+            )
+        }
+        return SqlSelect(table = table, items = columns, condition = condition)
+    }
+
     fun insert(specs: List<CreateSpec>, now: Instant): SqlInsert {
         require(specs.isNotEmpty()) { "an insert needs at least one row" }
         val table = registry.require(specs.first().model)

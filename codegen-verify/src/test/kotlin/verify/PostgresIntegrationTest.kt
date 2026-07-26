@@ -8,7 +8,6 @@ import io.github.thirtyeighttwentysix.volan.runtime.Volan
 import io.github.thirtyeighttwentysix.volan.runtime.VolanNotFoundException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanRelationNotLoadedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanUniqueConstraintException
-import io.github.thirtyeighttwentysix.volan.runtime.VolanUnsupportedException
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -424,15 +423,60 @@ class PostgresIntegrationTest {
     }
 
     @Test
-    fun `loading a many-to-many relation says it is not available yet rather than answering wrongly`() {
+    fun `a many-to-many relation loads through its join table, from either side`() {
         val user = alice()
-        client.post.create {
-            title = "Tagged"
+        val kotlin = client.tag.create { name = "kotlin" }
+        val jvm = client.tag.create { name = "jvm" }
+        val first = client.post.create {
+            title = "Both tags"
             authorId = user.id
         }
-        val thrown = runCatching { client.post.findMany { include { tags { } } } }.exceptionOrNull()
-        (thrown is VolanUnsupportedException) shouldBe true
-        thrown?.message.orEmpty() shouldContain "arrives with nested writes in M5"
+        val second = client.post.create {
+            title = "One tag"
+            authorId = user.id
+        }
+        client.rawExecute(
+            """insert into "_PostTags" ("A", "B") values (?, ?), (?, ?), (?, ?)""",
+            listOf(first.id, kotlin.id, first.id, jvm.id, second.id, kotlin.id),
+        )
+
+        val posts = client.post.findMany {
+            orderBy { id.asc() }
+            include { tags { orderBy { name.asc() } } }
+        }
+        posts.first { it.id == first.id }.tags.map { it.name } shouldContainExactly listOf("jvm", "kotlin")
+        posts.first { it.id == second.id }.tags.map { it.name } shouldContainExactly listOf("kotlin")
+
+        val tags = client.tag.findMany {
+            orderBy { name.asc() }
+            include { posts { } }
+        }
+        tags.first { it.name == "jvm" }.posts.map { it.id } shouldContainExactly listOf(first.id)
+        tags.first { it.name == "kotlin" }.posts.map { it.id }.sorted() shouldContainExactly listOf(first.id, second.id)
+    }
+
+    @Test
+    fun `a many-to-many level costs two statements, whatever the number of rows`() {
+        val counter = java.util.concurrent.atomic.AtomicInteger()
+        val user = alice()
+        val tag = client.tag.create { name = "kotlin" }
+        repeat(4) { index ->
+            val post = client.post.create {
+                title = "Post $index"
+                authorId = user.id
+            }
+            client.rawExecute("""insert into "_PostTags" ("A", "B") values (?, ?)""", listOf(post.id, tag.id))
+        }
+
+        countingClient(counter).use { counted ->
+            counter.set(0)
+            val posts = counted.post.findMany { include { tags { } } }
+            posts.size shouldBe 4
+            posts.all { it.tags.size == 1 } shouldBe true
+
+            // The posts, the pairs, and the tags they point at.
+            counter.get() shouldBe 3
+        }
     }
 
     @Test

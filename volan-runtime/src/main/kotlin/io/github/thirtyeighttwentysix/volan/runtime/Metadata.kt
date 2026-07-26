@@ -26,9 +26,13 @@ public data class ColumnMetadata(
  * @property target the model at the other end.
  * @property isList whether this side holds many rows.
  * @property ownsForeignKey whether the foreign key lives on this model rather than on the target.
- * @property foreignKeyColumns the columns holding the key, on whichever side owns it.
- * @property referencedColumns the columns they point at.
+ * @property foreignKeyColumns the columns holding the key, on whichever side owns it. For a
+ *   many-to-many relation, the target's key columns, since no row holds a foreign key.
+ * @property referencedColumns the columns they point at. For a many-to-many relation, this model's
+ *   key columns.
  * @property joinTable the table holding the pairs of a many-to-many relation, `null` otherwise.
+ * @property joinLocalColumns the join-table columns that point back at this model.
+ * @property joinTargetColumns the join-table columns that point at the target.
  */
 public data class RelationMetadata(
     public val field: String,
@@ -37,7 +41,9 @@ public data class RelationMetadata(
     public val ownsForeignKey: Boolean,
     public val foreignKeyColumns: List<String>,
     public val referencedColumns: List<String>,
-    public val joinTable: String?,
+    public val joinTable: String? = null,
+    public val joinLocalColumns: List<String> = emptyList(),
+    public val joinTargetColumns: List<String> = emptyList(),
 )
 
 /**

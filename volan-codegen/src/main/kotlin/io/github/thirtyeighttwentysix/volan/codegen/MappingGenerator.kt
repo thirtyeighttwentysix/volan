@@ -15,7 +15,7 @@ import com.squareup.kotlinpoet.TypeSpec
 import io.github.thirtyeighttwentysix.volan.ir.Cardinality
 import io.github.thirtyeighttwentysix.volan.ir.FieldType
 import io.github.thirtyeighttwentysix.volan.ir.Model
-import io.github.thirtyeighttwentysix.volan.ir.Relation
+import io.github.thirtyeighttwentysix.volan.ir.RelationField
 import io.github.thirtyeighttwentysix.volan.ir.ScalarField
 import io.github.thirtyeighttwentysix.volan.ir.Schema
 
@@ -44,19 +44,7 @@ internal class MappingGenerator(private val schema: Schema, private val types: T
 
         val relations = CodeBlock.builder().add("listOf(\n")
         model.relationFields.forEach { field ->
-            val relation = schema.relations.first { it.name == field.relationName }
-            relations.add(
-                "  %T(field = %S, target = %S, isList = %L, ownsForeignKey = %L, foreignKeyColumns = %L, " +
-                    "referencedColumns = %L, joinTable = %L),\n",
-                Types.relationMetadata,
-                field.name,
-                field.targetModel,
-                field.cardinality == Cardinality.LIST,
-                relation.from.model == model.name && relation.from.field == field.name,
-                stringList(columnsOf(relation.from.model, relation.foreignKeyFields)),
-                stringList(columnsOf(relation.to.model, relation.referencedFields)),
-                relation.joinTable?.let { "\"$it\"" } ?: "null",
-            )
+            relations.add(relationMetadata(model, field))
         }
         relations.add(")")
 
@@ -89,6 +77,49 @@ internal class MappingGenerator(private val schema: Schema, private val types: T
             )
         }
         return builder.build()
+    }
+
+    /**
+     * Describes one relation to the runtime.
+     *
+     * A many-to-many relation has no foreign key on either row, so what it carries instead is the join
+     * table and which of its columns point where. The two sides of an implicit join table are `A` and
+     * `B`, in the order the relation's ends are held — which is by model name, so both sides agree.
+     */
+    private fun relationMetadata(model: Model, field: RelationField): CodeBlock {
+        val relation = schema.relations.first { it.name == field.relationName }
+        val owns = relation.from.model == model.name && relation.from.field == field.name
+        if (relation.joinTable == null) {
+            return CodeBlock.of(
+                "  %T(field = %S, target = %S, isList = %L, ownsForeignKey = %L, foreignKeyColumns = %L, " +
+                    "referencedColumns = %L),\n",
+                Types.relationMetadata,
+                field.name,
+                field.targetModel,
+                field.cardinality == Cardinality.LIST,
+                owns,
+                stringList(columnsOf(relation.from.model, relation.foreignKeyFields)),
+                stringList(columnsOf(relation.to.model, relation.referencedFields)),
+            )
+        }
+        val isFirstSide = relation.from.model == model.name && relation.from.field == field.name
+        return CodeBlock.of(
+            "  %T(field = %S, target = %S, isList = true, ownsForeignKey = false, foreignKeyColumns = %L, " +
+                "referencedColumns = %L, joinTable = %S, joinLocalColumns = %L, joinTargetColumns = %L),\n",
+            Types.relationMetadata,
+            field.name,
+            field.targetModel,
+            stringList(primaryKeyColumns(field.targetModel)),
+            stringList(primaryKeyColumns(model.name)),
+            relation.joinTable,
+            stringList(listOf(if (isFirstSide) JOIN_FIRST else JOIN_SECOND)),
+            stringList(listOf(if (isFirstSide) JOIN_SECOND else JOIN_FIRST)),
+        )
+    }
+
+    private fun primaryKeyColumns(modelName: String): List<String> {
+        val model = schema.model(modelName) ?: return emptyList()
+        return model.primaryKey?.fields.orEmpty().map { columnOf(model, it) }
     }
 
     fun rowMapper(model: Model): TypeSpec {
@@ -279,6 +310,11 @@ internal class MappingGenerator(private val schema: Schema, private val types: T
 
     private fun stringList(values: List<String>): String =
         if (values.isEmpty()) "emptyList()" else values.joinToString(", ", "listOf(", ")") { "\"$it\"" }
+
+    private companion object {
+        private const val JOIN_FIRST = "A"
+        private const val JOIN_SECOND = "B"
+    }
 
     private fun constantName(field: String): String = field.replace(Regex("([a-z0-9])([A-Z])"), "$1_$2").uppercase()
 }

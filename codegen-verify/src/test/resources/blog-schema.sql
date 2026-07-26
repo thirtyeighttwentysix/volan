@@ -34,6 +34,14 @@ create table "Tag" (
     name text not null unique
 );
 
+-- The join table of the implicit many-to-many between Post and Tag. Volan names it after the relation
+-- and calls its columns A and B, in the order the relation's ends are held.
+create table "_PostTags" (
+    "A" bigint  not null references "Post" (id) on delete cascade,
+    "B" integer not null references "Tag" (id) on delete cascade,
+    primary key ("A", "B")
+);
+
 create table post_comments (
     "postId"    bigint  not null references "Post" (id) on delete cascade,
     "authorId"  integer not null references users (id) on delete cascade,
