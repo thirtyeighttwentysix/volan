@@ -62,7 +62,7 @@ public object VolanGenerator {
         val entities = EntityGenerator(types)
         val mapping = MappingGenerator(visible, types)
         val dsl = DslGenerator(types)
-        val writes = WriteGenerator(types)
+        val writes = WriteGenerator(visible, types)
         val repositories = RepositoryGenerator(types)
 
         val files = ArrayList<GeneratedFile>()
@@ -131,7 +131,10 @@ public object VolanGenerator {
             .addType(writes.upsertScope(model))
             .addType(writes.deleteScope(model))
             .addType(repositories.repository(model))
-        model.relationFields.forEach { builder.addType(dsl.relationFilter(model, it)) }
+        model.relationFields.forEach { relation ->
+            builder.addType(dsl.relationFilter(model, relation))
+            builder.addType(writes.nestedWriteScope(model, relation))
+        }
         return builder.build()
     }
 

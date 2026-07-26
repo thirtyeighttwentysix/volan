@@ -130,14 +130,19 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
     }
 
     private fun create(model: Model): FunSpec = FunSpec.builder("create")
-        .addKdoc("Inserts one row and reads it back.\n")
+        .addKdoc(
+            "Inserts one row and reads it back.\n\n" +
+                "Anything the block asks to write on the far side of a relation is written in the same " +
+                "transaction, so either the whole shape lands or none of it does.\n",
+        )
         .addParameter("block", lambdaOn(types.declared("${model.name}CreateData")))
         .returns(types.declared(model.name))
+        .addStatement("val data = %T().apply(block)", types.declared("${model.name}CreateData"))
         .addStatement(
-            "return executor.create(%T(%S, %T().apply(block).toValues()), %T)",
+            "return executor.create(%T(%S, data.toValues(), %L), %T)",
             Types.createSpec,
             model.name,
-            types.declared("${model.name}CreateData"),
+            if (model.relationFields.isEmpty()) "emptyList()" else "data.toNested()",
             types.declared("${model.name}RowMapper"),
         )
         .build()

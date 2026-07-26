@@ -26,9 +26,14 @@ internal class JdbcExecutor(
     private val planner: QueryPlanner,
     private val dialect: Dialect,
     private val loader: RelationLoader,
+    private val registry: TableRegistry,
+    private val readers: Map<String, EntityReader<*>>,
     private val clock: Clock,
 ) : QueryExecutor,
-    RelationSource {
+    RelationSource,
+    NestedWriteTarget {
+    private val nested = NestedWriter(registry, this)
+
     @Suppress("UNCHECKED_CAST")
     override fun read(spec: QuerySpec, reader: EntityReader<*>): List<Any?> = findMany(spec, reader as RowMapper<Any?>)
 
@@ -89,13 +94,57 @@ internal class JdbcExecutor(
     override fun exists(spec: QuerySpec): Boolean =
         query(dialect.render(planner.exists(spec)), "checking whether any ${spec.model} matches") { it.next() }
 
+    /**
+     * Writes one row, and whatever it asked to write alongside it.
+     *
+     * A create with nested writes runs in one transaction: a shape that is half written is worse than
+     * one that was never written, and the caller cannot undo the half they got.
+     */
     override fun <T> create(spec: CreateSpec, mapper: RowMapper<T>): T {
         requireReturning(spec.model, "create")
+        if (spec.nested.isEmpty()) return insertOne(spec, mapper)
+        @Suppress("UNCHECKED_CAST")
+        return connections.transaction(Isolation.DEFAULT, RetryPolicy.NONE) { nested.write(spec).row as T }
+    }
+
+    private fun <T> insertOne(spec: CreateSpec, mapper: RowMapper<T>): T {
         val statement = dialect.render(planner.insert(listOf(spec), clock.instant()))
         return query(statement, "creating a ${spec.model}") { result ->
             if (result.next()) mapper.map(JdbcRow(result)) else throw missingReturn(spec.model, "create")
         }
     }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun insertPlain(spec: CreateSpec, keyColumns: List<String>): WrittenRow {
+        val reader = readerFor(spec.model) as EntityReader<Any?>
+        val row = insertOne(spec, reader)
+        return WrittenRow(row, reader.key(row, keyColumns))
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun findKey(model: String, filter: Filter?, keyColumns: List<String>): List<Any?>? {
+        val reader = readerFor(model) as EntityReader<Any?>
+        val row = findFirst(QuerySpec(model, filter), reader) ?: return null
+        return reader.key(row, keyColumns)
+    }
+
+    override fun pointAt(model: String, filter: Filter?, columns: List<String>, key: List<Any?>): Long =
+        updateMany(UpdateSpec(model, filter, columns.zip(key).toMap()))
+
+    override fun pair(
+        table: String,
+        localColumns: List<String>,
+        targetColumns: List<String>,
+        local: List<Any?>,
+        targets: List<List<Any?>>,
+    ) {
+        val statement = dialect.render(planner.joinInsert(table, localColumns, targetColumns, local, targets))
+        update(statement, "linking rows through `$table`")
+    }
+
+    private fun readerFor(model: String): EntityReader<*> = readers[model] ?: throw VolanConfigurationException(
+        "no reader was registered for `$model`, so its rows cannot be written as part of another write.",
+    )
 
     override fun createMany(specs: List<CreateSpec>): Long {
         if (specs.isEmpty()) return 0

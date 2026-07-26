@@ -30,6 +30,8 @@ public class Volan internal constructor(
         planner = QueryPlanner(registry, dialect),
         dialect = dialect,
         loader = RelationLoader(registry, readers, chunkSize(dialect)),
+        registry = registry,
+        readers = readers,
         clock = clock,
     )
 

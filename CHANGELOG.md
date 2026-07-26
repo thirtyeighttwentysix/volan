@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Nested writes from a `create`: `create`, `connect` and `connectOrCreate` on any relation, applied in
+  one transaction with the row they belong to. Relations the row owns the key of are resolved first and
+  folded into its own values; everything else is applied against the key it came back with.
+- Many-to-many relations load through their join table, from either side, at two statements per level.
 - Batched relation loading for one-to-one and one-to-many relations: `include` costs one statement per
   relation level, whatever the number of rows, and includes nest to any depth. Generated mappers hand
   the loader the two things it needs — a row's key, and a copy of that row with a relation filled in.
@@ -60,6 +64,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Whether a write supplies everything a row requires is now decided by the runtime, just before the
+  statement is built, rather than by the generated payload. A foreign key that a nested write is about
+  to supply is absent when the block is written and present by the time the row is; checking early
+  made writing a row together with its parent impossible.
 - Diagnostic codes are now an interface with one enum per layer (`SyntaxCode`, `SemanticCode`) instead
   of a single enum, so no module has to enumerate the failures of a module above it.
 

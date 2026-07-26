@@ -2,11 +2,14 @@
 package com.example.blog
 
 import io.github.thirtyeighttwentysix.volan.runtime.ColumnMetadata
+import io.github.thirtyeighttwentysix.volan.runtime.ConnectOrCreateEntry
 import io.github.thirtyeighttwentysix.volan.runtime.CreateSpec
 import io.github.thirtyeighttwentysix.volan.runtime.DeleteSpec
 import io.github.thirtyeighttwentysix.volan.runtime.EntityReader
 import io.github.thirtyeighttwentysix.volan.runtime.FilterScope
 import io.github.thirtyeighttwentysix.volan.runtime.IncludeScope
+import io.github.thirtyeighttwentysix.volan.runtime.NestedWrite
+import io.github.thirtyeighttwentysix.volan.runtime.NestedWrites
 import io.github.thirtyeighttwentysix.volan.runtime.OrderField
 import io.github.thirtyeighttwentysix.volan.runtime.OrderScope
 import io.github.thirtyeighttwentysix.volan.runtime.OrderedFilterField
@@ -159,6 +162,12 @@ public object TagTable {
         RelationMetadata(field = "posts", target = "Post", isList = true, ownsForeignKey = false, foreignKeyColumns = listOf("id"), referencedColumns = listOf("id"), joinTable = "_PostTags", joinLocalColumns = listOf("B"), joinTargetColumns = listOf("A")),
       ),
       )
+
+  /**
+   * Every set of columns that identifies at most one row, most specific first.
+   */
+  @JvmField
+  public val UNIQUE_KEYS: List<List<String>> = listOf(listOf("id"), listOf("name"))
 
   /**
    * The `id` column.
@@ -430,6 +439,18 @@ public class TagCreateData {
       touched.add("name")
     }
 
+  private val writes: MutableList<NestedWrite> = mutableListOf()
+
+  /**
+   * Rows of `Post` to write with this one.
+   */
+  public val posts: TagPostsWrite = TagPostsWrite(writes)
+
+  /**
+   * The writes to make on the far side of this row's relations, in the order they were asked for.
+   */
+  internal fun toNested(): List<NestedWrite> = writes.toList()
+
   /**
    * The values to write, keyed by column name.
    */
@@ -440,8 +461,6 @@ public class TagCreateData {
     }
     if (touched.contains("name")) {
       values["name"] = (name ?: throw VolanValidationException("Tag.name cannot be set to null"))
-    } else {
-      throw VolanValidationException("Tag.name is required and was not set")
     }
     return values
   }
@@ -502,7 +521,8 @@ public class TagCreateMany {
    * Adds one row to insert.
    */
   public fun row(block: TagCreateData.() -> Unit) {
-    rows.add(CreateSpec("Tag", TagCreateData().apply(block).toValues()))
+    val data = TagCreateData().apply(block)
+    rows.add(NestedWrites.requireFlat("createMany", CreateSpec("Tag", data.toValues(), data.toNested())))
   }
 }
 
@@ -642,8 +662,13 @@ public class TagRepository(
 
   /**
    * Inserts one row and reads it back.
+   *
+   * Anything the block asks to write on the far side of a relation is written in the same transaction, so either the whole shape lands or none of it does.
    */
-  public fun create(block: TagCreateData.() -> Unit): Tag = executor.create(CreateSpec("Tag", TagCreateData().apply(block).toValues()), TagRowMapper)
+  public fun create(block: TagCreateData.() -> Unit): Tag {
+    val data = TagCreateData().apply(block)
+    return executor.create(CreateSpec("Tag", data.toValues(), data.toNested()), TagRowMapper)
+  }
 
   /**
    * Inserts several rows, returning how many were written.
@@ -720,5 +745,38 @@ public class TagPostsFilter(
    */
   public fun none(block: PostWhere.() -> Unit) {
     sink(RelationQuantifier.NONE, PostWhere().apply(block))
+  }
+}
+
+/**
+ * Rows of `Post` to write together with a `Tag`.
+ */
+public class TagPostsWrite internal constructor(
+  private val writes: MutableList<NestedWrite>,
+) {
+  /**
+   * Writes a new `Post` and attaches it.
+   */
+  public fun create(block: PostCreateData.() -> Unit) {
+    val data = PostCreateData().apply(block)
+    writes.add(NestedWrite.CreateRows("posts", listOf(CreateSpec("Post", data.toValues(), data.toNested()))))
+  }
+
+  /**
+   * Attaches an existing `Post`, which the condition must select.
+   */
+  public fun connect(block: PostWhere.() -> Unit) {
+    val filter = PostWhere().apply(block).build() ?: throw VolanValidationException("`connect` on `Tag.posts` needs a condition saying which `Post` to attach.")
+    writes.add(NestedWrite.ConnectRows("posts", listOf(filter)))
+  }
+
+  /**
+   * Attaches the `Post` these values identify, writing it first if it is not there.
+   */
+  public fun connectOrCreate(block: PostCreateData.() -> Unit) {
+    val data = PostCreateData().apply(block)
+    val values = data.toValues()
+    val filter = NestedWrites.uniqueFilter("Post", values, PostTable.UNIQUE_KEYS)
+    writes.add(NestedWrite.ConnectOrCreateRows("posts", listOf(ConnectOrCreateEntry(filter, CreateSpec("Post", values, data.toNested())))))
   }
 }

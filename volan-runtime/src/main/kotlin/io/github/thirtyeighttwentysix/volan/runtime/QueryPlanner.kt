@@ -79,9 +79,23 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
         return SqlSelect(table = table, items = columns, condition = condition)
     }
 
+    /** Records pairs in a many-to-many join table. */
+    fun joinInsert(
+        table: String,
+        localColumns: List<String>,
+        targetColumns: List<String>,
+        local: List<Any?>,
+        targets: List<List<Any?>>,
+    ): SqlInsert = SqlInsert(
+        table = table,
+        columns = localColumns + targetColumns,
+        rows = targets.map { target -> (local + target).map { SqlExpression.Parameter(it) } },
+    )
+
     fun insert(specs: List<CreateSpec>, now: Instant): SqlInsert {
         require(specs.isNotEmpty()) { "an insert needs at least one row" }
         val table = registry.require(specs.first().model)
+        specs.forEach { requireComplete(table, it) }
         val managed = table.columns.filter { it.isUpdatedAt }.map { it.column }
         val columns = (specs.flatMap { it.values.keys }.distinct() + managed).distinct()
         val rows = specs.map { spec ->
@@ -94,6 +108,24 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
             }
         }
         return SqlInsert(table.table, columns, rows, returning = table.columns.map { it.column })
+    }
+
+    /**
+     * Refuses a row that is missing something the database will insist on.
+     *
+     * This is checked here, at the last moment before the statement is built, rather than where the
+     * caller wrote the block: a foreign key supplied by a nested write is absent there and present by
+     * now, and complaining early would make writing a row together with its parent impossible.
+     */
+    private fun requireComplete(table: TableMetadata, spec: CreateSpec) {
+        val missing = table.columns.filter { column ->
+            !column.isNullable && !column.isGenerated && !column.isUpdatedAt && !spec.values.containsKey(column.column)
+        }
+        if (missing.isEmpty()) return
+        val names = missing.joinToString(", ") { "`${table.model}.${it.field}`" }
+        throw VolanValidationException(
+            "$names ${if (missing.size == 1) "is" else "are"} required and ${if (missing.size == 1) "was" else "were"} not set.",
+        )
     }
 
     fun update(spec: UpdateSpec, now: Instant, returning: Boolean): SqlUpdate {

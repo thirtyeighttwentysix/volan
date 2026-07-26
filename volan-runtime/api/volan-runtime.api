@@ -32,14 +32,30 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/ComparisonOperat
 	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/runtime/ConnectOrCreateEntry {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;)Lio/github/thirtyeighttwentysix/volan/runtime/ConnectOrCreateEntry;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/ConnectOrCreateEntry;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/ConnectOrCreateEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
+	public final fun getRow ()Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/runtime/CreateSpec {
-	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;
-	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getModel ()Ljava/lang/String;
+	public final fun getNested ()Ljava/util/List;
 	public final fun getValues ()Ljava/util/Map;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -228,6 +244,55 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Isolation : java
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;
 	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/runtime/Isolation;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/runtime/NestedWrite {
+	public abstract fun getRelation ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/NestedWrite$ConnectOrCreateRows : io/github/thirtyeighttwentysix/volan/runtime/NestedWrite {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/NestedWrite$ConnectOrCreateRows;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/NestedWrite$ConnectOrCreateRows;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/NestedWrite$ConnectOrCreateRows;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEntries ()Ljava/util/List;
+	public fun getRelation ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/NestedWrite$ConnectRows : io/github/thirtyeighttwentysix/volan/runtime/NestedWrite {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/NestedWrite$ConnectRows;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/NestedWrite$ConnectRows;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/NestedWrite$ConnectRows;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilters ()Ljava/util/List;
+	public fun getRelation ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/NestedWrite$CreateRows : io/github/thirtyeighttwentysix/volan/runtime/NestedWrite {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/NestedWrite$CreateRows;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/runtime/NestedWrite$CreateRows;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/runtime/NestedWrite$CreateRows;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getRelation ()Ljava/lang/String;
+	public final fun getRows ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/runtime/NestedWrites {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/runtime/NestedWrites;
+	public static final fun requireFlat (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;)Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;
+	public static final fun uniqueFilter (Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/NullsOrder : java/lang/Enum {

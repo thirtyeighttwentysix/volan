@@ -2,6 +2,7 @@ package io.github.thirtyeighttwentysix.volan.codegen
 
 import com.squareup.kotlinpoet.ANY
 import com.squareup.kotlinpoet.BOOLEAN
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -28,6 +29,23 @@ import io.github.thirtyeighttwentysix.volan.ir.Schema
  */
 internal class MappingGenerator(private val schema: Schema, private val types: TypeResolver) {
     fun tableMetadata(model: Model): TypeSpec {
+        val builder = TypeSpec.objectBuilder("${model.name}Table")
+            .addKdoc("Column names and metadata for `${model.dbName}`, as constants.\n")
+            .addProperty(metadataProperty(model))
+            .addProperty(uniqueKeysProperty(model))
+        model.fields.forEach { field ->
+            builder.addProperty(
+                PropertySpec.builder(constantName(field.name), STRING)
+                    .addKdoc("The `${field.dbName}` column.\n")
+                    .addAnnotation(jvmField)
+                    .initializer("%S", field.dbName)
+                    .build(),
+            )
+        }
+        return builder.build()
+    }
+
+    private fun metadataProperty(model: Model): PropertySpec {
         val columns = CodeBlock.builder().add("listOf(\n")
         model.fields.forEach { field ->
             columns.add(
@@ -43,14 +61,12 @@ internal class MappingGenerator(private val schema: Schema, private val types: T
         columns.add(")")
 
         val relations = CodeBlock.builder().add("listOf(\n")
-        model.relationFields.forEach { field ->
-            relations.add(relationMetadata(model, field))
-        }
+        model.relationFields.forEach { field -> relations.add(relationMetadata(model, field)) }
         relations.add(")")
 
-        val metadata = PropertySpec.builder("METADATA", Types.tableMetadata)
+        return PropertySpec.builder("METADATA", Types.tableMetadata)
             .addKdoc("What the runtime knows about `${model.dbName}`.\n")
-            .addAnnotation(com.squareup.kotlinpoet.ClassName("kotlin.jvm", "JvmField"))
+            .addAnnotation(jvmField)
             .initializer(
                 CodeBlock.builder()
                     .add("%T(\n", Types.tableMetadata)
@@ -63,21 +79,23 @@ internal class MappingGenerator(private val schema: Schema, private val types: T
                     .build(),
             )
             .build()
-
-        val builder = TypeSpec.objectBuilder("${model.name}Table")
-            .addKdoc("Column names and metadata for `${model.dbName}`, as constants.\n")
-            .addProperty(metadata)
-        model.fields.forEach { field ->
-            builder.addProperty(
-                PropertySpec.builder(constantName(field.name), STRING)
-                    .addKdoc("The `${field.dbName}` column.\n")
-                    .addAnnotation(com.squareup.kotlinpoet.ClassName("kotlin.jvm", "JvmField"))
-                    .initializer("%S", field.dbName)
-                    .build(),
-            )
-        }
-        return builder.build()
     }
+
+    /** Every set of columns that identifies at most one row, which is what `connectOrCreate` looks up by. */
+    private fun uniqueKeysProperty(model: Model): PropertySpec {
+        val keys = buildList {
+            model.primaryKey?.let { add(it.fields.map { field -> columnOf(model, field) }) }
+            model.fields.filter { it.isUnique }.forEach { add(listOf(it.dbName)) }
+            model.uniques.forEach { unique -> add(unique.fields.map { field -> columnOf(model, field) }) }
+        }
+        return PropertySpec.builder("UNIQUE_KEYS", LIST.parameterizedBy(LIST.parameterizedBy(STRING)))
+            .addKdoc("Every set of columns that identifies at most one row, most specific first.\n")
+            .addAnnotation(jvmField)
+            .initializer("listOf(%L)", keys.joinToString(", ") { key -> key.joinToString(", ", "listOf(", ")") { "\"$it\"" } })
+            .build()
+    }
+
+    private val jvmField = ClassName("kotlin.jvm", "JvmField")
 
     /**
      * Describes one relation to the runtime.

@@ -97,8 +97,42 @@ public data class QuerySpec(
  *
  * @property model the model being written.
  * @property values column name to value, for the columns the caller set.
+ * @property nested the rows to write alongside it on the other side of a relation. They are applied in
+ *   one transaction with this row, so either the whole shape lands or none of it does.
  */
-public data class CreateSpec(public val model: String, public val values: Map<String, Any?>)
+public data class CreateSpec(
+    public val model: String,
+    public val values: Map<String, Any?>,
+    public val nested: List<NestedWrite> = emptyList(),
+)
+
+/**
+ * Something to do to the rows on the far side of a relation while writing this one.
+ *
+ * Which of these can be expressed is decided by the generated DSL; the runtime's job is to apply them
+ * in an order that leaves no row pointing at something that does not exist yet.
+ */
+public sealed interface NestedWrite {
+    /** The relation field on the row being written. */
+    public val relation: String
+
+    /** Rows to insert on the far side. */
+    public data class CreateRows(override val relation: String, public val rows: List<CreateSpec>) : NestedWrite
+
+    /** Existing rows to attach, each identified by a filter that must select exactly one. */
+    public data class ConnectRows(override val relation: String, public val filters: List<Filter>) : NestedWrite
+
+    /** Rows to attach if they exist and to insert if they do not. */
+    public data class ConnectOrCreateRows(override val relation: String, public val entries: List<ConnectOrCreateEntry>) : NestedWrite
+}
+
+/**
+ * One "attach it or write it" of a nested write.
+ *
+ * @property filter what to look for.
+ * @property row what to insert when nothing matches.
+ */
+public data class ConnectOrCreateEntry(public val filter: Filter, public val row: CreateSpec)
 
 /**
  * A change to apply to the rows a filter selects.

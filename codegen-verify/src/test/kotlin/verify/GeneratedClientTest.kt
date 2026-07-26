@@ -13,7 +13,7 @@ import io.github.thirtyeighttwentysix.volan.runtime.RelationSlot
 import io.github.thirtyeighttwentysix.volan.runtime.SortDirection
 import io.github.thirtyeighttwentysix.volan.runtime.VolanFieldNotSelectedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanRelationNotLoadedException
-import io.github.thirtyeighttwentysix.volan.runtime.VolanValidationException
+import io.github.thirtyeighttwentysix.volan.runtime.NestedWrite
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -205,12 +205,24 @@ class GeneratedClientTest {
     }
 
     @Test
-    fun `a required field that was never set fails before anything is sent`() {
+    fun `a write carries only what the block set, leaving the rest to the database and to nested writes`() {
         val executor = FakeExecutor(listOf(aliceRow))
-        val thrown = runCatching { VolanClient(executor).user.create { name = "Alice" } }.exceptionOrNull()
-        (thrown is VolanValidationException) shouldBe true
-        thrown?.message.orEmpty() shouldContain "User.email is required"
-        executor.creates.isEmpty() shouldBe true
+        VolanClient(executor).user.create { name = "Alice" }
+        // Whether `email` had to be there is decided by the runtime, once nested writes have supplied
+        // whatever they supply; the payload's job is only to report what was written in the block.
+        executor.creates.single().values.keys.toList() shouldContainExactly listOf("name")
+    }
+
+    @Test
+    fun `a nested write travels with the row it belongs to`() {
+        val executor = FakeExecutor(listOf(aliceRow))
+        VolanClient(executor).user.create {
+            email = "alice@acme.com"
+            posts.create { title = "Hello" }
+        }
+        val nested = executor.creates.single().nested.single()
+        nested.relation shouldBe "posts"
+        nested.shouldBeInstanceOf<NestedWrite.CreateRows>().rows.single().values["title"] shouldBe "Hello"
     }
 
     @Test

@@ -8,6 +8,7 @@ import io.github.thirtyeighttwentysix.volan.runtime.Volan
 import io.github.thirtyeighttwentysix.volan.runtime.VolanNotFoundException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanRelationNotLoadedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanUniqueConstraintException
+import io.github.thirtyeighttwentysix.volan.runtime.VolanValidationException
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -420,6 +421,137 @@ class PostgresIntegrationTest {
             // whatever the number of rows at each level.
             counter.get() shouldBe 3
         }
+    }
+
+    @Test
+    fun `a create writes the rows it brings with it, in one transaction`() {
+        val user = client.user.create {
+            email = "alice@acme.com"
+            name = "Alice"
+            posts.create { title = "Hello" }
+            posts.create { title = "Second" }
+            profile.create { bio = "Writes things" }
+        }
+
+        client.post.findMany { where { authorId eq user.id } }.map { it.title }.sorted() shouldContainExactly
+            listOf("Hello", "Second")
+        client.profile.findFirst { where { userId eq user.id } }.shouldNotBeNull().bio shouldBe "Writes things"
+    }
+
+    @Test
+    fun `a nested write reaches through more than one level`() {
+        val user = client.user.create {
+            email = "alice@acme.com"
+            posts.create {
+                title = "Hello"
+                tags.connectOrCreate { name = "kotlin" }
+            }
+        }
+        val post = client.post.findFirst {
+            where { authorId eq user.id }
+            include { tags { } }
+        }.shouldNotBeNull()
+        post.title shouldBe "Hello"
+        post.tags.single().name shouldBe "kotlin"
+    }
+
+    @Test
+    fun `a required field that was never set fails before a statement is built`() {
+        val thrown = runCatching { client.user.create { name = "Alice" } }.exceptionOrNull()
+        (thrown is VolanValidationException) shouldBe true
+        thrown?.message.orEmpty() shouldContain "`User.email` is required"
+        client.user.count() shouldBe 0
+    }
+
+    @Test
+    fun `connect attaches an existing row, on the side that holds the key`() {
+        val existing = alice()
+        val post = client.post.create {
+            title = "Written by Alice"
+            author.connect { email eq "alice@acme.com" }
+        }
+        post.authorId shouldBe existing.id
+    }
+
+    @Test
+    fun `connect on the other side points the existing rows at the new one`() {
+        val orphanAuthor = client.user.create { email = "temp@acme.com" }
+        val post = client.post.create {
+            title = "Moves owner"
+            authorId = orphanAuthor.id
+        }
+        val user = client.user.create {
+            email = "alice@acme.com"
+            posts.connect { id eq post.id }
+        }
+        client.post.findUnique { where { id eq post.id } }.shouldNotBeNull().authorId shouldBe user.id
+    }
+
+    @Test
+    fun `connectOrCreate writes the row the first time and attaches it the second`() {
+        val user = alice()
+        val first = client.post.create {
+            title = "One"
+            authorId = user.id
+            tags.connectOrCreate { name = "kotlin" }
+        }
+        val second = client.post.create {
+            title = "Two"
+            authorId = user.id
+            tags.connectOrCreate { name = "kotlin" }
+        }
+        client.tag.count() shouldBe 1
+
+        val posts = client.post.findMany {
+            orderBy { id.asc() }
+            include { tags { } }
+        }
+        posts.first { it.id == first.id }.tags.single().name shouldBe "kotlin"
+        posts.first { it.id == second.id }.tags.single().name shouldBe "kotlin"
+    }
+
+    @Test
+    fun `connectOrCreate says so when nothing it was given identifies a row`() {
+        val user = alice()
+        val thrown = runCatching {
+            client.post.create {
+                title = "One"
+                authorId = user.id
+                tags.connectOrCreate { /* nothing unique was set */ }
+            }
+        }.exceptionOrNull()
+        thrown?.message.orEmpty() shouldContain "cannot tell which row to look for"
+    }
+
+    @Test
+    fun `a nested write that fails takes the whole shape with it`() {
+        client.user.create { email = "taken@acme.com" }
+        val thrown = runCatching {
+            client.user.create {
+                email = "alice@acme.com"
+                posts.create { title = "Would be orphaned" }
+                profile.create { bio = "Also orphaned" }
+                posts.connect { id eq 999 }
+            }
+        }.exceptionOrNull()
+
+        thrown.shouldNotBeNull()
+        client.user.count { where { email eq "alice@acme.com" } } shouldBe 0
+        client.post.count() shouldBe 0
+        client.profile.count() shouldBe 0
+    }
+
+    @Test
+    fun `createMany refuses rows that bring relations with them`() {
+        val thrown = runCatching {
+            client.user.createMany {
+                row {
+                    email = "a@acme.com"
+                    posts.create { title = "Nested" }
+                }
+            }
+        }.exceptionOrNull()
+        thrown?.message.orEmpty() shouldContain "writes its rows in one statement"
     }
 
     @Test

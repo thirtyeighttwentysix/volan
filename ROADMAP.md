@@ -48,10 +48,17 @@ main branch.
 - **Aggregations and `groupBy`.** The SQL model renders them and the golden tests cover that; the
   repository operations that expose them are scheduled with relation loading in M5, because both need
   the same grouped-result machinery.
-- **Many-to-many loading, nested writes and aggregations.** One-to-one and one-to-many relations load
-  as of M5; a query that includes a many-to-many relation is refused with a message naming the
-  milestone rather than answered without it. A wrong answer in the shape of a right one is the one
-  outcome worth failing to avoid.
+- **Nested writes from an update, and aggregations.** A `create` can write, attach, or find-or-write
+  the rows on the far side of any of its relations, in one transaction. The operations that only make
+  sense against rows that already exist — `disconnect`, `set`, nested `update` and nested `delete` —
+  are written from an `update`, which is the second half of M5. Aggregations and `groupBy` are the
+  other half: the SQL model renders them and the golden tests cover that, but no repository operation
+  exposes them yet.
+- **Writing a grandchild that needs its grandparent's key.** A nested write supplies the foreign key of
+  the row it is nested under, so a shape reaching two levels down works whenever the deeper row's other
+  required columns are already known. A composite key that needs a key from two levels up — a comment
+  needing both its post and its author while both are being written — cannot be expressed yet, and
+  fails with the missing column named rather than writing half a shape.
 - **Cursors combined with an explicit `orderBy`.** Resuming after a row requires knowing that row's
   position in that order, which the key alone does not give. A cursor on its own pages by primary key;
   combining the two is refused with an explanation until keyset paging over arbitrary orderings lands.
