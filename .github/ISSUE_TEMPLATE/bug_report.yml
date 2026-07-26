@@ -1,0 +1,72 @@
+name: Bug report
+description: Something behaves differently from what the documentation promises.
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The fastest possible bug report is a failing test — but a schema
+        fragment plus the query and the SQL Volan produced is nearly as good.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you observe, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: schema
+    attributes:
+      label: Schema fragment
+      description: The smallest part of schema.volan that reproduces the problem.
+      render: prisma
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Query or code
+      description: The Kotlin or Java code that triggers the problem.
+      render: kotlin
+    validations:
+      required: true
+
+  - type: textarea
+    id: sql
+    attributes:
+      label: Generated SQL
+      description: If relevant, the SQL Volan produced (enable query logging).
+      render: sql
+
+  - type: textarea
+    id: stacktrace
+    attributes:
+      label: Stack trace or error output
+      render: text
+
+  - type: input
+    id: version
+    attributes:
+      label: Volan version
+      placeholder: "0.1.0-SNAPSHOT, or a commit hash"
+    validations:
+      required: true
+
+  - type: input
+    id: database
+    attributes:
+      label: Database and driver
+      placeholder: "PostgreSQL 17.2, org.postgresql:postgresql:42.7.13"
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: JDK, Kotlin and OS
+      placeholder: "Temurin 21.0.5, Kotlin 2.4.10, Ubuntu 24.04"
+    validations:
+      required: true

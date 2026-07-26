@@ -1,0 +1,42 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(build)"
+  ],
+  "timezone": "UTC",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 10,
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "Kotlin and its ecosystem move together; a split upgrade rarely compiles.",
+      "matchPackagePatterns": ["^org\\.jetbrains\\.kotlin"],
+      "groupName": "kotlin"
+    },
+    {
+      "matchPackagePatterns": ["^org\\.junit", "^io\\.kotest", "^org\\.testcontainers"],
+      "groupName": "test dependencies"
+    },
+    {
+      "matchPackagePatterns": [
+        "^org\\.postgresql",
+        "^com\\.mysql",
+        "^org\\.mariadb",
+        "^org\\.xerial",
+        "^com\\.h2database"
+      ],
+      "groupName": "jdbc drivers"
+    },
+    {
+      "description": "Never bump a major automatically: allWarningsAsErrors makes these real reviews.",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "addLabels": ["needs-review"]
+    }
+  ],
+  "gradle": {
+    "enabled": true
+  }
+}

@@ -1,0 +1,46 @@
+name: Feature request
+description: Propose a capability Volan does not have yet.
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check [ROADMAP.md](https://github.com/thirtyeighttwentysix/volan/blob/main/ROADMAP.md)
+        first — the feature may already be planned, or deliberately deferred with a reason.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that Volan makes hard or impossible today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: Sketch how it would look at the call site. Kotlin and, if relevant, Java.
+      render: kotlin
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Workarounds you have tried
+      description: Including raw SQL, if that is what you are doing today.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Which part of Volan does this touch?
+      multiple: true
+      options:
+        - Schema language
+        - Query API
+        - Migrations
+        - Java API
+        - CLI or build plugins
+        - A specific database dialect
+        - Documentation
+    validations:
+      required: true

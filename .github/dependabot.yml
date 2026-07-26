@@ -1,0 +1,47 @@
+version: 2
+
+updates:
+  - package-ecosystem: gradle
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "build"
+      include: scope
+    groups:
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "org.jetbrains.kotlinx*"
+      testing:
+        patterns:
+          - "org.junit*"
+          - "io.kotest*"
+          - "org.testcontainers*"
+      jdbc-drivers:
+        patterns:
+          - "org.postgresql*"
+          - "com.mysql*"
+          - "org.mariadb*"
+          - "org.xerial*"
+          - "com.h2database*"
+
+  - package-ecosystem: gradle
+    directory: "/build-logic"
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "build"
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "ci"
+      include: scope

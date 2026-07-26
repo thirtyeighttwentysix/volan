@@ -1,0 +1,55 @@
+build:
+  maxIssues: 0
+
+console-reports:
+  active: true
+
+complexity:
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 12
+    ignoreDefaultParameters: true
+  TooManyFunctions:
+    thresholdInClasses: 30
+    thresholdInFiles: 30
+    thresholdInObjects: 30
+    ignorePrivate: true
+    ignoreOverridden: true
+
+style:
+  MaxLineLength:
+    maxLineLength: 140
+  ReturnCount:
+    max: 4
+  ForbiddenComment:
+    active: true
+    comments:
+      - reason: "Unfinished work must be tracked in ROADMAP.md, not left in the code."
+        value: "TODO:"
+      - reason: "Unfinished work must be tracked in ROADMAP.md, not left in the code."
+        value: "FIXME:"
+      - reason: "Unfinished work must be tracked in ROADMAP.md, not left in the code."
+        value: "STOPSHIP:"
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotation: true
+    ignoreNamedArgument: true
+    ignoreEnums: true
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+    excludeGuardClauses: true
+  NotImplementedDeclaration:
+    active: true
+  ThrowingNotImplementedError:
+    active: true
+
+naming:
+  FunctionNaming:
+    excludes: ["**/test/**", "**/*Test.kt"]
+
+potential-bugs:
+  UnsafeCallOnNullableType:
+    active: true
