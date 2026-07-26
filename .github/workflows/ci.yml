@@ -105,7 +105,7 @@ jobs:
         run: ./gradlew koverXmlReport --stacktrace
 
       - name: Upload to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: build/reports/kover/report.xml
           fail_ci_if_error: false
