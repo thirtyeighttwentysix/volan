@@ -32,6 +32,9 @@ public interface QueryExecutor {
     /** Updates every row [spec] selects, returning how many changed. */
     public fun updateMany(spec: UpdateSpec): Long
 
+    /** Updates the row [spec] selects, or inserts one when it selects none, and reads it back. */
+    public fun <T> upsert(spec: UpsertSpec, mapper: RowMapper<T>): T
+
     /** Deletes the single row [spec] selects and reads back what was deleted. */
     public fun <T> delete(spec: DeleteSpec, mapper: RowMapper<T>): T
 

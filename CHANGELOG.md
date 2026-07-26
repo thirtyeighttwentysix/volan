@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `volan-codegen`: the generator. From a validated schema it produces entities with fluent builders,
+  table metadata, row mappers, the `where`/`orderBy`/`select`/`include` DSLs, relation filters, write
+  payloads that know a null from an unset field, repositories and the client that hands them out.
+  Models and fields marked `@ignore` are left out entirely.
+- `codegen-verify`: a module that generates a client during the build, compiles it and exercises it
+  against a recording executor — the same sequence a user's project will run through the Gradle plugin
+  in M9.
 - `volan-runtime`: the query description layer generated clients are built on — filter, ordering,
   paging and selection trees, table metadata, the `Row`/`RowMapper` reading contract, and the
   `QueryExecutor` boundary that keeps JDBC out of generated code. No SQL is produced here: values stay

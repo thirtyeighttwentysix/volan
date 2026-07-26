@@ -96,6 +96,17 @@ public interface Row {
 
     /** Reads a JSON column that may be null. */
     public fun getJsonOrNull(column: String): Json?
+
+    /**
+     * Reads a non-null array column, element by element.
+     *
+     * The elements come back as the driver produced them; a generated mapper casts each to the type
+     * the schema declared, which is the one place where the column type is known.
+     */
+    public fun getScalarList(column: String): List<Any?>
+
+    /** Reads an array column that may be null. */
+    public fun getScalarListOrNull(column: String): List<Any?>?
 }
 
 /**

@@ -120,3 +120,22 @@ public data class UpdateSpec(
  * @property filter which rows to delete; `null` for every row.
  */
 public data class DeleteSpec(public val model: String, public val filter: Filter?)
+
+/**
+ * An insert-or-update: write [update] to the row [filter] selects, or insert [create] when it selects
+ * none.
+ *
+ * The two payloads are separate because they usually differ — an insert has to supply everything the
+ * row needs, while an update touches only what is changing.
+ *
+ * @property model the model being written.
+ * @property filter which row to look for; it must select at most one.
+ * @property create the values to insert when no row matches.
+ * @property update the values to write when one does.
+ */
+public data class UpsertSpec(
+    public val model: String,
+    public val filter: Filter?,
+    public val create: Map<String, Any?>,
+    public val update: Map<String, Any?>,
+)

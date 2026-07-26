@@ -9,8 +9,8 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M0** | Project skeleton: multi-module Gradle build, version catalog, ktlint/detekt/Kover/ABI validation, CI, licence, docs skeleton | `./gradlew build` green | ✅ |
 | **M1** | Schema language: lexer, parser, AST, Rust-style diagnostics, formatter | The reference schema parses; 34 negative fixtures assert exact diagnostics | ✅ |
 | **M2** | IR: name resolution, type checking, relation pairing, composite keys, cycle detection | IR snapshot tests | ✅ |
-| **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections. Split in two: the query description layer generated code compiles against (done), then the generator itself | Golden-file tests + the generated sources actually compile | 🚧 |
-| **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters | Testcontainers PostgreSQL integration suite covering every must-have operation | ⬜ |
+| **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections, plus the query description layer they compile against | Golden-file tests, and `codegen-verify` generates a client during the build, compiles it and exercises it | ✅ |
+| **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters | Testcontainers PostgreSQL integration suite covering every must-have operation | 🚧 |
 | **M5** | Relations and nested writes: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M | Statement-count assertions prove the absence of N+1 | ⬜ |
 | **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ⬜ |
 | **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; signature check finds no Kotlin-only types in public API | ⬜ |
@@ -45,6 +45,14 @@ main branch.
 - **Provider-specific native types.** `@db.…` is parsed, validated for shape and carried into the IR,
   but whether `@db.VarChar(200)` exists for the configured database is a question only a dialect can
   answer. That check lands with the dialects in M8.
+- **Aggregations and `groupBy`.** The repository operations that need them are read-path work that only
+  means something once SQL is being produced, so they land with the executor in M4.
+- **Nested writes.** `create { posts.create { … } }` is M5; until then a write carries the model's own
+  columns, including its foreign keys.
+- **Filters and ordering on list columns.** A `String[]` column is read and written, but has no filter
+  handle: what `contains` means for an array is a dialect question, answered in M8.
+- **The Java-facing layer.** Generated entities are already Java-shaped — getters, builders, no Kotlin-only
+  types — but the `*Async` methods and the `Function`-based builders are M7.
 - **Cycles of required relations across models.** A self-relation that requires itself is rejected in
   M2. Two models that require each other are not yet detected; the check needs the same traversal as
   the cascade-cycle pass and is scheduled with the migration ordering work in M6.

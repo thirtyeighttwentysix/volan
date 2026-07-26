@@ -111,6 +111,7 @@ the structural reason Volan cannot be SQL-injected (see [ADR-0004](docs/adr/0004
 | `volan-gradle-plugin` | `codegen` | `volanGenerate` task wired into compilation (M9) |
 | `volan-maven-plugin` | `codegen` | `volan:generate` on `generate-sources` (M9) |
 | `volan-bom` | — | Version alignment for consumers |
+| `codegen-verify` | `codegen`, `runtime` | Generates a client during the build, compiles it and exercises it — the proof that generated code is buildable |
 | `java-compat-tests` | generated client | Java-language tests over the public API (M7) |
 
 Dependency rules enforced by review:
@@ -130,16 +131,22 @@ For a model `User`, Volan generates:
 
 | Artifact | Purpose |
 |---|---|
-| `User` | Immutable entity: `data class` in Kotlin, with getters/`equals`/`hashCode`/`toString`, a builder and Jackson compatibility for Java |
+| `User` | Immutable entity: scalar columns as properties, relations in slots, with `equals`/`hashCode`/`toString` over the data and a fluent builder |
 | `UserRepository` | `create/findMany/update/…`, exposed as `db.user` |
-| `UserWhere`, `UserOrderBy`, `UserSelect`, `UserInclude` | Scoped DSL receivers |
-| `User<Fields>Projection` | One projection type per distinct `select { … }` shape |
-| `UserRowMapper` | Positional `ResultSet` → entity mapping |
-| `UserTable` (`User_` for Java) | Column metadata constants used by the planner and by Java-side sorting/filters |
-| `UserJava` façade methods on `db.user()` | `Function`-based builders and `*Async` variants |
+| `UserWhere`, `UserOrderBy`, `UserSelect`, `UserInclude`, `UserQuery` | Scoped DSL receivers |
+| `UserPostsFilter` | One per relation: `some`/`every`/`none`, or `matches`/`notMatches` for a to-one relation |
+| `UserProjection` | The result of a partial `select`; fields the query left out refuse to be read |
+| `UserRowMapper`, `UserProjectionMapper` | Positional row → object mapping |
+| `UserTable` | Column names and `TableMetadata`, as constants |
+| `UserCreateData`, `UserUpdateData`, and the write scopes | What a write says, tracking which fields were touched |
+| `VolanClient` | One repository per model, over a single `QueryExecutor` |
 
 Generated sources are written to the configured `output` directory and registered as a source set by
 the build plugin. They are **not** meant to be edited or checked in.
+
+A relation the query did not `include`, and a field a partial `select` left out, refuse to be read:
+both say which line to add to the query. The alternative — a type per requested shape — is not
+finite on the JVM once includes nest, and the reasoning is recorded in [ROADMAP.md](ROADMAP.md).
 
 ---
 

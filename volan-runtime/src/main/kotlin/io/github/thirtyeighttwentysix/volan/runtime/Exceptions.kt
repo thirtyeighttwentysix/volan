@@ -39,6 +39,23 @@ public class VolanFieldNotSelectedException internal constructor(public val mode
 public class VolanNotFoundException(public val model: String, message: String) : VolanException(message)
 
 /**
+ * Thrown when a write is missing something the schema requires, before any statement is sent.
+ *
+ * Catching this at the boundary is the difference between a clear message about a field that was
+ * never set and a constraint violation from the database three layers down.
+ */
+public class VolanValidationException(message: String) : VolanException(message)
+
+/**
+ * Thrown when a value in the database cannot be turned into what the schema says it is.
+ *
+ * The usual cause is a value that predates a schema change: an enum column holding a name the enum no
+ * longer has, for example. The message says which column and which value, because that is what a
+ * migration to fix it needs.
+ */
+public class VolanMappingException(message: String) : VolanException(message)
+
+/**
  * The set of fields a partial `select` asked for.
  *
  * A projection carries one, so that reading a field the query left out fails with a message naming the

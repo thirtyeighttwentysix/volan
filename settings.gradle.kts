@@ -32,4 +32,5 @@ include(
     ":volan-runtime",
     ":volan-migrate",
     ":volan-coroutines",
+    ":codegen-verify",
 )

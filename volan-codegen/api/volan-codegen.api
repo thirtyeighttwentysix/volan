@@ -1,0 +1,18 @@
+public final class io/github/thirtyeighttwentysix/volan/codegen/GeneratedFile {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getContents ()Ljava/lang/String;
+	public final fun getRelativePath ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/codegen/VolanGenerationException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class io/github/thirtyeighttwentysix/volan/codegen/VolanGenerator {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/codegen/VolanGenerator;
+	public static final fun generate (Lio/github/thirtyeighttwentysix/volan/ir/Schema;)Ljava/util/List;
+	public static final fun generate (Lio/github/thirtyeighttwentysix/volan/ir/Schema;Lio/github/thirtyeighttwentysix/volan/ir/GeneratorConfig;)Ljava/util/List;
+	public static final fun writeTo (Lio/github/thirtyeighttwentysix/volan/ir/Schema;Ljava/nio/file/Path;)Ljava/util/List;
+}
+
