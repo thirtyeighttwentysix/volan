@@ -199,6 +199,23 @@ class QueryDescriptionTest {
     }
 
     @Test
+    fun `a write that reaches into a relation says so where a flat one is needed`() {
+        val nested = listOf(NestedWrite.DisconnectRows("posts"))
+        val failure = runCatching {
+            NestedWrites.requireFlat("createMany", nested, "writes its rows in one statement", "Use `create` once per row.")
+        }.exceptionOrNull()
+
+        (failure is VolanValidationException) shouldBe true
+        failure?.message.orEmpty() shouldContain "cannot also reach into `posts`"
+        failure?.message.orEmpty() shouldContain "Use `create` once per row."
+    }
+
+    @Test
+    fun `a flat write passes the same check without complaint`() {
+        NestedWrites.requireFlat("createMany", emptyList(), "writes its rows in one statement", "Use `create`.")
+    }
+
+    @Test
     fun `instants are carried as values, not as text`() {
         val moment = Instant.parse("2026-07-26T10:15:30Z")
         val scope = object : FilterScope() {

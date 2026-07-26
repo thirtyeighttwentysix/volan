@@ -192,14 +192,19 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
         .build()
 
     private fun update(model: Model): FunSpec = FunSpec.builder("update")
-        .addKdoc("Changes the single row the `where` block selects and reads it back.\n")
+        .addKdoc(
+            "Changes the single row the `where` block selects and reads it back.\n\n" +
+                "Anything the block asks of the rows on the far side of a relation happens in the same " +
+                "transaction, so either the whole shape moves or none of it does.\n",
+        )
         .addParameter("block", lambdaOn(types.declared("${model.name}UpdateScope")))
         .returns(types.declared(model.name))
         .addStatement("val scope = %T().apply(block)", types.declared("${model.name}UpdateScope"))
         .addStatement(
-            "return executor.update(%T(%S, scope.filter.build(), scope.payload.toValues()), %T)",
+            "return executor.update(%T(%S, scope.filter.build(), scope.payload.toValues(), %L), %T)",
             Types.updateSpec,
             model.name,
+            if (model.relationFields.isEmpty()) "emptyList()" else "scope.payload.toNested()",
             types.declared("${model.name}RowMapper"),
         )
         .build()
@@ -209,6 +214,7 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
         .addParameter("block", lambdaOn(types.declared("${model.name}UpdateScope")))
         .returns(LONG)
         .addStatement("val scope = %T().apply(block)", types.declared("${model.name}UpdateScope"))
+        .addCode(refuseNested(model, "updateMany", "changes every matching row, so it has no single row to reach out from"))
         .addStatement(
             "return executor.updateMany(%T(%S, scope.filter.build(), scope.payload.toValues()))",
             Types.updateSpec,
@@ -221,6 +227,8 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
         .addParameter("block", lambdaOn(types.declared("${model.name}UpsertScope")))
         .returns(types.declared(model.name))
         .addStatement("val scope = %T().apply(block)", types.declared("${model.name}UpsertScope"))
+        .addCode(refuseNested(model, "upsert", "decides between two payloads before it writes anything", "insert"))
+        .addCode(refuseNested(model, "upsert", "decides between two payloads before it writes anything", "patch"))
         .addStatement(
             "return executor.upsert(%T(%S, scope.filter.build(), scope.insert.toValues(), scope.patch.toValues()), %T)",
             Types.upsertSpec,
@@ -249,6 +257,24 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
         .addStatement("val scope = %T().apply(block)", types.declared("${model.name}DeleteScope"))
         .addStatement("return executor.deleteMany(%T(%S, scope.filter.build()))", Types.deleteSpec, model.name)
         .build()
+
+    /**
+     * Refuses a write that reached into a relation where the operation cannot follow.
+     *
+     * The alternative is to drop what the block asked for, which is the one outcome a caller cannot
+     * see happening.
+     */
+    private fun refuseNested(model: Model, operation: String, reason: String, payload: String = "payload"): CodeBlock {
+        if (model.relationFields.isEmpty()) return CodeBlock.of("")
+        return CodeBlock.of(
+            "%T.requireFlat(%S, scope.%L.toNested(), %S, %S)\n",
+            Types.nestedWrites,
+            operation,
+            payload,
+            reason,
+            "Use `update` on the row itself when it reaches into its relations.",
+        )
+    }
 
     private fun repositoryCompanion(model: Model): TypeSpec {
         val fields = model.fields.joinToString(", ") { "\"${it.name}\"" }

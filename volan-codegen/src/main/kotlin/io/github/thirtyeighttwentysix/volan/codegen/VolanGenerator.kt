@@ -127,6 +127,8 @@ public object VolanGenerator {
         model.relationFields.forEach { relation ->
             builder.addType(generators.dsl.relationFilter(model, relation))
             builder.addType(generators.writes.nestedWriteScope(model, relation))
+            builder.addType(generators.writes.nestedChangeScope(model, relation))
+            generators.writes.nestedRowsScope(model, relation)?.let { builder.addType(it) }
         }
         return builder.build()
     }

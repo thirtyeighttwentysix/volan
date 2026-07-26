@@ -11,7 +11,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M2** | IR: name resolution, type checking, relation pairing, composite keys, cycle detection | IR snapshot tests | ✅ |
 | **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections, plus the query description layer they compile against | Golden-file tests, and `codegen-verify` generates a client during the build, compiles it and exercises it | ✅ |
 | **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters, raw SQL | Testcontainers PostgreSQL integration suite covering every must-have operation | ✅ |
-| **M5** | Relations, nested writes and summaries: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M, `aggregate`, `groupBy`/`having`, `distinct` | Statement-count assertions prove the absence of N+1 | 🚧 |
+| **M5** | Relations, nested writes and summaries: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M, nested writes from `create` and `update`, `aggregate`, `groupBy`/`having`, `distinct` | Statement-count assertions prove the absence of N+1 | ✅ |
 | **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ⬜ |
 | **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; signature check finds no Kotlin-only types in public API | ⬜ |
 | **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The same integration suite passes on every dialect | ⬜ |
@@ -45,10 +45,13 @@ main branch.
 - **Provider-specific native types.** `@db.…` is parsed, validated for shape and carried into the IR,
   but whether `@db.VarChar(200)` exists for the configured database is a question only a dialect can
   answer. That check lands with the dialects in M8.
-- **Nested writes from an update.** A `create` can write, attach, or find-or-write the rows on the far
-  side of any of its relations, in one transaction. The operations that only make sense against rows
-  that already exist — `disconnect`, `set`, nested `update` and nested `delete` — are written from an
-  `update`, which is what remains of M5.
+- **Deleting the row a required foreign key points at.** An `update` can detach, replace, change and
+  delete the rows on the far side of its relations, except for one case: deleting the row that the row
+  being changed points at. That needs the old key after the key has been cleared, and what it should
+  do depends on `onDelete`, which is a question the migration work in M6 answers properly.
+- **Nested writes more than one level deep from an update.** A nested `update` writes columns; a shape
+  that reaches a third level down would need the key of a row nobody has read yet. It is refused where
+  it was written rather than silently dropped.
 - **A field named `count`.** The result of `aggregate` and of `groupBy` reads the row count as `count`,
   so a model with a scalar field of that name generates two properties with one name and the generated
   code does not compile. The generator should reject the schema with a diagnostic instead; until it

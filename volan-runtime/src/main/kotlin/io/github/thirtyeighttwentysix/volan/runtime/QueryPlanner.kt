@@ -167,6 +167,32 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
         rows = targets.map { target -> (local + target).map { SqlExpression.Parameter(it) } },
     )
 
+    /**
+     * Removes pairs from a many-to-many join table.
+     *
+     * A null [targets] removes every pair of [local], which is what replacing the whole set starts with.
+     */
+    fun joinDelete(
+        table: String,
+        localColumns: List<String>,
+        targetColumns: List<String>,
+        local: List<Any?>,
+        targets: List<List<Any?>>?,
+    ): SqlDelete {
+        val here = localColumns.zip(local).map { (column, value) ->
+            SqlCondition.Compare(SqlExpression.Column(null, column), SqlComparison.EQUAL, SqlExpression.Parameter(value))
+        }
+        val there = targets?.map { key ->
+            SqlCondition.And(
+                targetColumns.zip(key).map { (column, value) ->
+                    SqlCondition.Compare(SqlExpression.Column(null, column), SqlComparison.EQUAL, SqlExpression.Parameter(value))
+                },
+            )
+        }
+        val condition = allOf(here + listOfNotNull(there?.let { SqlCondition.Or(it) }))
+        return SqlDelete(table = table, condition = condition)
+    }
+
     fun insert(specs: List<CreateSpec>, now: Instant): SqlInsert {
         require(specs.isNotEmpty()) { "an insert needs at least one row" }
         val table = registry.require(specs.first().model)

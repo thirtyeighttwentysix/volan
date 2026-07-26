@@ -7,6 +7,7 @@ import com.squareup.kotlinpoet.LIST
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.MUTABLE_LIST
 import com.squareup.kotlinpoet.MUTABLE_SET
+import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.STRING
@@ -56,16 +57,16 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
         model.fields.filterNot { it.isUpdatedAt }.forEach { field ->
             builder.addProperty(mutableField(model, field))
         }
-        if (requireMandatory) addNestedWrites(builder, model)
+        addNestedWrites(builder, model, if (requireMandatory) "Write" else "Change")
         return builder.addFunction(toValues(model)).build()
     }
 
     /**
-     * Adds one block per relation, through which a create can write the rows on the far side of it.
+     * Adds one block per relation, through which a write can reach the rows on the far side of it.
      *
      * They share one list, so the order the caller wrote them in is the order the runtime sees.
      */
-    private fun addNestedWrites(builder: TypeSpec.Builder, model: Model) {
+    private fun addNestedWrites(builder: TypeSpec.Builder, model: Model, suffix: String) {
         if (model.relationFields.isEmpty()) return
         builder.addProperty(
             PropertySpec.builder("writes", MUTABLE_LIST.parameterizedBy(Types.nestedWrite))
@@ -74,10 +75,11 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
                 .build(),
         )
         model.relationFields.forEach { relation ->
+            val scope = types.declared(nestedWriteName(model, relation, suffix))
             builder.addProperty(
-                PropertySpec.builder(relation.name, types.declared(nestedWriteName(model, relation)))
-                    .addKdoc("Rows of `${relation.targetModel}` to write with this one.\n")
-                    .initializer("%T(writes)", types.declared(nestedWriteName(model, relation)))
+                PropertySpec.builder(relation.name, scope)
+                    .addKdoc("The `${relation.targetModel}` rows on the other side of `${relation.name}`.\n")
+                    .initializer("%T(writes)", scope)
                     .build(),
             )
         }
@@ -97,13 +99,37 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
      * `connectOrCreate` takes the same block as `create`: what it looks the row up by is the first
      * unique key that block covers, which is decided at run time because it depends on what was set.
      */
-    fun nestedWriteScope(model: Model, relation: RelationField): TypeSpec {
+    fun nestedWriteScope(model: Model, relation: RelationField): TypeSpec = relationScope(
+        model = model,
+        relation = relation,
+        suffix = "Write",
+        kdoc = "The `${relation.targetModel}` rows to write together with a new `${model.name}`.\n",
+        extra = emptyList(),
+    )
+
+    /**
+     * The block through which one relation is reached from an update.
+     *
+     * A row that already exists can be let go of as well as taken on, so this offers what a create
+     * cannot: detaching, replacing the whole set, and changing or deleting what is attached. Which of
+     * those appear depends on the relation — a row cannot be detached from a foreign key the schema
+     * says is required, so that relation is not offered a `disconnect` at all.
+     */
+    fun nestedChangeScope(model: Model, relation: RelationField): TypeSpec = relationScope(
+        model = model,
+        relation = relation,
+        suffix = "Change",
+        kdoc = "The `${relation.targetModel}` rows on the other side of `${model.name}.${relation.name}`.\n",
+        extra = changeFunctions(model, relation),
+    )
+
+    private fun relationScope(model: Model, relation: RelationField, suffix: String, kdoc: String, extra: List<FunSpec>): TypeSpec {
         val target = relation.targetModel
         val data = types.declared("${target}CreateData")
         val where = types.declared("${target}Where")
         val table = types.declared("${target}Table")
-        return TypeSpec.classBuilder(nestedWriteName(model, relation))
-            .addKdoc("Rows of `$target` to write together with a `${model.name}`.\n")
+        return TypeSpec.classBuilder(nestedWriteName(model, relation, suffix))
+            .addKdoc(kdoc)
             .primaryConstructor(
                 FunSpec.constructorBuilder()
                     .addModifiers(KModifier.INTERNAL)
@@ -112,14 +138,171 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
             )
             .addProperty(
                 PropertySpec.builder("writes", MUTABLE_LIST.parameterizedBy(Types.nestedWrite))
-                    .addModifiers(KModifier.PRIVATE)
+                    .addModifiers(KModifier.INTERNAL)
                     .initializer("writes")
                     .build(),
             )
             .addFunction(nestedCreate(relation, target, data))
             .addFunction(nestedConnect(model, relation, target, where))
             .addFunction(nestedConnectOrCreate(relation, target, data, table))
+            .addFunctions(extra)
             .build()
+    }
+
+    private fun changeFunctions(model: Model, relation: RelationField): List<FunSpec> {
+        val many = relation.cardinality == Cardinality.LIST
+        val shape = shapeOf(model, relation)
+        return buildList {
+            if (shape.detachable) {
+                add(if (many) detachMany(relation) else detachOne(relation))
+                if (many) add(replaceAll(model, relation))
+            }
+            add(if (many) alterMany(relation) else alterOne(relation))
+            when {
+                many -> add(removeMany(relation))
+                !shape.owns -> add(removeOne(relation))
+            }
+        }
+    }
+
+    /** The rows a `set` block names, one condition each. */
+    fun nestedRowsScope(model: Model, relation: RelationField): TypeSpec? {
+        if (relation.cardinality != Cardinality.LIST || !shapeOf(model, relation).detachable) return null
+        val where = types.declared("${relation.targetModel}Where")
+        val filters = MUTABLE_LIST.parameterizedBy(Types.filter)
+        return TypeSpec.classBuilder(nestedWriteName(model, relation, "Rows"))
+            .addKdoc("The `${relation.targetModel}` rows that `${model.name}.${relation.name}` should hold.\n")
+            .primaryConstructor(FunSpec.constructorBuilder().addModifiers(KModifier.INTERNAL).addParameter("filters", filters).build())
+            .addProperty(PropertySpec.builder("filters", filters).addModifiers(KModifier.PRIVATE).initializer("filters").build())
+            .addFunction(
+                FunSpec.builder("row")
+                    .addKdoc("Names one `${relation.targetModel}` the condition must select.\n")
+                    .addParameter("block", lambdaOn(where))
+                    .addStatement(
+                        "filters.add(%T().apply(block).build() ?: throw %T(%S))",
+                        where,
+                        Types.validationException,
+                        "a row of `${model.name}.${relation.name}` needs a condition saying which `${relation.targetModel}` it is.",
+                    )
+                    .build(),
+            )
+            .build()
+    }
+
+    /**
+     * What a relation allows, read off the schema rather than off the row.
+     *
+     * @property owns whether the row being changed is the one holding the foreign key.
+     * @property detachable whether two rows can stop being related without either being deleted, which
+     *   a join table always allows and a foreign key allows only when the schema lets it hold null.
+     */
+    private data class RelationShape(val owns: Boolean, val detachable: Boolean)
+
+    private fun shapeOf(model: Model, field: RelationField): RelationShape {
+        val relation = schema.relations.first { it.name == field.relationName }
+        if (relation.joinTable != null) return RelationShape(owns = false, detachable = true)
+        val owner = schema.model(relation.from.model)
+        val nullable = relation.foreignKeyFields.all { owner?.field(it)?.cardinality == Cardinality.OPTIONAL }
+        val owns = relation.from.model == model.name && relation.from.field == field.name
+        return RelationShape(owns, nullable)
+    }
+
+    private fun detachOne(relation: RelationField): FunSpec = FunSpec.builder("disconnect")
+        .addKdoc("Lets go of the attached `${relation.targetModel}`, leaving it in the database.\n")
+        .addStatement("writes.add(%T.DisconnectRows(%S))", Types.nestedWrite, relation.name)
+        .build()
+
+    private fun detachMany(relation: RelationField): FunSpec = FunSpec.builder("disconnect")
+        .addKdoc(
+            "Lets go of the attached `${relation.targetModel}` rows the condition selects, leaving them " +
+                "in the database.\n\nAn empty block lets go of all of them.\n",
+        )
+        .addParameter(ParameterSpec.builder("block", lambdaOn(types.declared("${relation.targetModel}Where"))).defaultValue("{}").build())
+        .addStatement("val filter = %T().apply(block).build()", types.declared("${relation.targetModel}Where"))
+        .addStatement("writes.add(%T.DisconnectRows(%S, listOfNotNull(filter)))", Types.nestedWrite, relation.name)
+        .build()
+
+    private fun replaceAll(model: Model, relation: RelationField): FunSpec {
+        val rows = types.declared(nestedWriteName(model, relation, "Rows"))
+        return FunSpec.builder("set")
+            .addKdoc(
+                "Makes these the attached `${relation.targetModel}` rows, whatever was attached before.\n\n" +
+                    "Rows that were attached and are not named here are let go of, not deleted.\n",
+            )
+            .addParameter("block", lambdaOn(rows))
+            .addStatement("val filters = mutableListOf<%T>()", Types.filter)
+            .addStatement("%T(filters).apply(block)", rows)
+            .addStatement("writes.add(%T.SetRows(%S, filters.toList()))", Types.nestedWrite, relation.name)
+            .build()
+    }
+
+    private fun alterOne(relation: RelationField): FunSpec {
+        val data = types.declared("${relation.targetModel}UpdateData")
+        return FunSpec.builder("update")
+            .addKdoc("Changes the attached `${relation.targetModel}`.\n")
+            .addParameter("block", lambdaOn(data))
+            .addStatement("val data = %T().apply(block)", data)
+            .addCode(refuseDeeperNesting(relation.targetModel))
+            .addStatement("writes.add(%T.UpdateRows(%S, null, data.toValues()))", Types.nestedWrite, relation.name)
+            .build()
+    }
+
+    private fun alterMany(relation: RelationField): FunSpec {
+        val scope = types.declared("${relation.targetModel}UpdateScope")
+        return FunSpec.builder("update")
+            .addKdoc("Changes the attached `${relation.targetModel}` rows the `where` block selects, or all of them.\n")
+            .addParameter("block", lambdaOn(scope))
+            .addStatement("val scope = %T().apply(block)", scope)
+            .addStatement("val data = scope.payload")
+            .addCode(refuseDeeperNesting(relation.targetModel))
+            .addStatement(
+                "writes.add(%T.UpdateRows(%S, scope.filter.build(), data.toValues()))",
+                Types.nestedWrite,
+                relation.name,
+            )
+            .build()
+    }
+
+    private fun removeOne(relation: RelationField): FunSpec = FunSpec.builder("delete")
+        .addKdoc("Deletes the attached `${relation.targetModel}`.\n")
+        .addStatement("writes.add(%T.DeleteRows(%S, null))", Types.nestedWrite, relation.name)
+        .build()
+
+    private fun removeMany(relation: RelationField): FunSpec = FunSpec.builder("delete")
+        .addKdoc("Deletes the attached `${relation.targetModel}` rows the condition selects.\n\nAn empty block deletes all of them.\n")
+        .addParameter(ParameterSpec.builder("block", lambdaOn(types.declared("${relation.targetModel}Where"))).defaultValue("{}").build())
+        .addStatement("val filter = %T().apply(block).build()", types.declared("${relation.targetModel}Where"))
+        .addStatement("writes.add(%T.DeleteRows(%S, filter))", Types.nestedWrite, relation.name)
+        .build()
+
+    /**
+     * A nested update writes columns, not shapes.
+     *
+     * Reaching a third level down would need the key of a row nobody has read yet, so it is refused
+     * where it was written rather than silently dropped.
+     */
+
+    /** `createMany` puts every row in one statement, which leaves nowhere to write a relation between them. */
+    private fun refuseNestedRows(model: Model): CodeBlock {
+        if (model.relationFields.isEmpty()) return CodeBlock.of("")
+        return CodeBlock.of(
+            "%T.requireFlat(%S, data.toNested(), %S, %S)\n",
+            Types.nestedWrites,
+            "createMany",
+            "writes its rows in one statement",
+            "Use `create` once per row when the rows bring relations with them.",
+        )
+    }
+
+    private fun refuseDeeperNesting(target: String): CodeBlock {
+        if (schema.model(target)?.relationFields.isNullOrEmpty()) return CodeBlock.of("")
+        return CodeBlock.of(
+            "%T.requireFlat(%S, data.toNested(), %S, %S)\n",
+            Types.nestedWrites,
+            "a nested update",
+            "changes the columns of rows that are already there",
+            "Change them from their own repository when they bring relations with them.",
+        )
     }
 
     private fun nestedCreate(relation: RelationField, target: String, data: TypeName): FunSpec = FunSpec.builder("create")
@@ -170,8 +353,8 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
     private fun nestedOf(model: String): String =
         if (schema.model(model)?.relationFields.isNullOrEmpty()) "emptyList()" else "data.toNested()"
 
-    private fun nestedWriteName(model: Model, relation: RelationField): String =
-        "${model.name}${relation.name.replaceFirstChar { it.uppercase() }}Write"
+    private fun nestedWriteName(model: Model, relation: RelationField, suffix: String): String =
+        "${model.name}${relation.name.replaceFirstChar { it.uppercase() }}$suffix"
 
     private fun mutableField(model: Model, field: ScalarField): PropertySpec {
         val type = types.fieldType(field.type, field.cardinality).copy(nullable = true)
@@ -268,14 +451,8 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
                     .addKdoc("Adds one row to insert.\n")
                     .addParameter("block", lambdaOn(dataType))
                     .addStatement("val data = %T().apply(block)", dataType)
-                    .addStatement(
-                        "rows.add(%T.requireFlat(%S, %T(%S, data.toValues(), %L)))",
-                        Types.nestedWrites,
-                        "createMany",
-                        Types.createSpec,
-                        model.name,
-                        if (model.relationFields.isEmpty()) "emptyList()" else "data.toNested()",
-                    )
+                    .addCode(refuseNestedRows(model))
+                    .addStatement("rows.add(%T(%S, data.toValues()))", Types.createSpec, model.name)
                     .build(),
             )
             .build()

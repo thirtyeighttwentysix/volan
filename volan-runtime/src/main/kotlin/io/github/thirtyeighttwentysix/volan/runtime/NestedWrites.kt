@@ -28,18 +28,17 @@ public object NestedWrites {
     }
 
     /**
-     * Refuses a row that asked for nested writes where only a flat one can be written.
+     * Refuses a write that reached into relations where only a flat one can be applied.
      *
-     * `createMany` puts every row in one statement, which leaves nowhere to write the rows on the far
-     * side of a relation between them.
+     * @param reason why this operation cannot carry them, as a clause following the operation's name.
+     * @param instead what to use instead, as a whole sentence.
      */
     @JvmStatic
-    public fun requireFlat(operation: String, spec: CreateSpec): CreateSpec {
-        if (spec.nested.isEmpty()) return spec
-        val relations = spec.nested.joinToString(", ") { "`${it.relation}`" }
+    public fun requireFlat(operation: String, nested: List<NestedWrite>, reason: String, instead: String) {
+        if (nested.isEmpty()) return
+        val relations = nested.joinToString(", ") { "`${it.relation}`" }
         throw VolanValidationException(
-            "`$operation` writes its rows in one statement, so it cannot also write $relations alongside them.\n" +
-                "  Use `create` once per row when the rows bring relations with them.",
+            "`$operation` $reason, so it cannot also reach into $relations.\n  $instead",
         )
     }
 

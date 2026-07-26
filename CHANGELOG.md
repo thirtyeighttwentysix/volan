@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Nested writes from an `update`: `disconnect`, `set`, nested `update` and nested `delete` alongside
+  the `create`/`connect`/`connectOrCreate` a create already had, all in one transaction with the change
+  itself. Each relation is offered exactly the operations its shape allows — a row cannot be detached
+  from a foreign key the schema says is required, so that relation has no `disconnect` to call.
 - `aggregate { … }`: `count`, `sum`, `average`, `minimum` and `maximum` over the matching rows, in one
   statement. A summary is only offered where it means something — there is no total of a boolean column
   — and a summary the query never asked for refuses to be read rather than reading as zero.

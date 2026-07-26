@@ -18,8 +18,10 @@ import io.github.thirtyeighttwentysix.volan.runtime.SortDirection
 import io.github.thirtyeighttwentysix.volan.runtime.VolanAggregateNotAskedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanFieldNotSelectedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanRelationNotLoadedException
+import io.github.thirtyeighttwentysix.volan.runtime.VolanValidationException
 import io.github.thirtyeighttwentysix.volan.runtime.NestedWrite
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -38,6 +40,15 @@ import java.time.Instant
  */
 class GeneratedClientTest {
     private val now = Instant.parse("2026-07-26T10:15:30Z")
+
+    private val postRow = mapOf(
+        "id" to 7L,
+        "title" to "Hello",
+        "body" to null,
+        "views" to 0,
+        "draft" to false,
+        "authorId" to 1,
+    )
 
     private val aliceRow = mapOf(
         "id" to 1,
@@ -450,6 +461,79 @@ class GeneratedClientTest {
         val executor = FakeExecutor()
         VolanClient(executor).user.findMany { distinct { createdAt } }
         executor.query.distinct shouldContainExactly listOf("created_at")
+    }
+
+    @Test
+    fun `an update describes what to do to the rows on the far side of its relations`() {
+        val executor = FakeExecutor(listOf(aliceRow))
+        VolanClient(executor).user.update {
+            where { id eq 1 }
+            data {
+                name = "Alice II"
+                posts.create { title = "New" }
+                posts.update {
+                    where { draft eq true }
+                    data { draft = false }
+                }
+                posts.delete { views eq 0 }
+                manager.disconnect()
+            }
+        }
+
+        val spec = executor.change
+        spec.values shouldBe mapOf("name" to "Alice II")
+        spec.nested.map { it::class.simpleName to it.relation } shouldContainExactly listOf(
+            "CreateRows" to "posts",
+            "UpdateRows" to "posts",
+            "DeleteRows" to "posts",
+            "DisconnectRows" to "manager",
+        )
+        spec.nested.filterIsInstance<NestedWrite.UpdateRows>().single().values shouldBe mapOf("draft" to false)
+        spec.nested.filterIsInstance<NestedWrite.DeleteRows>().single().filter shouldBe
+            Filter.Compare("views", ComparisonOperator.EQUAL, 0)
+    }
+
+    @Test
+    fun `set names the rows a relation should hold afterwards`() {
+        val executor = FakeExecutor(listOf(postRow))
+        VolanClient(executor).post.update {
+            where { id eq 7 }
+            data {
+                tags.set {
+                    row { name eq "kotlin" }
+                    row { name eq "jvm" }
+                }
+            }
+        }
+
+        val set = executor.change.nested.filterIsInstance<NestedWrite.SetRows>().single()
+        set.relation shouldBe "tags"
+        set.filters shouldContainExactly listOf(
+            Filter.Compare("name", ComparisonOperator.EQUAL, "kotlin"),
+            Filter.Compare("name", ComparisonOperator.EQUAL, "jvm"),
+        )
+    }
+
+    @Test
+    fun `an empty disconnect block lets go of everything attached`() {
+        val executor = FakeExecutor(listOf(postRow))
+        VolanClient(executor).post.update {
+            where { id eq 7 }
+            data { tags.disconnect() }
+        }
+        executor.change.nested.filterIsInstance<NestedWrite.DisconnectRows>().single().filters.shouldBeEmpty()
+    }
+
+    @Test
+    fun `updateMany refuses to reach into relations it has no single row to reach from`() {
+        val executor = FakeExecutor(listOf(aliceRow))
+        val failure = shouldThrow<VolanValidationException> {
+            VolanClient(executor).user.updateMany {
+                where { role eq Role.USER }
+                data { posts.delete { } }
+            }
+        }
+        failure.message.shouldContain("no single row to reach out from")
     }
 
     @Test

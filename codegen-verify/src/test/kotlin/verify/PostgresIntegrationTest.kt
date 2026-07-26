@@ -10,6 +10,7 @@ import io.github.thirtyeighttwentysix.volan.runtime.VolanNotFoundException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanRelationNotLoadedException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanUniqueConstraintException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanValidationException
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -856,6 +857,180 @@ class PostgresIntegrationTest {
 
         client.post.findMany { distinct { draft } }.size shouldBe 2
         client.post.findMany { }.size shouldBe 3
+    }
+
+    @Test
+    fun `an update writes the rows it brings with it, and changes the ones already there`() {
+        val author = alice()
+        val existing = client.post.create {
+            title = "Draft"
+            draft = true
+            authorId = author.id
+        }
+
+        client.user.update {
+            where { id eq author.id }
+            data {
+                name = "Alice II"
+                posts.create {
+                    title = "Fresh"
+                    draft = false
+                }
+                posts.update {
+                    where { id eq existing.id }
+                    data { draft = false }
+                }
+            }
+        }
+
+        client.user.findUniqueOrThrow { where { id eq author.id } }.name shouldBe "Alice II"
+        client.post.findMany { orderBy { title.asc() } }.map { it.title to it.draft } shouldContainExactly
+            listOf("Draft" to false, "Fresh" to false)
+    }
+
+    @Test
+    fun `disconnect lets go of a row without deleting it`() {
+        val boss = alice()
+        val report = client.user.create {
+            email = "bob@acme.com"
+            managerId = boss.id
+        }
+
+        client.user.update {
+            where { id eq report.id }
+            data { manager.disconnect() }
+        }
+
+        val after = client.user.findUniqueOrThrow { where { id eq report.id } }
+        after.managerId.shouldBeNull()
+        client.user.count() shouldBe 2
+    }
+
+    @Test
+    fun `a nested delete removes the attached rows the condition selects, and only those`() {
+        val author = alice()
+        client.post.createMany {
+            row {
+                title = "Keep"
+                views = 10
+                authorId = author.id
+            }
+            row {
+                title = "Drop"
+                views = 0
+                authorId = author.id
+            }
+        }
+
+        client.user.update {
+            where { id eq author.id }
+            data { posts.delete { views eq 0 } }
+        }
+
+        client.post.findMany { }.map { it.title } shouldContainExactly listOf("Keep")
+    }
+
+    @Test
+    fun `set replaces the whole set of related rows through a join table`() {
+        val author = alice()
+        listOf("kotlin", "jvm", "sql").forEach { name -> client.tag.create { this.name = name } }
+        val post = client.post.create {
+            title = "Hello"
+            authorId = author.id
+            tags.connect { name eq "kotlin" }
+            tags.connect { name eq "jvm" }
+        }
+
+        client.post.update {
+            where { id eq post.id }
+            data {
+                tags.set {
+                    row { name eq "jvm" }
+                    row { name eq "sql" }
+                }
+            }
+        }
+
+        val reloaded = client.post.findUniqueOrThrow {
+            where { id eq post.id }
+            include { tags { orderBy { name.asc() } } }
+        }
+        reloaded.tags.map { it.name } shouldContainExactly listOf("jvm", "sql")
+        client.tag.count() shouldBe 3
+    }
+
+    @Test
+    fun `disconnecting through a join table removes the pair, not the row`() {
+        val author = alice()
+        client.tag.create { name = "kotlin" }
+        val post = client.post.create {
+            title = "Hello"
+            authorId = author.id
+            tags.connect { name eq "kotlin" }
+        }
+
+        client.post.update {
+            where { id eq post.id }
+            data { tags.disconnect { name eq "kotlin" } }
+        }
+
+        client.post.findUniqueOrThrow {
+            where { id eq post.id }
+            include { tags { } }
+        }.tags.shouldBeEmpty()
+        client.tag.count() shouldBe 1
+    }
+
+    @Test
+    fun `a nested update through a join table changes only the attached rows`() {
+        val author = alice()
+        client.tag.create { name = "kotlin" }
+        client.tag.create { name = "unattached" }
+        val post = client.post.create {
+            title = "Hello"
+            authorId = author.id
+            tags.connect { name eq "kotlin" }
+        }
+
+        client.post.update {
+            where { id eq post.id }
+            data { tags.update { data { name = "renamed" } } }
+        }
+
+        client.tag.findMany { orderBy { name.asc() } }.map { it.name } shouldContainExactly listOf("renamed", "unattached")
+    }
+
+    @Test
+    fun `an update that reaches into a relation and fails takes the whole change with it`() {
+        val author = alice()
+        val failure = runCatching {
+            client.user.update {
+                where { id eq author.id }
+                data {
+                    name = "Alice II"
+                    posts.create { title = "Fine" }
+                    posts.connect { id eq 999 }
+                }
+            }
+        }.exceptionOrNull()
+
+        (failure is VolanNotFoundException) shouldBe true
+        client.user.findUniqueOrThrow { where { id eq author.id } }.name shouldBe "Alice"
+        client.post.count() shouldBe 0
+    }
+
+    @Test
+    fun `updateMany refuses to reach into a relation it has no single row to reach from`() {
+        alice()
+        val failure = runCatching {
+            client.user.updateMany {
+                where { role eq Role.ADMIN }
+                data { posts.delete { } }
+            }
+        }.exceptionOrNull()
+
+        (failure is VolanValidationException) shouldBe true
+        failure?.message.orEmpty() shouldContain "no single row to reach out from"
     }
 
     @Test

@@ -158,14 +158,42 @@ internal class JdbcExecutor(
     }
 
     @Suppress("UNCHECKED_CAST")
+    override fun changePlain(spec: UpdateSpec, keyColumns: List<String>): WrittenRow {
+        val reader = readerFor(spec.model) as EntityReader<Any?>
+        val row = updateOne(spec, reader)
+        return WrittenRow(row, reader.key(row, keyColumns))
+    }
+
+    @Suppress("UNCHECKED_CAST")
     override fun findKey(model: String, filter: Filter?, keyColumns: List<String>): List<Any?>? {
         val reader = readerFor(model) as EntityReader<Any?>
         val row = findFirst(QuerySpec(model, filter), reader) ?: return null
         return reader.key(row, keyColumns)
     }
 
-    override fun pointAt(model: String, filter: Filter?, columns: List<String>, key: List<Any?>): Long =
-        updateMany(UpdateSpec(model, filter, columns.zip(key).toMap()))
+    @Suppress("UNCHECKED_CAST")
+    override fun findKeys(model: String, filter: Filter?, keyColumns: List<String>): List<List<Any?>> {
+        val reader = readerFor(model) as EntityReader<Any?>
+        return findMany(QuerySpec(model, filter), reader).map { reader.key(it, keyColumns) }
+    }
+
+    override fun changeRows(model: String, filter: Filter?, values: Map<String, Any?>): Long = updateMany(UpdateSpec(model, filter, values))
+
+    override fun removeRows(model: String, filter: Filter?): Long = deleteMany(DeleteSpec(model, filter))
+
+    override fun unpair(
+        table: String,
+        localColumns: List<String>,
+        targetColumns: List<String>,
+        local: List<Any?>,
+        targets: List<List<Any?>>?,
+    ) {
+        val statement = dialect.render(planner.joinDelete(table, localColumns, targetColumns, local, targets))
+        update(statement, "unlinking rows through `$table`")
+    }
+
+    override fun pairedKeys(table: String, localColumns: List<String>, targetColumns: List<String>, local: List<Any?>): List<List<Any?>> =
+        joinPairs(table, localColumns, targetColumns, listOf(local)).map { it.second }
 
     override fun pair(
         table: String,
@@ -188,20 +216,40 @@ internal class JdbcExecutor(
         return update(statement, "creating ${specs.size} ${specs.first().model} rows").toLong()
     }
 
+    /**
+     * Changes one row, and whatever it asked to change alongside it.
+     *
+     * Like a create with nested writes, a change that reaches into relations runs in one transaction:
+     * a shape that is half moved is worse than one that never moved, and the caller cannot put it back.
+     */
     override fun <T> update(spec: UpdateSpec, mapper: RowMapper<T>): T {
         requireReturning(spec.model, "update")
+        if (spec.nested.isEmpty()) return updateOne(spec, mapper)
+        @Suppress("UNCHECKED_CAST")
+        return connections.transaction(Isolation.DEFAULT, RetryPolicy.NONE) { nested.change(spec).row as T }
+    }
+
+    /**
+     * Writes the columns a change names, or reads the row when it names none.
+     *
+     * A change that only reaches into relations has nothing of its own to write, and an `UPDATE` with
+     * an empty `SET` is not a statement. The row is still read back, because that is what the caller
+     * asked for and what the nested writes are applied against.
+     */
+    private fun <T> updateOne(spec: UpdateSpec, mapper: RowMapper<T>): T {
+        if (spec.values.isEmpty() && registry.require(spec.model).columns.none { it.isUpdatedAt }) {
+            return findFirst(QuerySpec(spec.model, spec.filter), mapper) ?: throw notChanged(spec.model)
+        }
         val statement = dialect.render(planner.update(spec, clock.instant(), returning = true))
         return query(statement, "updating a ${spec.model}") { result ->
-            if (result.next()) {
-                mapper.map(JdbcRow(result))
-            } else {
-                throw VolanNotFoundException(
-                    spec.model,
-                    "no ${spec.model} matched the `where` block of this update, so there was nothing to change.",
-                )
-            }
+            if (result.next()) mapper.map(JdbcRow(result)) else throw notChanged(spec.model)
         }
     }
+
+    private fun notChanged(model: String): VolanException = VolanNotFoundException(
+        model,
+        "no $model matched the `where` block of this update, so there was nothing to change.",
+    )
 
     override fun updateMany(spec: UpdateSpec): Long {
         val statement = dialect.render(planner.update(spec, clock.instant(), returning = false))

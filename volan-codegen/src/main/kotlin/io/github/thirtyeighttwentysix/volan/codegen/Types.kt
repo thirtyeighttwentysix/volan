@@ -53,6 +53,7 @@ internal object Types {
     val queryExecutor: ClassName = ClassName(RUNTIME, "QueryExecutor")
     val querySpec: ClassName = ClassName(RUNTIME, "QuerySpec")
     val createSpec: ClassName = ClassName(RUNTIME, "CreateSpec")
+    val filter: ClassName = ClassName(RUNTIME, "Filter")
     val nestedWrite: ClassName = ClassName(RUNTIME, "NestedWrite")
     val nestedWrites: ClassName = ClassName(RUNTIME, "NestedWrites")
     val connectOrCreateEntry: ClassName = ClassName(RUNTIME, "ConnectOrCreateEntry")

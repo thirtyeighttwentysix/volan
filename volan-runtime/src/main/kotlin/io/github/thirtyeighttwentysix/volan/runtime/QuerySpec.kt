@@ -124,6 +124,27 @@ public sealed interface NestedWrite {
 
     /** Rows to attach if they exist and to insert if they do not. */
     public data class ConnectOrCreateRows(override val relation: String, public val entries: List<ConnectOrCreateEntry>) : NestedWrite
+
+    /**
+     * Attached rows to detach, leaving them in the database.
+     *
+     * An empty [filters] detaches everything currently attached, which is what `disconnect()` on a
+     * relation holding one row means.
+     */
+    public data class DisconnectRows(override val relation: String, public val filters: List<Filter> = emptyList()) : NestedWrite
+
+    /** The rows that should be attached afterwards, whatever was attached before. */
+    public data class SetRows(override val relation: String, public val filters: List<Filter>) : NestedWrite
+
+    /** A change to apply to attached rows, to those [filter] selects when it is not null. */
+    public data class UpdateRows(
+        override val relation: String,
+        public val filter: Filter?,
+        public val values: Map<String, Any?>,
+    ) : NestedWrite
+
+    /** Attached rows to delete, those [filter] selects when it is not null. */
+    public data class DeleteRows(override val relation: String, public val filter: Filter?) : NestedWrite
 }
 
 /**
@@ -140,11 +161,14 @@ public data class ConnectOrCreateEntry(public val filter: Filter, public val row
  * @property model the model being written.
  * @property filter which rows to change; `null` for every row.
  * @property values column name to new value.
+ * @property nested what to do to the rows on the other side of this row's relations. They are applied
+ *   in one transaction with the change itself, so either the whole shape moves or none of it does.
  */
 public data class UpdateSpec(
     public val model: String,
     public val filter: Filter?,
     public val values: Map<String, Any?>,
+    public val nested: List<NestedWrite> = emptyList(),
 )
 
 /**

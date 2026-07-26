@@ -84,6 +84,9 @@ class FakeExecutor(
         return mapper.map(MapRow(rows.first()))
     }
 
+    /** The single change this executor was given, failing the test when it was given none or several. */
+    val change: UpdateSpec get() = updates.single()
+
     override fun updateMany(spec: UpdateSpec): Long {
         updates.add(spec)
         return rows.size.toLong()

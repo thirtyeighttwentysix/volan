@@ -9,6 +9,7 @@ import io.github.thirtyeighttwentysix.volan.runtime.ConnectOrCreateEntry
 import io.github.thirtyeighttwentysix.volan.runtime.CreateSpec
 import io.github.thirtyeighttwentysix.volan.runtime.DeleteSpec
 import io.github.thirtyeighttwentysix.volan.runtime.EntityReader
+import io.github.thirtyeighttwentysix.volan.runtime.Filter
 import io.github.thirtyeighttwentysix.volan.runtime.FilterScope
 import io.github.thirtyeighttwentysix.volan.runtime.GroupScope
 import io.github.thirtyeighttwentysix.volan.runtime.HavingScope
@@ -811,7 +812,7 @@ public class TagCreateData {
   private val writes: MutableList<NestedWrite> = mutableListOf()
 
   /**
-   * Rows of `Post` to write with this one.
+   * The `Post` rows on the other side of `posts`.
    */
   public val posts: TagPostsWrite = TagPostsWrite(writes)
 
@@ -865,6 +866,18 @@ public class TagUpdateData {
       touched.add("name")
     }
 
+  private val writes: MutableList<NestedWrite> = mutableListOf()
+
+  /**
+   * The `Post` rows on the other side of `posts`.
+   */
+  public val posts: TagPostsChange = TagPostsChange(writes)
+
+  /**
+   * The writes to make on the far side of this row's relations, in the order they were asked for.
+   */
+  internal fun toNested(): List<NestedWrite> = writes.toList()
+
   /**
    * The values to write, keyed by column name.
    */
@@ -891,7 +904,8 @@ public class TagCreateMany {
    */
   public fun row(block: TagCreateData.() -> Unit) {
     val data = TagCreateData().apply(block)
-    rows.add(NestedWrites.requireFlat("createMany", CreateSpec("Tag", data.toValues(), data.toNested())))
+    NestedWrites.requireFlat("createMany", data.toNested(), "writes its rows in one statement", "Use `create` once per row when the rows bring relations with them.")
+    rows.add(CreateSpec("Tag", data.toValues()))
   }
 }
 
@@ -1064,10 +1078,12 @@ public class TagRepository(
 
   /**
    * Changes the single row the `where` block selects and reads it back.
+   *
+   * Anything the block asks of the rows on the far side of a relation happens in the same transaction, so either the whole shape moves or none of it does.
    */
   public fun update(block: TagUpdateScope.() -> Unit): Tag {
     val scope = TagUpdateScope().apply(block)
-    return executor.update(UpdateSpec("Tag", scope.filter.build(), scope.payload.toValues()), TagRowMapper)
+    return executor.update(UpdateSpec("Tag", scope.filter.build(), scope.payload.toValues(), scope.payload.toNested()), TagRowMapper)
   }
 
   /**
@@ -1075,6 +1091,7 @@ public class TagRepository(
    */
   public fun updateMany(block: TagUpdateScope.() -> Unit): Long {
     val scope = TagUpdateScope().apply(block)
+    NestedWrites.requireFlat("updateMany", scope.payload.toNested(), "changes every matching row, so it has no single row to reach out from", "Use `update` on the row itself when it reaches into its relations.")
     return executor.updateMany(UpdateSpec("Tag", scope.filter.build(), scope.payload.toValues()))
   }
 
@@ -1083,6 +1100,8 @@ public class TagRepository(
    */
   public fun upsert(block: TagUpsertScope.() -> Unit): Tag {
     val scope = TagUpsertScope().apply(block)
+    NestedWrites.requireFlat("upsert", scope.insert.toNested(), "decides between two payloads before it writes anything", "Use `update` on the row itself when it reaches into its relations.")
+    NestedWrites.requireFlat("upsert", scope.patch.toNested(), "decides between two payloads before it writes anything", "Use `update` on the row itself when it reaches into its relations.")
     return executor.upsert(UpsertSpec("Tag", scope.filter.build(), scope.insert.toValues(), scope.patch.toValues()), TagRowMapper)
   }
 
@@ -1136,10 +1155,10 @@ public class TagPostsFilter(
 }
 
 /**
- * Rows of `Post` to write together with a `Tag`.
+ * The `Post` rows to write together with a new `Tag`.
  */
 public class TagPostsWrite internal constructor(
-  private val writes: MutableList<NestedWrite>,
+  internal val writes: MutableList<NestedWrite>,
 ) {
   /**
    * Writes a new `Post` and attaches it.
@@ -1165,5 +1184,93 @@ public class TagPostsWrite internal constructor(
     val values = data.toValues()
     val filter = NestedWrites.uniqueFilter("Post", values, PostTable.UNIQUE_KEYS)
     writes.add(NestedWrite.ConnectOrCreateRows("posts", listOf(ConnectOrCreateEntry(filter, CreateSpec("Post", values, data.toNested())))))
+  }
+}
+
+/**
+ * The `Post` rows on the other side of `Tag.posts`.
+ */
+public class TagPostsChange internal constructor(
+  internal val writes: MutableList<NestedWrite>,
+) {
+  /**
+   * Writes a new `Post` and attaches it.
+   */
+  public fun create(block: PostCreateData.() -> Unit) {
+    val data = PostCreateData().apply(block)
+    writes.add(NestedWrite.CreateRows("posts", listOf(CreateSpec("Post", data.toValues(), data.toNested()))))
+  }
+
+  /**
+   * Attaches an existing `Post`, which the condition must select.
+   */
+  public fun connect(block: PostWhere.() -> Unit) {
+    val filter = PostWhere().apply(block).build() ?: throw VolanValidationException("`connect` on `Tag.posts` needs a condition saying which `Post` to attach.")
+    writes.add(NestedWrite.ConnectRows("posts", listOf(filter)))
+  }
+
+  /**
+   * Attaches the `Post` these values identify, writing it first if it is not there.
+   */
+  public fun connectOrCreate(block: PostCreateData.() -> Unit) {
+    val data = PostCreateData().apply(block)
+    val values = data.toValues()
+    val filter = NestedWrites.uniqueFilter("Post", values, PostTable.UNIQUE_KEYS)
+    writes.add(NestedWrite.ConnectOrCreateRows("posts", listOf(ConnectOrCreateEntry(filter, CreateSpec("Post", values, data.toNested())))))
+  }
+
+  /**
+   * Lets go of the attached `Post` rows the condition selects, leaving them in the database.
+   *
+   * An empty block lets go of all of them.
+   */
+  public fun disconnect(block: PostWhere.() -> Unit = {}) {
+    val filter = PostWhere().apply(block).build()
+    writes.add(NestedWrite.DisconnectRows("posts", listOfNotNull(filter)))
+  }
+
+  /**
+   * Makes these the attached `Post` rows, whatever was attached before.
+   *
+   * Rows that were attached and are not named here are let go of, not deleted.
+   */
+  public fun `set`(block: TagPostsRows.() -> Unit) {
+    val filters = mutableListOf<Filter>()
+    TagPostsRows(filters).apply(block)
+    writes.add(NestedWrite.SetRows("posts", filters.toList()))
+  }
+
+  /**
+   * Changes the attached `Post` rows the `where` block selects, or all of them.
+   */
+  public fun update(block: PostUpdateScope.() -> Unit) {
+    val scope = PostUpdateScope().apply(block)
+    val data = scope.payload
+    NestedWrites.requireFlat("a nested update", data.toNested(), "changes the columns of rows that are already there", "Change them from their own repository when they bring relations with them.")
+    writes.add(NestedWrite.UpdateRows("posts", scope.filter.build(), data.toValues()))
+  }
+
+  /**
+   * Deletes the attached `Post` rows the condition selects.
+   *
+   * An empty block deletes all of them.
+   */
+  public fun delete(block: PostWhere.() -> Unit = {}) {
+    val filter = PostWhere().apply(block).build()
+    writes.add(NestedWrite.DeleteRows("posts", filter))
+  }
+}
+
+/**
+ * The `Post` rows that `Tag.posts` should hold.
+ */
+public class TagPostsRows internal constructor(
+  private val filters: MutableList<Filter>,
+) {
+  /**
+   * Names one `Post` the condition must select.
+   */
+  public fun row(block: PostWhere.() -> Unit) {
+    filters.add(PostWhere().apply(block).build() ?: throw VolanValidationException("a row of `Tag.posts` needs a condition saying which `Post` it is."))
   }
 }
