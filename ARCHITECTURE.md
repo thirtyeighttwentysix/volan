@@ -85,6 +85,13 @@ db.user.findMany { … }            generated, fully typed
  List<User>
 ```
 
+A read that asks for summaries rather than rows takes the same route under a different description:
+`aggregate { … }` builds an `AggregateSpec` and `groupBy { … }` a `GroupSpec`, both planned into the
+same SQL model and executed by the same executor. A `GroupSpec` carries its `having` condition
+separately from its `where`, along with what each summary named there stands for — a database will not
+accept a summary under the alias it comes back as, so the planner puts the expression back in its
+place.
+
 `QuerySpec` never contains SQL strings and never contains user values inlined into text: values live
 in a parameter list from the moment they enter the DSL until `PreparedStatement.setObject`. That is
 the structural reason Volan cannot be SQL-injected (see [ADR-0004](docs/adr/0004-query-ir-and-sql-rendering.md)).

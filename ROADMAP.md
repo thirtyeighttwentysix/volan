@@ -11,7 +11,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M2** | IR: name resolution, type checking, relation pairing, composite keys, cycle detection | IR snapshot tests | ✅ |
 | **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections, plus the query description layer they compile against | Golden-file tests, and `codegen-verify` generates a client during the build, compiles it and exercises it | ✅ |
 | **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters, raw SQL | Testcontainers PostgreSQL integration suite covering every must-have operation | ✅ |
-| **M5** | Relations and nested writes: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M | Statement-count assertions prove the absence of N+1 | 🚧 |
+| **M5** | Relations, nested writes and summaries: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M, `aggregate`, `groupBy`/`having`, `distinct` | Statement-count assertions prove the absence of N+1 | 🚧 |
 | **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ⬜ |
 | **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; signature check finds no Kotlin-only types in public API | ⬜ |
 | **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The same integration suite passes on every dialect | ⬜ |
@@ -45,15 +45,14 @@ main branch.
 - **Provider-specific native types.** `@db.…` is parsed, validated for shape and carried into the IR,
   but whether `@db.VarChar(200)` exists for the configured database is a question only a dialect can
   answer. That check lands with the dialects in M8.
-- **Aggregations and `groupBy`.** The SQL model renders them and the golden tests cover that; the
-  repository operations that expose them are scheduled with relation loading in M5, because both need
-  the same grouped-result machinery.
-- **Nested writes from an update, and aggregations.** A `create` can write, attach, or find-or-write
-  the rows on the far side of any of its relations, in one transaction. The operations that only make
-  sense against rows that already exist — `disconnect`, `set`, nested `update` and nested `delete` —
-  are written from an `update`, which is the second half of M5. Aggregations and `groupBy` are the
-  other half: the SQL model renders them and the golden tests cover that, but no repository operation
-  exposes them yet.
+- **Nested writes from an update.** A `create` can write, attach, or find-or-write the rows on the far
+  side of any of its relations, in one transaction. The operations that only make sense against rows
+  that already exist — `disconnect`, `set`, nested `update` and nested `delete` — are written from an
+  `update`, which is what remains of M5.
+- **A field named `count`.** The result of `aggregate` and of `groupBy` reads the row count as `count`,
+  so a model with a scalar field of that name generates two properties with one name and the generated
+  code does not compile. The generator should reject the schema with a diagnostic instead; until it
+  does, the failure is loud but points at generated code rather than at the schema.
 - **Writing a grandchild that needs its grandparent's key.** A nested write supplies the foreign key of
   the row it is nested under, so a shape reaching two levels down works whenever the deeper row's other
   required columns are already known. A composite key that needs a key from two levels up — a comment
@@ -65,8 +64,6 @@ main branch.
 - **Reading a written row back without `RETURNING`.** PostgreSQL has it, so `create`, `update` and
   `delete` read the row back in one statement. The follow-up-select fallback the other databases need
   arrives with them in M8.
-- **Nested writes.** `create { posts.create { … } }` is M5; until then a write carries the model's own
-  columns, including its foreign keys.
 - **Filters and ordering on list columns.** A `String[]` column is read and written, but has no filter
   handle: what `contains` means for an array is a dialect question, answered in M8.
 - **The Java-facing layer.** Generated entities are already Java-shaped — getters, builders, no Kotlin-only

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `aggregate { … }`: `count`, `sum`, `average`, `minimum` and `maximum` over the matching rows, in one
+  statement. A summary is only offered where it means something — there is no total of a boolean column
+  — and a summary the query never asked for refuses to be read rather than reading as zero.
+- `groupBy { by { … } … having { … } }`: rows folded into groups, each summarised, with `having`
+  written over the summaries. A group is read the same way a partial `select` is read, so a field the
+  `by` block left out fails with the message that names the block which would add it.
+- `distinct { … }` on a read, naming fields the way every other block does.
 - Nested writes from a `create`: `create`, `connect` and `connectOrCreate` on any relation, applied in
   one transaction with the row they belong to. Relations the row owns the key of are resolved first and
   folded into its own values; everything else is applied against the key it came back with.
