@@ -6,6 +6,7 @@ description = "Bill of materials pinning every Volan module to a single version.
 
 dependencies {
     constraints {
+        api(project(":volan-core"))
         api(project(":volan-schema"))
         api(project(":volan-ir"))
         api(project(":volan-codegen"))

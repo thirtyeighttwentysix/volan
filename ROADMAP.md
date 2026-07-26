@@ -7,8 +7,8 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | Milestone | Scope | Definition of done | Status |
 |---|---|---|---|
 | **M0** | Project skeleton: multi-module Gradle build, version catalog, ktlint/detekt/Kover/ABI validation, CI, licence, docs skeleton | `./gradlew build` green | ✅ |
-| **M1** | Schema language: lexer, parser, AST, Rust-style diagnostics, `format`, `validate` | The reference schema parses; ≥ 30 negative fixtures assert exact diagnostics | 🚧 |
-| **M2** | IR: name resolution, type checking, relation pairing, composite keys, cycle detection | IR snapshot tests | ⬜ |
+| **M1** | Schema language: lexer, parser, AST, Rust-style diagnostics, formatter | The reference schema parses; 34 negative fixtures assert exact diagnostics | ✅ |
+| **M2** | IR: name resolution, type checking, relation pairing, composite keys, cycle detection | IR snapshot tests | 🚧 |
 | **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections | Golden-file tests + the generated sources actually compile | ⬜ |
 | **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters | Testcontainers PostgreSQL integration suite covering every must-have operation | ⬜ |
 | **M5** | Relations and nested writes: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M | Statement-count assertions prove the absence of N+1 | ⬜ |
@@ -33,6 +33,9 @@ main branch.
 - **`volan-cli`, `volan-gradle-plugin`, `volan-maven-plugin`, `java-compat-tests` modules.** Created
   in the milestone that first fills them (M9 / M7), so that the main branch never contains an empty
   module pretending to be a feature.
+- **The `volan format` and `volan validate` commands.** Both capabilities exist as library API from
+  M1 (`SchemaFormatter` and `SchemaParser`, which reports every syntax problem); wrapping them in a
+  command line is part of M9, where the CLI is built. `validate` gains semantic checks in M2.
 
 ### Post-1.0
 

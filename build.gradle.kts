@@ -5,6 +5,7 @@ plugins {
 description = "Volan — a schema-first, code-generating ORM for the JVM."
 
 dependencies {
+    kover(project(":volan-core"))
     kover(project(":volan-schema"))
     kover(project(":volan-ir"))
     kover(project(":volan-codegen"))

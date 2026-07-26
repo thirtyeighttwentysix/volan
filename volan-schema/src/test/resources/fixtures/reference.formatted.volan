@@ -1,0 +1,41 @@
+datasource db {
+  provider = "postgresql" // postgresql | mysql | sqlite | h2 | mariadb
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider     = "volan-kotlin"
+  package      = "com.example.db"
+  output       = "build/generated/volan"
+  javaFriendly = true // also generate a Java-facing API
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER)
+  profile   Profile?
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email, createdAt])
+  @@map("users")
+}
+
+model Post {
+  id       Long    @id @default(autoincrement())
+  title    String  @db.VarChar(200)
+  body     String?
+  tags     Tag[]   @relation("PostTags")
+  author   User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId Int
+
+  @@fulltext([title, body])
+}

@@ -20,6 +20,7 @@ dependencyResolutionManagement {
 
 include(
     ":volan-bom",
+    ":volan-core",
     ":volan-schema",
     ":volan-ir",
     ":volan-codegen",

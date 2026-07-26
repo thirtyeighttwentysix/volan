@@ -95,7 +95,8 @@ the structural reason Volan cannot be SQL-injected (see [ADR-0004](docs/adr/0004
 
 | Module | Depends on | Responsibility |
 |---|---|---|
-| `volan-schema` | — | Lexer, recursive-descent parser, AST, diagnostics, formatter |
+| `volan-core` | — | Foundation: the `VolanException` root, shared value types |
+| `volan-schema` | `core` | Lexer, recursive-descent parser, AST, diagnostics, formatter |
 | `volan-ir` | `schema` | Semantic analysis, validation, normalized IR |
 | `volan-codegen` | `ir` | KotlinPoet generation of the client and the Java-facing layer |
 | `volan-dialect-api` | — | SQL model, `Dialect` SPI, type mapping SPI, capability flags |
@@ -180,15 +181,19 @@ Vendor `SQLState` codes are translated to this hierarchy by the dialect, so appl
 the same exception type on PostgreSQL and MySQL. Every message names the model, the field and — where
 possible — the fix. Schema diagnostics render as:
 
+```text
+error[E0104]: expected a field type
+ ┌─ schema.volan:2:9
+ │
+2│   email @unique
+ │         ^ found `@`
+ │
+ = help: a field is written as `name Type`, for example `email String`
 ```
-error: unknown field `authorID` referenced in @relation
-  ┌─ schema.volan:24:32
-  │
-24│   author   User @relation(fields: [authorID], references: [id])
-  │                                    ^^^^^^^^ no such field on model `Post`
-  │
-  = help: did you mean `authorId`?
-```
+
+Every code is stable and documented in [the schema language reference](docs/schema-language.md), and
+the parser recovers after each error, so one run reports every mistake in the file rather than only
+the first.
 
 ---
 

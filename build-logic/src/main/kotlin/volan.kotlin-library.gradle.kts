@@ -1,11 +1,11 @@
-import io.gitlab.arturbosch.detekt.Detekt
+import dev.detekt.gradle.Detekt
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jlleitschuh.gradle.ktlint")
-    id("io.gitlab.arturbosch.detekt")
+    id("dev.detekt")
     id("org.jetbrains.kotlinx.kover")
 }
 
@@ -56,13 +56,9 @@ detekt {
 }
 
 tasks.withType<Detekt>().configureEach {
-    jvmTarget = "17"
     reports {
         html.required.set(true)
         sarif.required.set(true)
-        xml.required.set(false)
-        md.required.set(false)
-        txt.required.set(false)
     }
 }
 

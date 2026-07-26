@@ -1,0 +1,550 @@
+public final class io/github/thirtyeighttwentysix/volan/schema/Diagnostic {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/Severity;Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/Severity;Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/Severity;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/Severity;Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;Ljava/lang/String;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/schema/Diagnostic;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/Diagnostic;Lio/github/thirtyeighttwentysix/volan/schema/Severity;Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/Diagnostic;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode ()Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public final fun getHelp ()Ljava/lang/String;
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getSeverity ()Lio/github/thirtyeighttwentysix/volan/schema/Severity;
+	public final fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun hashCode ()I
+	public final fun isError ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/DiagnosticCode : java/lang/Enum {
+	public static final field ATTRIBUTE_NOT_ALLOWED_HERE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field BLOCK_COMMENT_NOT_SUPPORTED Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field DANGLING_DOC_COMMENT Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EMPTY_ENUM Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EMPTY_MODEL Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EXPECTED_ARGUMENT_VALUE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EXPECTED_ATTRIBUTE_MEMBER Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EXPECTED_ATTRIBUTE_NAME Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EXPECTED_CONFIGURATION_VALUE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EXPECTED_DECLARATION Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EXPECTED_EQUALS Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EXPECTED_EXPRESSION Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EXPECTED_FIELD_TYPE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EXPECTED_NAME Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field EXPECTED_OPENING_BRACE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field INVALID_ESCAPE_SEQUENCE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field MALFORMED_NUMBER Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field NESTED_LIST_TYPE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field OPTIONAL_LIST_TYPE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field REPEATED_OPTIONAL_MARKER Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field UNCLOSED_ARGUMENT_LIST Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field UNCLOSED_BLOCK Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field UNCLOSED_LIST Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field UNEXPECTED_CHARACTER Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field UNEXPECTED_TOKEN_IN_BLOCK Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field UNEXPECTED_TOP_LEVEL_TOKEN Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field UNTERMINATED_STRING Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static final field WRONG_ATTRIBUTE_FORM Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getId ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticCode;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/DiagnosticRenderer {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/schema/DiagnosticRenderer;
+	public static final fun render (Lio/github/thirtyeighttwentysix/volan/schema/Diagnostic;Lio/github/thirtyeighttwentysix/volan/schema/SourceFile;)Ljava/lang/String;
+	public static final fun renderAll (Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceFile;)Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ParseResult {
+	public final fun documentOrThrow ()Lio/github/thirtyeighttwentysix/volan/schema/ast/SchemaDocument;
+	public final fun getDiagnostics ()Ljava/util/List;
+	public final fun getDocument ()Lio/github/thirtyeighttwentysix/volan/schema/ast/SchemaDocument;
+	public final fun getErrors ()Ljava/util/List;
+	public final fun getHasErrors ()Z
+	public final fun getSource ()Lio/github/thirtyeighttwentysix/volan/schema/SourceFile;
+	public final fun getWarnings ()Ljava/util/List;
+	public final fun render ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/SchemaFormatter {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/schema/SchemaFormatter;
+	public static final fun format (Lio/github/thirtyeighttwentysix/volan/schema/SourceFile;)Ljava/lang/String;
+	public static final fun format (Lio/github/thirtyeighttwentysix/volan/schema/ast/SchemaDocument;)Ljava/lang/String;
+	public static final fun format (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/SchemaParser {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/schema/SchemaParser;
+	public static final fun parse (Lio/github/thirtyeighttwentysix/volan/schema/SourceFile;)Lio/github/thirtyeighttwentysix/volan/schema/ParseResult;
+	public static final fun parse (Ljava/lang/String;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/schema/ParseResult;
+	public static final fun parseOrThrow (Lio/github/thirtyeighttwentysix/volan/schema/SourceFile;)Lio/github/thirtyeighttwentysix/volan/schema/ast/SchemaDocument;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/Severity : java/lang/Enum {
+	public static final field ERROR Lio/github/thirtyeighttwentysix/volan/schema/Severity;
+	public static final field WARNING Lio/github/thirtyeighttwentysix/volan/schema/Severity;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getLabel ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/schema/Severity;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/schema/Severity;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/SourceFile {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getLineCount ()I
+	public final fun getName ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public final fun lineText (I)Ljava/lang/String;
+	public final fun positionOf (I)Lio/github/thirtyeighttwentysix/volan/schema/SourcePosition;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/SourcePosition {
+	public fun <init> (III)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (III)Lio/github/thirtyeighttwentysix/volan/schema/SourcePosition;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/SourcePosition;IIIILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/SourcePosition;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumn ()I
+	public final fun getLine ()I
+	public final fun getOffset ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/SourceSpan {
+	public fun <init> (II)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun copy (II)Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;IIILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnd ()I
+	public final fun getLength ()I
+	public final fun getStart ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public final fun union (Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/VolanSchemaException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public final fun getDiagnostics ()Ljava/util/List;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/Argument : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/Expression;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Expression;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/Expression;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/Argument;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/Argument;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/Expression;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/Argument;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getValue ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Expression;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/ArrayLiteral : io/github/thirtyeighttwentysix/volan/schema/ast/Expression {
+	public fun <init> (Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/ArrayLiteral;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/ArrayLiteral;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/ArrayLiteral;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getElements ()Ljava/util/List;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/schema/ast/AstNode {
+	public abstract fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/Attribute : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/Attribute;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/Attribute;Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/Attribute;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArguments ()Ljava/util/List;
+	public final fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/AttributeName : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun getNamespace ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun getQualifiedName ()Ljava/lang/String;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/BlockAttributeDeclaration : io/github/thirtyeighttwentysix/volan/schema/ast/EnumMember, io/github/thirtyeighttwentysix/volan/schema/ast/ModelMember {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public final fun component5 ()Z
+	public final fun component6 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/BlockAttributeDeclaration;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/BlockAttributeDeclaration;Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/BlockAttributeDeclaration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArguments ()Ljava/util/List;
+	public fun getBlankLineBefore ()Z
+	public fun getLeadingComments ()Ljava/util/List;
+	public final fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/AttributeName;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun getTrailingComment ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/BooleanLiteral : io/github/thirtyeighttwentysix/volan/schema/ast/Expression {
+	public fun <init> (ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/BooleanLiteral;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/BooleanLiteral;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/BooleanLiteral;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getValue ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/CommentLine : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode {
+	public fun <init> (Ljava/lang/String;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Ljava/lang/String;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;Ljava/lang/String;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isDoc ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/ConfigEntry : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode, io/github/thirtyeighttwentysix/volan/schema/ast/Documented {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/Expression;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Expression;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public final fun component5 ()Z
+	public final fun component6 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/Expression;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/ConfigEntry;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/ConfigEntry;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/Expression;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/ConfigEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getBlankLineBefore ()Z
+	public final fun getKey ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getLeadingComments ()Ljava/util/List;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun getTrailingComment ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public final fun getValue ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Expression;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/ConstantReference : io/github/thirtyeighttwentysix/volan/schema/ast/Expression {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/ConstantReference;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/ConstantReference;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/ConstantReference;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/DatasourceDeclaration : io/github/thirtyeighttwentysix/volan/schema/ast/Declaration {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public final fun component5 ()Z
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/DatasourceDeclaration;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/DatasourceDeclaration;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/DatasourceDeclaration;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getBlankLineBefore ()Z
+	public final fun getEntries ()Ljava/util/List;
+	public fun getLeadingComments ()Ljava/util/List;
+	public fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun getTrailingComment ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public fun getTrailingComments ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/schema/ast/Declaration : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode, io/github/thirtyeighttwentysix/volan/schema/ast/Documented {
+	public abstract fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public abstract fun getTrailingComments ()Ljava/util/List;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/schema/ast/Documented {
+	public abstract fun getBlankLineBefore ()Z
+	public abstract fun getLeadingComments ()Ljava/util/List;
+	public abstract fun getTrailingComment ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/EnumDeclaration : io/github/thirtyeighttwentysix/volan/schema/ast/Declaration {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public final fun component5 ()Z
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/EnumDeclaration;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/EnumDeclaration;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/EnumDeclaration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAttributes ()Ljava/util/List;
+	public fun getBlankLineBefore ()Z
+	public fun getLeadingComments ()Ljava/util/List;
+	public final fun getMembers ()Ljava/util/List;
+	public fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun getTrailingComment ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public fun getTrailingComments ()Ljava/util/List;
+	public final fun getValues ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/schema/ast/EnumMember : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode, io/github/thirtyeighttwentysix/volan/schema/ast/Documented {
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/EnumValueDeclaration : io/github/thirtyeighttwentysix/volan/schema/ast/EnumMember {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public final fun component5 ()Z
+	public final fun component6 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/EnumValueDeclaration;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/EnumValueDeclaration;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/EnumValueDeclaration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAttributes ()Ljava/util/List;
+	public fun getBlankLineBefore ()Z
+	public fun getLeadingComments ()Ljava/util/List;
+	public final fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun getTrailingComment ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/schema/ast/Expression : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode {
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/FieldDeclaration : io/github/thirtyeighttwentysix/volan/schema/ast/ModelMember {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeReference;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeReference;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public final fun component6 ()Z
+	public final fun component7 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeReference;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/FieldDeclaration;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/FieldDeclaration;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeReference;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/FieldDeclaration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAttributes ()Ljava/util/List;
+	public fun getBlankLineBefore ()Z
+	public fun getLeadingComments ()Ljava/util/List;
+	public final fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun getTrailingComment ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public final fun getType ()Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeReference;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/FunctionCall : io/github/thirtyeighttwentysix/volan/schema/ast/Expression {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/FunctionCall;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/FunctionCall;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/FunctionCall;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArguments ()Ljava/util/List;
+	public final fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/GeneratorDeclaration : io/github/thirtyeighttwentysix/volan/schema/ast/Declaration {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public final fun component5 ()Z
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/GeneratorDeclaration;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/GeneratorDeclaration;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/GeneratorDeclaration;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getBlankLineBefore ()Z
+	public final fun getEntries ()Ljava/util/List;
+	public fun getLeadingComments ()Ljava/util/List;
+	public fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun getTrailingComment ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public fun getTrailingComments ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/Identifier : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/ModelDeclaration : io/github/thirtyeighttwentysix/volan/schema/ast/Declaration {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public final fun component5 ()Z
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/ModelDeclaration;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/ModelDeclaration;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;ZLjava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/ModelDeclaration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAttributes ()Ljava/util/List;
+	public fun getBlankLineBefore ()Z
+	public final fun getFields ()Ljava/util/List;
+	public fun getLeadingComments ()Ljava/util/List;
+	public final fun getMembers ()Ljava/util/List;
+	public fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun getTrailingComment ()Lio/github/thirtyeighttwentysix/volan/schema/ast/CommentLine;
+	public fun getTrailingComments ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/github/thirtyeighttwentysix/volan/schema/ast/ModelMember : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode, io/github/thirtyeighttwentysix/volan/schema/ast/Documented {
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/NumberLiteral : io/github/thirtyeighttwentysix/volan/schema/ast/Expression {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/NumberLiteral;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/NumberLiteral;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/NumberLiteral;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isInteger ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/SchemaDocument : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode {
+	public fun <init> (Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/SchemaDocument;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/SchemaDocument;Ljava/util/List;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/SchemaDocument;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDatasources ()Ljava/util/List;
+	public final fun getDeclarations ()Ljava/util/List;
+	public final fun getEnums ()Ljava/util/List;
+	public final fun getGenerators ()Ljava/util/List;
+	public final fun getModels ()Ljava/util/List;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getTrailingComments ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/StringLiteral : io/github/thirtyeighttwentysix/volan/schema/ast/Expression {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/StringLiteral;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/StringLiteral;Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/StringLiteral;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRaw ()Ljava/lang/String;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/TypeArity : java/lang/Enum {
+	public static final field LIST Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeArity;
+	public static final field OPTIONAL Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeArity;
+	public static final field REQUIRED Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeArity;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeArity;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeArity;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/schema/ast/TypeReference : io/github/thirtyeighttwentysix/volan/schema/ast/AstNode {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeArity;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeArity;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeArity;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;)Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeReference;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeReference;Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeArity;Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeReference;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArity ()Lio/github/thirtyeighttwentysix/volan/schema/ast/TypeArity;
+	public final fun getName ()Lio/github/thirtyeighttwentysix/volan/schema/ast/Identifier;
+	public fun getSpan ()Lio/github/thirtyeighttwentysix/volan/schema/SourceSpan;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+

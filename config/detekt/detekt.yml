@@ -1,18 +1,18 @@
-build:
-  maxIssues: 0
-
 console-reports:
   active: true
 
 complexity:
+  CyclomaticComplexMethod:
+    # A `when` that maps one token to one result is a table, not branching logic.
+    ignoreSimpleWhenEntries: true
   LongParameterList:
-    functionThreshold: 8
-    constructorThreshold: 12
+    allowedFunctionParameters: 8
+    allowedConstructorParameters: 12
     ignoreDefaultParameters: true
   TooManyFunctions:
-    thresholdInClasses: 30
-    thresholdInFiles: 30
-    thresholdInObjects: 30
+    allowedFunctionsPerClass: 30
+    allowedFunctionsPerFile: 30
+    allowedFunctionsPerObject: 30
     ignorePrivate: true
     ignoreOverridden: true
 
@@ -21,6 +21,10 @@ style:
     maxLineLength: 140
   ReturnCount:
     max: 4
+    excludeGuardClauses: true
+  LoopWithTooManyJumpStatements:
+    # Scanner loops legitimately leave from more than one place: end of input, end of line, delimiter.
+    maxJumpCount: 3
   ForbiddenComment:
     active: true
     comments:
@@ -40,10 +44,9 @@ style:
 exceptions:
   TooGenericExceptionCaught:
     active: true
-    excludeGuardClauses: true
+  # Fails the build on `TODO()`, which throws NotImplementedError. Placeholder implementations belong
+  # in ROADMAP.md, not in the main branch.
   NotImplementedDeclaration:
-    active: true
-  ThrowingNotImplementedError:
     active: true
 
 naming:

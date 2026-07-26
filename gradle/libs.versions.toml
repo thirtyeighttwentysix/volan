@@ -19,7 +19,7 @@ junit = "6.1.2"
 kotest = "6.2.3"
 testcontainers = "2.0.5"
 
-detekt = "1.23.8"
+detekt = "2.0.0-alpha.5"
 ktlintPlugin = "14.2.0"
 ktlint = "1.7.1"
 kover = "0.9.9"
@@ -61,7 +61,7 @@ testcontainers-mariadb = { module = "org.testcontainers:mariadb" }
 # Plugin marker coordinates, used by the `build-logic` included build.
 build-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 build-ktlint = { module = "org.jlleitschuh.gradle.ktlint:org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlintPlugin" }
-build-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+build-detekt = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 build-kover = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
 build-dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 

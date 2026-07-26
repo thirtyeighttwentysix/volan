@@ -16,3 +16,5 @@ decision changes, add a new record and mark the old one superseded.
 | [0006](0006-java-facing-api.md) | The Java API is a designed artefact, not a by-product | accepted |
 | [0007](0007-coordinates-and-versioning.md) | Coordinates, versioning and compatibility policy | accepted |
 | [0008](0008-build-toolchain.md) | Build toolchain and quality gates | accepted |
+| [0009](0009-foundation-module.md) | A foundation module for cross-cutting types | accepted |
+| [0010](0010-static-analysis-on-modern-jdks.md) | Static analysis has to run on the JDK contributors actually have | accepted, amends 0008 |

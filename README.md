@@ -94,6 +94,7 @@ PostgreSQL, MySQL, MariaDB, SQLite and H2 are the 1.0 targets, in that order of 
 
 ## Documentation
 
+- [docs/schema-language.md](docs/schema-language.md) — the `schema.volan` syntax reference
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how Volan is built
 - [ROADMAP.md](ROADMAP.md) — milestones and what is deferred
 - [docs/adr/](docs/adr/) — architecture decision records
