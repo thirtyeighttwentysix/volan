@@ -42,9 +42,13 @@ main branch.
 - **Coverage gate.** The ≥ 85 % Kover verification rule is on for `volan-schema` and `volan-ir` as of
   M2. It is added to `volan-runtime` and `volan-migrate` in the milestone that fills them, because
   enforcing a coverage floor on an empty module measures nothing.
-- **Provider-specific native types.** `@db.…` is parsed, validated for shape and carried into the IR,
-  but whether `@db.VarChar(200)` exists for the configured database is a question only a dialect can
-  answer. That check lands with the dialects in M8.
+- **Provider-specific native types beyond PostgreSQL.** `@db.…` is checked against the types
+  PostgreSQL actually has, and a name it does not have is refused with the ones it does listed. The
+  same table for the other databases arrives with their dialects in M8.
+- **Reading back a database Volan did not create.** Introspection understands the shapes Volan writes.
+  An index built from an expression Volan would not have written is reported as something it cannot
+  describe, rather than being quietly dropped from the schema it reads — but that does mean a database
+  with hand-written expression indexes cannot yet be introspected at all.
 - **Deleting the row a required foreign key points at.** An `update` can detach, replace, change and
   delete the rows on the far side of its relations, except for one case: deleting the row that the row
   being changed points at. That needs the old key after the key has been cleared, and what it should

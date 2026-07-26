@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `volan-migrate`: a schema read as the database it describes, and a differ that says what has to change
   for one database to become another. The plan is a value — inspectable, comparable in a test, and
   rendered to SQL as a separate step — and every step that loses data carries a warning saying what.
+- Introspection: a PostgreSQL database read back as the schema it holds, from the catalogue rather
+  than from JDBC metadata — which is the only place that says which unique index is a constraint, what
+  order a composite key's columns are in, and what values an enum has. A schema applied to a database
+  and read back out of it produces the schema that was applied.
+- Column types are now canonical in both directions for PostgreSQL: `@db.Text` on a `String` and a
+  plain `String` are one column, so they become one value and a schema no longer differs from the
+  database it created. A `@db.…` PostgreSQL does not have is refused by name, with the ones it does
+  have listed.
 - Migration files, a history table and drift detection: migrations live one to a directory, each is
   applied once inside its own transaction, and the database keeps the record of what it ran. A
   migration that was edited after it ran, that is no longer on disk, or that started and never

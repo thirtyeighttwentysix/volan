@@ -18,6 +18,16 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/AppliedMigration
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class io/github/thirtyeighttwentysix/volan/migrate/DatabaseReader {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseReader$Companion;
+	public static fun forProvider (Lio/github/thirtyeighttwentysix/volan/ir/Provider;)Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseReader;
+	public abstract fun read (Ljava/sql/Connection;)Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/DatabaseReader$Companion {
+	public final fun forProvider (Lio/github/thirtyeighttwentysix/volan/ir/Provider;)Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseReader;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema {
 	public fun <init> ()V
 	public fun <init> (Ljava/util/List;Ljava/util/List;)V
@@ -157,6 +167,30 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/Migrator {
 	public final fun status (Ljava/sql/Connection;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationStatus;
 }
 
+public abstract interface class io/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable$Companion;
+	public abstract fun canonical (Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;Lio/github/thirtyeighttwentysix/volan/ir/NativeType;)Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;
+	public static fun forProvider (Lio/github/thirtyeighttwentysix/volan/ir/Provider;)Lio/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable;
+	public abstract fun read (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable$Companion {
+	public final fun forProvider (Lio/github/thirtyeighttwentysix/volan/ir/Provider;)Lio/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/PostgresReader : io/github/thirtyeighttwentysix/volan/migrate/DatabaseReader {
+	public fun <init> ()V
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable;Ljava/lang/String;)V
+	public synthetic fun <init> (Lio/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun read (Ljava/sql/Connection;)Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/PostgresTypes : io/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/migrate/PostgresTypes;
+	public fun canonical (Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;Lio/github/thirtyeighttwentysix/volan/ir/NativeType;)Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;
+	public fun read (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/migrate/SchemaDiffer {
 	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/migrate/SchemaDiffer;
 	public static final fun diff (Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan;
@@ -165,6 +199,7 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/SchemaDiffer {
 public final class io/github/thirtyeighttwentysix/volan/migrate/SchemaMapper {
 	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/migrate/SchemaMapper;
 	public static final fun map (Lio/github/thirtyeighttwentysix/volan/ir/Schema;)Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;
+	public static final fun map (Lio/github/thirtyeighttwentysix/volan/ir/Schema;Lio/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable;)Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;
 }
 
 public final class io/github/thirtyeighttwentysix/volan/migrate/TableDefinition {

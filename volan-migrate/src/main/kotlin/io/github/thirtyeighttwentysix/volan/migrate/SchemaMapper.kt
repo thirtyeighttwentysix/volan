@@ -35,14 +35,18 @@ import io.github.thirtyeighttwentysix.volan.ir.Schema
 public object SchemaMapper {
     /** The database [schema] describes. */
     @JvmStatic
-    public fun map(schema: Schema): DatabaseSchema {
+    public fun map(schema: Schema): DatabaseSchema = map(schema, NativeTypeTable.forProvider(schema.datasource.provider))
+
+    /** The database [schema] describes, with [types] deciding what its `@db.…` types mean. */
+    @JvmStatic
+    public fun map(schema: Schema, types: NativeTypeTable): DatabaseSchema {
         val enums = schema.enums.map { EnumDefinition(it.dbName, it.values.map { value -> value.dbName }) }
-        val tables = schema.models.map { table(schema, it) } + joinTables(schema)
+        val tables = schema.models.map { table(schema, types, it) } + joinTables(schema, types)
         return DatabaseSchema(enums.sortedBy { it.name }, tables.sortedBy { it.name })
     }
 
-    private fun table(schema: Schema, model: Model): TableDefinition {
-        val columns = model.fields.map { column(schema, model, it) }
+    private fun table(schema: Schema, types: NativeTypeTable, model: Model): TableDefinition {
+        val columns = model.fields.map { column(schema, types, model, it) }
         return TableDefinition(
             name = model.dbName,
             columns = columns,
@@ -53,9 +57,9 @@ public object SchemaMapper {
         )
     }
 
-    private fun column(schema: Schema, model: Model, field: ScalarField): ColumnDefinition = ColumnDefinition(
+    private fun column(schema: Schema, types: NativeTypeTable, model: Model, field: ScalarField): ColumnDefinition = ColumnDefinition(
         name = field.dbName,
-        type = columnType(schema, field),
+        type = columnType(schema, types, field),
         nullable = field.cardinality == Cardinality.OPTIONAL,
         default = columnDefault(schema, model, field),
         autoIncrement = field.default == DefaultValue.AutoIncrement,
@@ -67,9 +71,9 @@ public object SchemaMapper {
      * An enum column names the type by its `@@map`ped name, because that is the type the migration
      * creates — the schema-language name never reaches the database at all.
      */
-    private fun columnType(schema: Schema, field: ScalarField): ColumnType {
-        val element = field.nativeType?.let { ColumnType.Native(it.name, it.arguments) } ?: when (val type = field.type) {
-            is FieldType.Scalar -> ColumnType.Scalar(sqlType(type.type))
+    private fun columnType(schema: Schema, types: NativeTypeTable, field: ScalarField): ColumnType {
+        val element = when (val type = field.type) {
+            is FieldType.Scalar -> field.nativeType?.let { types.canonical(type.type, it) } ?: ColumnType.Scalar(sqlType(type.type))
             is FieldType.EnumRef -> ColumnType.Enumeration(enumTable(schema, type.enumName))
         }
         return if (field.cardinality == Cardinality.LIST) ColumnType.Array(element) else element
@@ -205,19 +209,19 @@ public object SchemaMapper {
      * `A` is the end that comes first, which is how both sides agree on which column is theirs without
      * either being told.
      */
-    private fun joinTables(schema: Schema): List<TableDefinition> = schema.relations
+    private fun joinTables(schema: Schema, types: NativeTypeTable): List<TableDefinition> = schema.relations
         .filter { it.kind == RelationKind.MANY_TO_MANY }
-        .map { relation -> joinTable(schema, relation) }
+        .map { relation -> joinTable(schema, types, relation) }
 
-    private fun joinTable(schema: Schema, relation: Relation): TableDefinition {
+    private fun joinTable(schema: Schema, types: NativeTypeTable, relation: Relation): TableDefinition {
         val table = requireNotNull(relation.joinTable) { "a many-to-many relation always has a join table" }
         val first = requireModel(schema, relation.from.model)
         val second = requireModel(schema, relation.to.model)
         return TableDefinition(
             name = table,
             columns = listOf(
-                ColumnDefinition(JOIN_FIRST, keyType(schema, first), nullable = false),
-                ColumnDefinition(JOIN_SECOND, keyType(schema, second), nullable = false),
+                ColumnDefinition(JOIN_FIRST, keyType(schema, types, first), nullable = false),
+                ColumnDefinition(JOIN_SECOND, keyType(schema, types, second), nullable = false),
             ),
             uniques = listOf(UniqueDefinition(constraintName(table, listOf(JOIN_FIRST, JOIN_SECOND), "key"), JOIN_COLUMNS)),
             indexes = listOf(IndexDefinition(constraintName(table, listOf(JOIN_SECOND), "idx"), listOf(JOIN_SECOND))),
@@ -243,13 +247,13 @@ public object SchemaMapper {
      * A join table has no schema of its own to read a type from, and a column that does not match the
      * key it references is a foreign key the database will refuse.
      */
-    private fun keyType(schema: Schema, model: Model): ColumnType {
+    private fun keyType(schema: Schema, types: NativeTypeTable, model: Model): ColumnType {
         val field = model.primaryKeyFields.singleOrNull() ?: throw VolanMigrationException(
             "`${model.name}` takes part in a many-to-many relation, which joins on a single-column primary " +
                 "key, but its primary key has ${model.primaryKeyFields.size} columns.\n" +
                 "  Give it a single-column key, or model the join as a table of its own.",
         )
-        return columnType(schema, field).let { if (it is ColumnType.Array) it.element else it }
+        return columnType(schema, types, field).let { if (it is ColumnType.Array) it.element else it }
     }
 
     private fun singleKeyColumn(model: Model): String = model.primaryKeyFields.single().dbName
