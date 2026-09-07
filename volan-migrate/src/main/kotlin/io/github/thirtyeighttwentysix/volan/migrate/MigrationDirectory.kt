@@ -2,6 +2,7 @@ package io.github.thirtyeighttwentysix.volan.migrate
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import java.security.MessageDigest
 import java.time.Instant
 import java.time.ZoneOffset
@@ -11,7 +12,6 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.readText
-import kotlin.io.path.writeText
 
 /**
  * One migration on disk.
@@ -67,7 +67,7 @@ public class MigrationDirectory(private val root: Path) {
         val id = "${TIMESTAMP.format(at.atOffset(ZoneOffset.UTC))}_${slug(name)}"
         val directory = root.resolve(id)
         directory.createDirectories()
-        directory.resolve(SCRIPT).writeText(sql)
+        Files.writeString(directory.resolve(SCRIPT), sql, StandardOpenOption.CREATE_NEW)
         return MigrationFile(id, sql)
     }
 

@@ -67,6 +67,7 @@ class PostgresRoundTripTest {
         apply(wanted)
 
         read() shouldBe wanted
+        SchemaMapper.map(Fixtures.schema(SchemaWriter.write(read()))) shouldBe wanted
     }
 
     @Test
@@ -76,6 +77,7 @@ class PostgresRoundTripTest {
         apply(wanted)
 
         read() shouldBe wanted
+        SchemaMapper.map(Fixtures.schema(SchemaWriter.write(read()))) shouldBe wanted
     }
 
     @Test

@@ -34,6 +34,10 @@ public data class AppliedMigration(
  * migrations can disagree about how far they got.
  */
 public class MigrationJournal(private val table: String = DEFAULT_TABLE) {
+    init {
+        require(table.matches(Regex("[A-Za-z_][A-Za-z0-9_]*"))) { "Migration journal table must be a simple SQL identifier." }
+    }
+
     /** Creates the history table if this database has none. Safe to call every time. */
     public fun ensure(connection: Connection) {
         if (exists(connection)) return
@@ -55,7 +59,11 @@ public class MigrationJournal(private val table: String = DEFAULT_TABLE) {
 
     /** Whether this database has a history table at all, which is what tells a fresh database apart. */
     public fun exists(connection: Connection): Boolean =
-        connection.metaData.getTables(null, null, table, arrayOf("TABLE")).use { it.next() }
+        connection.metaData.getTables(connection.catalog, connection.schema, null, arrayOf("TABLE")).use { rows ->
+            var found = false
+            while (rows.next()) if (rows.getString("TABLE_NAME") == table) found = true
+            found
+        }
 
     /** Everything the database has a record of, oldest first. */
     public fun read(connection: Connection): List<AppliedMigration> {

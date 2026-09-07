@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- M6: `SchemaWriter` exports validated schema text; `DatabaseSync` provides pull, dry-run plans,
+  transactional push and structural drift detection. A Clikt CLI exposes `db pull` / `db push`.
+- PostgreSQL advisory locks serialize migration writers; push verifies the resulting schema before
+  commit. Required foreign-key cycles across models now produce diagnostic E0232.
+- A reproducible JMH PostgreSQL read suite comparing generated Volan clients with Hibernate,
+  Exposed, jOOQ and JDBC, with raw results, confidence intervals and a README chart.
+
+### Fixed
+
+- Migration planning removes foreign keys before their tables and before changing referenced keys
+  or column types. Unsupported auto-increment changes and enum insertion order fail explicitly.
+- Introspection preserves quoted defaults and enum arrays, distinguishes identically named
+  constraints on different tables, and refuses unsupported index definitions.
+- Migration scripts preserve dollar-quoted bodies and escaped literals, and handle nested block
+  comments. Duplicate migration filenames cannot overwrite reviewed SQL.
+
+### Added (earlier milestones)
+
 - `volan-migrate`: a schema read as the database it describes, and a differ that says what has to change
   for one database to become another. The plan is a value — inspectable, comparable in a test, and
   rendered to SQL as a separate step — and every step that loses data carries a warning saying what.

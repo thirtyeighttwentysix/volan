@@ -114,7 +114,7 @@ the structural reason Volan cannot be SQL-injected (see [ADR-0004](docs/adr/0004
 | `volan-runtime` | `dialect-api` | Query planning, execution, mapping, transactions, pooling, interceptors |
 | `volan-migrate` | `ir`, `dialect-api`, `runtime` | Introspection, diff, migration files, journal, drift detection |
 | `volan-coroutines` | `runtime` | `suspend` façade over the synchronous core |
-| `volan-cli` | all of the above | `volan` command line (M9) |
+| `volan-cli` | `migrate`, `dialect-postgres` | `db pull` / `db push` (M6); remaining commands in M9 |
 | `volan-gradle-plugin` | `codegen` | `volanGenerate` task wired into compilation (M9) |
 | `volan-maven-plugin` | `codegen` | `volan:generate` on `generate-sources` (M9) |
 | `volan-bom` | — | Version alignment for consumers |
@@ -247,7 +247,7 @@ the first.
 | Runtime | H2/SQLite in-memory for fast feedback; Testcontainers PostgreSQL/MySQL/MariaDB for the real matrix |
 | Migrations | Round-trip: schema → migration → database → introspection → schema, asserted equal |
 | Java API | `java-compat-tests`, written in Java, plus a signature check that fails on Kotlin-only types |
-| Performance | JMH against JOOQ/Exposed/Hibernate/JDBI, results tracked in `benchmarks/RESULTS.md` |
+| Performance | JMH reads against Hibernate/Exposed/jOOQ/JDBC; raw results and metadata in `benchmarks/results/` |
 
 ---
 
@@ -264,7 +264,7 @@ volan/
 │   ├── adr/                architecture decision records
 │   └── site/               documentation site sources (M11)
 ├── examples/               kotlin-basic, java-basic, spring-boot, ktor (M11)
-├── benchmarks/             JMH suite (M12)
+├── benchmarks/             PostgreSQL JMH read suite (initial workload in M6; extensions in M12)
 └── .github/workflows/      CI
 ```
 

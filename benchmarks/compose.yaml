@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "127.0.0.1:55432:5432"
+    environment:
+      POSTGRES_DB: volan_bench
+      POSTGRES_USER: volan_bench
+      POSTGRES_PASSWORD: volan_bench
+    volumes:
+      - ./seed.sql:/docker-entrypoint-initdb.d/seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U volan_bench -d volan_bench"]
+      interval: 2s
+      timeout: 5s
+      retries: 30

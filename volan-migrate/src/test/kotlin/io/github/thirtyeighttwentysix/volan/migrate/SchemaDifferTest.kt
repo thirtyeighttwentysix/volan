@@ -15,6 +15,33 @@ class SchemaDifferTest {
     private val blog = SchemaMapper.map(Fixtures.blog())
 
     @Test
+    fun `all foreign keys are removed before dropping related tables`() {
+        val statements = SchemaDiffer.diff(blog, DatabaseSchema()).steps.map { it.statement }
+        statements.filterIsInstance<DdlStatement.DropConstraint>().size shouldBe blog.tables.sumOf { it.foreignKeys.size }
+        statements.indexOfLast { it is DdlStatement.DropConstraint } shouldBeLessThan
+            statements.indexOfFirst { it is DdlStatement.DropTable }
+    }
+
+    @Test
+    fun `autoincrement changes cannot disappear from a plan`() {
+        val table = blog.tables.first { it.columns.any { column -> column.autoIncrement } }
+        val changed = table.copy(columns = table.columns.map { it.copy(autoIncrement = false) })
+        shouldThrow<VolanMigrationException> {
+            SchemaDiffer.diff(DatabaseSchema(tables = listOf(table)), DatabaseSchema(tables = listOf(changed)))
+        }.message shouldContain "autoincrement"
+    }
+
+    @Test
+    fun `inserting enum values before existing values is refused instead of appended`() {
+        shouldThrow<VolanMigrationException> {
+            SchemaDiffer.diff(
+                DatabaseSchema(enums = listOf(EnumDefinition("Role", listOf("USER", "ADMIN")))),
+                DatabaseSchema(enums = listOf(EnumDefinition("Role", listOf("USER", "GUEST", "ADMIN")))),
+            )
+        }
+    }
+
+    @Test
     fun `a database that already matches the schema needs no migration`() {
         SchemaDiffer.diff(blog, blog).isEmpty shouldBe true
     }

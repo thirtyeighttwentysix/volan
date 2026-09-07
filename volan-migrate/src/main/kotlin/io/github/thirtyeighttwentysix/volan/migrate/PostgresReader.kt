@@ -65,7 +65,9 @@ public class PostgresReader(
         val udt = row.getString("udt_name")
         val default = row.getString("column_default")
         val type = when {
-            row.getString("data_type") == "ARRAY" -> ColumnType.Array(readType(udt.removePrefix("_"), row))
+            row.getString("data_type") == "ARRAY" -> ColumnType.Array(
+                udt.removePrefix("_").let { if (it in enums) ColumnType.Enumeration(it) else readType(it, row) },
+            )
             enums.contains(udt) -> ColumnType.Enumeration(udt)
             else -> readType(udt, row)
         }
@@ -101,7 +103,12 @@ public class PostgresReader(
      */
     private fun columnDefault(reported: String?, type: ColumnType): ColumnDefault? {
         if (reported == null || reported.startsWith("nextval(")) return null
-        val expression = reported.substringBefore("::").trim()
+        val literal = TEXT_LITERAL.find(reported)
+        if (literal != null) {
+            val value = literal.groupValues[1].replace("''", "'")
+            return if (value == "{}" && type is ColumnType.Array) ColumnDefault.EmptyArray else ColumnDefault.Text(value)
+        }
+        val expression = reported.trim()
         return when {
             expression.equals("CURRENT_TIMESTAMP", ignoreCase = true) || expression.equals("now()", ignoreCase = true) ->
                 ColumnDefault.CurrentTimestamp
@@ -109,8 +116,6 @@ public class PostgresReader(
             expression == "'{}'" && type is ColumnType.Array -> ColumnDefault.EmptyArray
             expression.equals("true", ignoreCase = true) -> ColumnDefault.Boolean(true)
             expression.equals("false", ignoreCase = true) -> ColumnDefault.Boolean(false)
-            expression.startsWith("'") && expression.endsWith("'") ->
-                ColumnDefault.Text(expression.trim('\'').replace("''", "'"))
             expression.toBigDecimalOrNull() != null -> ColumnDefault.Number(expression)
             else -> ColumnDefault.Expression(reported)
         }
@@ -118,19 +123,19 @@ public class PostgresReader(
 
     private fun readConstraints(connection: Connection): Map<String, TableConstraints> {
         val keys = LinkedHashMap<String, LinkedHashMap<String, MutableList<String>>>()
-        val kinds = LinkedHashMap<String, String>()
+        val kinds = LinkedHashMap<Pair<String, String>, String>()
         query(connection, CONSTRAINTS) { row ->
             val name = row.getString("constraint_name")
-            kinds[name] = row.getString("contype")
+            kinds[row.getString("table_name") to name] = row.getString("contype")
             keys.getOrPut(row.getString("table_name")) { LinkedHashMap() }
                 .getOrPut(name) { ArrayList() }
                 .add(row.getString("column_name"))
         }
-        return keys.mapValues { (_, byName) ->
-            val primary = byName.entries.firstOrNull { kinds[it.key] == "p" }
+        return keys.mapValues { (table, byName) ->
+            val primary = byName.entries.firstOrNull { kinds[table to it.key] == "p" }
             TableConstraints(
                 primaryKey = primary?.let { PrimaryKeyDefinition(it.key, it.value) },
-                uniques = byName.entries.filter { kinds[it.key] == "u" }.map { UniqueDefinition(it.key, it.value) },
+                uniques = byName.entries.filter { kinds[table to it.key] == "u" }.map { UniqueDefinition(it.key, it.value) },
             )
         }
     }
@@ -181,6 +186,12 @@ public class PostgresReader(
         val name = row.getString("index_name")
         val definition = row.getString("definition")
         val columns = (row.getArray("columns").array as Array<*>).filterNotNull().map { it.toString() }
+        val unsupported = when {
+            row.getBoolean("has_predicate") || row.getBoolean("has_included") || row.getBoolean("has_options") -> true
+            columns.isNotEmpty() -> row.getBoolean("has_expressions") || row.getString("method") != "btree"
+            else -> row.getString("method") != "gin" || row.getBoolean("is_unique")
+        }
+        if (unsupported) throw VolanMigrationException("Index `$name` has a definition that schema.volan cannot describe: $definition")
         if (columns.isNotEmpty()) {
             return IndexDefinition(name, columns, unique = row.getBoolean("is_unique"))
         }
@@ -195,7 +206,7 @@ public class PostgresReader(
      * did not write is a question it has no honest answer to.
      */
     private fun fullTextColumns(name: String, definition: String): List<String> {
-        if (!definition.contains("to_tsvector(")) {
+        if (!definition.contains("to_tsvector('simple'::regconfig,")) {
             throw VolanMigrationException(
                 "the index `$name` is built from an expression Volan did not write, so it cannot say what " +
                     "a schema would have to contain to produce it.\n" +
@@ -203,7 +214,9 @@ public class PostgresReader(
                     "another tool, on a table Volan does not manage.",
             )
         }
-        return COALESCED.findAll(definition).map { it.groupValues[1] }.toList()
+        return COALESCED.findAll(definition).map {
+            it.groupValues[1].trim().removePrefix("(").substringBefore("::").trim('"').replace("\"\"", "\"")
+        }.toList()
     }
 
     private fun query(connection: Connection, sql: String, read: (ResultSet) -> Unit) {
@@ -229,6 +242,10 @@ public class PostgresReader(
     }
 
     private companion object {
+        private val TEXT_LITERAL = Regex(
+            """^'((?:''|[^'])*)'(?:\:\:(?:"(?:""|[^"])*"|[A-Za-z_][A-Za-z0-9_]*)(?:\([0-9, ]+\))?(?:\[\])?)?$""",
+        )
+
         /**
          * The columns of a `to_tsvector` expression, as PostgreSQL writes it back.
          *
@@ -286,17 +303,22 @@ public class PostgresReader(
 
         private val INDEXES = """
             SELECT i.relname AS index_name, t.relname AS table_name, ix.indisunique AS is_unique,
+                   ix.indpred IS NOT NULL AS has_predicate, ix.indexprs IS NOT NULL AS has_expressions,
+                   ix.indnatts > ix.indnkeyatts AS has_included, am.amname AS method,
+                   EXISTS (SELECT 1 FROM unnest(ix.indoption::smallint[]) opt WHERE opt != 0) AS has_options,
                    pg_get_indexdef(i.oid) AS definition,
                    array_remove(array_agg(a.attname ORDER BY k.ord), NULL) AS columns
             FROM pg_index ix
             JOIN pg_class i ON i.oid = ix.indexrelid
             JOIN pg_class t ON t.oid = ix.indrelid
             JOIN pg_namespace n ON n.oid = t.relnamespace
+            JOIN pg_am am ON am.oid = i.relam
             CROSS JOIN LATERAL unnest(string_to_array(ix.indkey::text, ' ')::int[]) WITH ORDINALITY AS k(attnum, ord)
             LEFT JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = k.attnum
             WHERE n.nspname = current_schema()
               AND NOT EXISTS (SELECT 1 FROM pg_constraint c WHERE c.conindid = i.oid)
-            GROUP BY i.relname, t.relname, ix.indisunique, i.oid
+            GROUP BY i.relname, t.relname, ix.indisunique, i.oid, (ix.indpred IS NOT NULL), (ix.indexprs IS NOT NULL),
+                     ix.indnatts, ix.indnkeyatts, am.amname, ix.indoption
             ORDER BY t.relname, i.relname
         """.trimIndent()
     }

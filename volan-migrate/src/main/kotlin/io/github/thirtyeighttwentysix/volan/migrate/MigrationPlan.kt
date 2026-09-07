@@ -36,7 +36,7 @@ public data class MigrationPlan(public val steps: List<MigrationStep>) {
     }
 
     /** The plan as the contents of a migration file: one statement per paragraph, each ended with `;`. */
-    public fun toSql(dialect: DdlRenderer): String = render(dialect).joinToString(";\n\n", postfix = ";\n")
+    public fun toSql(dialect: DdlRenderer): String = if (isEmpty) "" else render(dialect).joinToString(";\n\n", postfix = ";\n")
 
     public companion object {
         /** A plan that changes nothing. */

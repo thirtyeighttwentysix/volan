@@ -45,6 +45,16 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/migrate/DatabaseSync {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseReader;Lio/github/thirtyeighttwentysix/volan/dialect/DdlRenderer;)V
+	public final fun drift (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan;
+	public final fun plan (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/ir/Schema;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan;
+	public final fun pull (Ljava/sql/Connection;)Ljava/lang/String;
+	public final fun push (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/ir/Schema;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan;
+	public final fun push (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/ir/Schema;Z)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan;
+	public static synthetic fun push$default (Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSync;Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/ir/Schema;ZILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/migrate/EnumDefinition {
 	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -200,6 +210,11 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/SchemaMapper {
 	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/migrate/SchemaMapper;
 	public static final fun map (Lio/github/thirtyeighttwentysix/volan/ir/Schema;)Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;
 	public static final fun map (Lio/github/thirtyeighttwentysix/volan/ir/Schema;Lio/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable;)Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/SchemaWriter {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/migrate/SchemaWriter;
+	public static final fun write (Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;)Ljava/lang/String;
 }
 
 public final class io/github/thirtyeighttwentysix/volan/migrate/TableDefinition {

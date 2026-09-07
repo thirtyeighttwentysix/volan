@@ -1,11 +1,36 @@
 package io.github.thirtyeighttwentysix.volan.migrate
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 
 class StatementSplitTest {
     private val migrator = Migrator(MigrationDirectory(Path.of("build/unused")))
+
+    @Test
+    fun `dollar quoted function bodies keep their internal statements`() {
+        val body = "CREATE FUNCTION answer() RETURNS int AS ${'$'}body${'$'} BEGIN RETURN 42; END; ${'$'}body${'$'} LANGUAGE plpgsql"
+        migrator.split("$body; SELECT answer();") shouldContainExactly listOf(body, "SELECT answer()")
+    }
+
+    @Test
+    fun `nested block comments keep adjacent tokens separated`() {
+        migrator.split("SELECT/* outer /* nested ; */ done */1;") shouldContainExactly listOf("SELECT 1")
+    }
+
+    @Test
+    fun `escaped and doubled quotes do not end a statement`() {
+        val literal = "SELECT E'it\\'s;ok', 'it''s;ok', \"a\"\";b\""
+        migrator.split("$literal;") shouldContainExactly listOf(literal)
+    }
+
+    @Test
+    fun `unterminated constructs are rejected before execution`() {
+        listOf("SELECT 'oops", "SELECT \"oops", "/* unclosed", "DO ${'$'}${'$'} BEGIN").forEach {
+            shouldThrow<VolanMigrationException> { migrator.split(it) }
+        }
+    }
 
     @Test
     fun `statements are separated by the semicolons between them`() {

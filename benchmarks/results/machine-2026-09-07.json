@@ -1,0 +1,18 @@
+{
+  "cases": "Volan, Hibernate, Exposed, jOOQ, JDBC x 1/100 rows",
+  "pool": "HikariCP min/max 4",
+  "threads": 1,
+  "measurement": "5 x 2 s",
+  "logicalProcessors": 12,
+  "forks": 2,
+  "heap": "512 MiB",
+  "postgres": "PostgreSQL 17.10 in Docker Desktop/WSL2",
+  "warmup": "3 x 2 s",
+  "host": "Windows 11 Pro 10.0.26200",
+  "jvm": "Amazon Corretto 25.0.3",
+  "datasetRows": 10000,
+  "docker": "29.6.2",
+  "measuredAt": "2026-09-07",
+  "physicalCores": 6,
+  "cpu": "AMD Ryzen 5 5500"
+}

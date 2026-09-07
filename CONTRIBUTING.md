@@ -15,8 +15,9 @@ cd volan
 ./gradlew build
 ```
 
-Docker will be required for the Testcontainers-based integration tests (PostgreSQL, MySQL, MariaDB)
-once they land in M4; the fast suites run on in-memory H2 and SQLite and need no Docker.
+Docker is required for the PostgreSQL Testcontainers integration suites in `codegen-verify` and
+`volan-migrate`. Those suites skip when Docker is unavailable; unit tests still run. The migration
+coverage gate requires Docker: `./gradlew :volan-migrate:koverVerify`.
 
 ## The commands you will actually use
 
@@ -28,6 +29,8 @@ once they land in M4; the fast suites run on in-memory H2 and SQLite and need no
 | `./gradlew detekt` | Static analysis |
 | `./gradlew apiCheck` / `apiDump` | Public ABI verification / regeneration |
 | `./gradlew koverHtmlReport` | Coverage report |
+| `./gradlew :volan-cli:installDist` | Build the `volan db pull/push` launcher |
+| `./gradlew :benchmarks:jmh` | Run JMH after starting the [benchmark database](benchmarks/README.md) |
 
 Before opening a pull request, the full local gate is:
 

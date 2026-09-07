@@ -18,3 +18,4 @@ decision changes, add a new record and mark the old one superseded.
 | [0008](0008-build-toolchain.md) | Build toolchain and quality gates | accepted |
 | [0009](0009-foundation-module.md) | A foundation module for cross-cutting types | accepted |
 | [0010](0010-static-analysis-on-modern-jdks.md) | Static analysis has to run on the JDK contributors actually have | accepted, amends 0008 |
+| [0011](0011-migration-synchronization.md) | Transactional synchronization with verified schema export | accepted |

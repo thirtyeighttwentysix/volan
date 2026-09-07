@@ -1,5 +1,6 @@
 package io.github.thirtyeighttwentysix.volan.migrate
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldEndWith
@@ -16,6 +17,14 @@ class MigrationDirectoryTest {
     lateinit var root: Path
 
     private val moment = Instant.parse("2026-07-27T09:30:00Z")
+
+    @Test
+    fun `a repeated migration name cannot overwrite reviewed SQL`() {
+        val directory = MigrationDirectory(root)
+        directory.write(moment, "same", "SELECT 1;")
+        shouldThrow<java.nio.file.FileAlreadyExistsException> { directory.write(moment, "same", "SELECT 2;") }
+        directory.read().single().sql shouldBe "SELECT 1;"
+    }
 
     @Test
     fun `a written migration is named for when it was written and what it was called`() {

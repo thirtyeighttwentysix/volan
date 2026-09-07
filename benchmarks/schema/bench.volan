@@ -1,0 +1,19 @@
+datasource db {
+  provider = "postgresql"
+  url = env("VOLAN_BENCH_URL")
+}
+
+generator client {
+  provider = "volan-kotlin"
+  package = "bench.generated"
+  output = "build/generated/volan"
+}
+
+model Person {
+  id Int @id
+  email String
+  name String
+  score Int
+
+  @@map("bench_people")
+}

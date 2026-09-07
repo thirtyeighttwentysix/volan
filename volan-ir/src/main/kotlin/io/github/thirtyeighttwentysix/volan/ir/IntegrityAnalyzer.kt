@@ -9,6 +9,26 @@ internal class IntegrityAnalyzer(private val sink: DiagnosticSink) {
         reportTableCollisions(models)
         reportEnumCollisions(enums)
         reportCascadeCycles(models, relations)
+        reportRequiredCycles(models, relations)
+    }
+
+    private fun reportRequiredCycles(models: List<ModelDraft>, relations: List<Relation>) {
+        val edges = HashMap<String, MutableSet<String>>()
+        relations.filter { it.from.cardinality == Cardinality.REQUIRED && !it.isSelfRelation && it.joinTable == null }
+            .forEach { edges.getOrPut(it.from.model) { LinkedHashSet() }.add(it.to.model) }
+        val reported = HashSet<String>()
+        models.forEach { model ->
+            val cycle = findCycle(model.name, edges)
+            if (cycle != null && reported.add(cycle.sorted().joinToString(","))) {
+                sink.error(
+                    code = SemanticCode.UNSATISFIABLE_REQUIRED_RELATION,
+                    span = model.nameSpan,
+                    message = "required relations form a cycle: ${(cycle + cycle.first()).joinToString(" → ")}",
+                    label = "no model in this cycle can be inserted first",
+                    help = "make one foreign key and its relation optional, then connect the rows after creating them",
+                )
+            }
+        }
     }
 
     private fun reportTableCollisions(models: List<ModelDraft>) {

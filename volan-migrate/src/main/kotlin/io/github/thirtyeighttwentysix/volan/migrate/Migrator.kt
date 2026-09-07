@@ -34,8 +34,7 @@ public data class MigrationStatus(
  *
  * Migrations are applied one at a time, each in its own transaction, in the order their names give.
  * A migration that fails leaves its own changes undone and the ones before it in place, and the record
- * of it stays behind unfinished — because a person has to decide what a half-finished migration means,
- * and pretending it never started would take that decision away from them.
+ * of it rolls back with its statements. Externally recorded unfinished migrations still block apply.
  */
 public class Migrator(
     private val directory: MigrationDirectory,
@@ -64,11 +63,11 @@ public class Migrator(
      *   disagree. Applying migrations on top of a database whose past has changed underneath would
      *   produce a database neither of them describes.
      */
-    public fun apply(connection: Connection): List<MigrationFile> {
+    public fun apply(connection: Connection): List<MigrationFile> = withMigrationLock(connection) {
         journal.ensure(connection)
         val status = status(connection)
         refuseDrift(status)
-        return status.pending.map { migration ->
+        status.pending.map { migration ->
             run(connection, migration)
             migration
         }
@@ -104,6 +103,7 @@ public class Migrator(
         val statements = split(migration.sql)
         val restore = connection.autoCommit
         connection.autoCommit = false
+        var committed = false
         try {
             journal.begin(connection, migration, clock.instant())
             connection.createStatement().use { statement ->
@@ -111,14 +111,15 @@ public class Migrator(
             }
             journal.finish(connection, migration.id, clock.instant(), statements.size)
             connection.commit()
+            committed = true
         } catch (failure: SQLException) {
-            connection.rollback()
             throw VolanMigrationException(
                 "the migration `${migration.id}` failed and was rolled back: ${failure.message}\n" +
                     "  Nothing it asked for was applied. Fix the migration and run it again.",
                 failure,
             )
         } finally {
+            if (!committed) connection.rollback()
             connection.autoCommit = restore
         }
     }
@@ -129,48 +130,13 @@ public class Migrator(
      * A semicolon inside a string literal or a comment does not end a statement, which is the whole
      * reason this is not a call to `split(";")`.
      */
-    internal fun split(sql: String): List<String> {
-        val statements = ArrayList<String>()
-        val current = StringBuilder()
-        var index = 0
-        var quote: Char? = null
-        while (index < sql.length) {
-            val character = sql[index]
-            when {
-                quote != null -> {
-                    current.append(character)
-                    if (character == quote) quote = null
-                    index++
-                }
-                character == '\'' || character == '"' -> {
-                    quote = character
-                    current.append(character)
-                    index++
-                }
-                character == '-' && sql.startsWith("--", index) -> {
-                    val end = sql.indexOf('\n', index).takeIf { it >= 0 } ?: sql.length
-                    index = end
-                }
-                character == ';' -> {
-                    current.toString().trim().takeIf { it.isNotEmpty() }?.let { statements.add(it) }
-                    current.setLength(0)
-                    index++
-                }
-                else -> {
-                    current.append(character)
-                    index++
-                }
-            }
-        }
-        current.toString().trim().takeIf { it.isNotEmpty() }?.let { statements.add(it) }
-        return statements
-    }
+    internal fun split(sql: String): List<String> = SqlScript(sql).split()
 
     private fun describe(ids: List<String>): String =
         ids.joinToString(", ") { "`$it`" } + if (ids.size == 1) "" else " (and the ones after them)"
 
     /** Records [migration] as applied without running it, for a database already in that shape. */
-    public fun markApplied(connection: Connection, migration: MigrationFile) {
+    public fun markApplied(connection: Connection, migration: MigrationFile): Unit = withMigrationLock(connection) {
         journal.ensure(connection)
         journal.markApplied(connection, migration, clock.instant())
     }

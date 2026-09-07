@@ -23,3 +23,14 @@ dependencies {
 tasks.test {
     systemProperty("volan.updateGolden", providers.gradleProperty("volan.updateGolden").getOrElse("false"))
 }
+
+// The PostgreSQL suites must run when verifying migration coverage.
+kover {
+    reports {
+        verify {
+            rule {
+                bound { minValue = 85 }
+            }
+        }
+    }
+}

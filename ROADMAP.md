@@ -12,15 +12,19 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M3** | Kotlin code generation: entities, repositories, where/orderBy/select/include DSLs, projections, plus the query description layer they compile against | Golden-file tests, and `codegen-verify` generates a client during the build, compiles it and exercises it | ✅ |
 | **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters, raw SQL | Testcontainers PostgreSQL integration suite covering every must-have operation | ✅ |
 | **M5** | Relations, nested writes and summaries: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M, nested writes from `create` and `update`, `aggregate`, `groupBy`/`having`, `distinct` | Statement-count assertions prove the absence of N+1 | ✅ |
-| **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ⬜ |
+| **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ✅ |
 | **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; signature check finds no Kotlin-only types in public API | ⬜ |
 | **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The same integration suite passes on every dialect | ⬜ |
 | **M9** | CLI and build plugins: Clikt CLI, Gradle plugin, Maven plugin | An example project builds through the plugin alone, with no manual steps | ⬜ |
 | **M10** | Coroutines, interceptors, Micrometer metrics | `suspend` API covered by tests; cancellation cancels the in-flight statement | ⬜ |
 | **M11** | Examples and documentation site: `kotlin-basic`, `java-basic`, `spring-boot`, `ktor`; Getting Started (Kotlin/Java), references, migration guides | Every example runs from its own README and has a CI smoke test | ⬜ |
-| **M12** | Benchmarks and the 1.0 release: JMH suite, Maven Central publication, changelog | Artifacts install into a clean project from a Central staging repository | ⬜ |
+| **M12** | Benchmark extensions and the 1.0 release: broader workloads, Maven Central publication, changelog | Artifacts install into a clean project from a Central staging repository | ⬜ |
 
 ## Deliberately different from the original specification
+
+The initial PostgreSQL JMH read suite was brought forward from M12 alongside M6. Publication and
+the remaining benchmark workloads stay in M12. The initial CLI was also brought forward from M9
+for `db pull` and `db push`.
 
 Three names and one shape differ from the brief, each because the brief's version cannot be built on
 the JVM without giving up something the brief also asks for.
@@ -39,9 +43,8 @@ main branch.
 
 ### Deferred within the road to 1.0
 
-- **Coverage gate.** The ≥ 85 % Kover verification rule is on for `volan-schema` and `volan-ir` as of
-  M2. It is added to `volan-runtime` and `volan-migrate` in the milestone that fills them, because
-  enforcing a coverage floor on an empty module measures nothing.
+- **Coverage gate.** The ≥ 85 % Kover verification rule is on for `volan-schema`, `volan-ir` and
+  `volan-migrate` (M6, with PostgreSQL integration tests). The runtime coverage gate remains deferred.
 - **Provider-specific native types beyond PostgreSQL.** `@db.…` is checked against the types
   PostgreSQL actually has, and a name it does not have is refused with the ones it does listed. The
   same table for the other databases arrives with their dialects in M8.
@@ -52,7 +55,8 @@ main branch.
 - **Deleting the row a required foreign key points at.** An `update` can detach, replace, change and
   delete the rows on the far side of its relations, except for one case: deleting the row that the row
   being changed points at. That needs the old key after the key has been cleared, and what it should
-  do depends on `onDelete`, which is a question the migration work in M6 answers properly.
+  do depends on `onDelete`. M6 now generates and verifies those actions; runtime support for deleting
+  an owning-side relation remains deferred.
 - **Nested writes more than one level deep from an update.** A nested `update` writes columns; a shape
   that reaches a third level down would need the key of a row nobody has read yet. It is refused where
   it was written rather than silently dropped.
@@ -75,13 +79,10 @@ main branch.
   handle: what `contains` means for an array is a dialect question, answered in M8.
 - **The Java-facing layer.** Generated entities are already Java-shaped — getters, builders, no Kotlin-only
   types — but the `*Async` methods and the `Function`-based builders are M7.
-- **Cycles of required relations across models.** A self-relation that requires itself is rejected in
-  M2. Two models that require each other are not yet detected; the check needs the same traversal as
-  the cascade-cycle pass and is scheduled with the migration ordering work in M6.
 - **Publishing configuration.** Signing, POM metadata and the Central Portal release job land in M12.
-- **`volan-cli`, `volan-gradle-plugin`, `volan-maven-plugin`, `java-compat-tests` modules.** Created
-  in the milestone that first fills them (M9 / M7), so that the main branch never contains an empty
-  module pretending to be a feature.
+- **Remaining CLI commands, `volan-gradle-plugin`, `volan-maven-plugin`, `java-compat-tests`.**
+  The initial CLI ships `db pull` / `db push` in M6. The remaining CLI and build plugins arrive in M9;
+  the Java suite arrives in M7.
 - **The `volan format` and `volan validate` commands.** Both capabilities exist as library API from
   M1 (`SchemaFormatter` and `SchemaParser`, which reports every syntax problem); wrapping them in a
   command line is part of M9, where the CLI is built. `validate` gains semantic checks in M2.

@@ -3,6 +3,7 @@ package io.github.thirtyeighttwentysix.volan.migrate
 import io.github.thirtyeighttwentysix.volan.dialect.ColumnChange
 import io.github.thirtyeighttwentysix.volan.dialect.ColumnDefinition
 import io.github.thirtyeighttwentysix.volan.dialect.DdlStatement
+import io.github.thirtyeighttwentysix.volan.dialect.ForeignKeyDefinition
 import io.github.thirtyeighttwentysix.volan.dialect.UniqueDefinition
 
 /**
@@ -36,8 +37,7 @@ public object SchemaDiffer {
     private fun dropForeignKeys(from: DatabaseSchema, to: DatabaseSchema): List<MigrationStep> = from.tables.flatMap { table ->
         val wanted = to.table(table.name)
         table.foreignKeys
-            .filter { key -> wanted == null || wanted.foreignKeys.none { it == key } }
-            .filter { wanted != null }
+            .filter { key -> wanted == null || wanted.foreignKeys.none { it == key } || dependencyChanged(from, to, table.name, key) }
             .map { MigrationStep(DdlStatement.DropConstraint(table.name, it.name)) }
     }
 
@@ -90,7 +90,7 @@ public object SchemaDiffer {
             )
         }
         val kept = wanted.values.filter { existing.values.contains(it) }
-        if (kept != existing.values) {
+        if (kept != existing.values || wanted.values.take(existing.values.size) != existing.values) {
             throw VolanMigrationException(
                 "the values of the enum `${wanted.name}` are in a different order than the database has them, " +
                     "and no database can reorder them.\n" +
@@ -139,6 +139,11 @@ public object SchemaDiffer {
     }
 
     private fun alterColumn(table: String, existing: ColumnDefinition, wanted: ColumnDefinition): List<MigrationStep> {
+        if (existing.autoIncrement != wanted.autoIncrement) {
+            throw VolanMigrationException(
+                "Changing autoincrement on `$table.${wanted.name}` requires an explicit migration for its sequence.",
+            )
+        }
         val steps = ArrayList<MigrationStep>()
         if (existing.type != wanted.type) {
             steps += MigrationStep(
@@ -184,11 +189,19 @@ public object SchemaDiffer {
     private fun addForeignKeys(from: DatabaseSchema, to: DatabaseSchema): List<MigrationStep> = to.tables.flatMap { wanted ->
         val existing = from.table(wanted.name)
         wanted.foreignKeys
-            .filter { key -> existing == null || existing.foreignKeys.none { it == key } }
+            .filter { key -> existing == null || existing.foreignKeys.none { it == key } || dependencyChanged(from, to, wanted.name, key) }
             .map { MigrationStep(DdlStatement.AddForeignKey(wanted.name, it)) }
     }
 
     private fun dropEnums(from: DatabaseSchema, to: DatabaseSchema): List<MigrationStep> = from.enums
         .filter { to.enumType(it.name) == null }
         .map { MigrationStep(DdlStatement.DropEnum(it.name), "the enum type `${it.name}` is dropped") }
+
+    private fun dependencyChanged(from: DatabaseSchema, to: DatabaseSchema, table: String, key: ForeignKeyDefinition): Boolean {
+        val before = from.table(key.targetTable)
+        val after = to.table(key.targetTable)
+        return before?.primaryKey != after?.primaryKey || before?.uniques != after?.uniques ||
+            key.targetColumns.any { before?.column(it)?.type != after?.column(it)?.type } ||
+            key.columns.any { from.table(table)?.column(it)?.type != to.table(table)?.column(it)?.type }
+    }
 }
