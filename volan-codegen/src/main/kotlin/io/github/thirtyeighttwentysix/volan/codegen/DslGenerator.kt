@@ -1,6 +1,7 @@
 package io.github.thirtyeighttwentysix.volan.codegen
 
 import com.squareup.kotlinpoet.BOOLEAN
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -85,10 +86,7 @@ internal class DslGenerator(private val types: TypeResolver) {
 
     fun relationFilter(model: Model, relation: RelationField): TypeSpec {
         val targetWhere = types.declared("${relation.targetModel}Where")
-        val sink = LambdaTypeName.get(
-            parameters = listOf(ParameterSpec.unnamed(Types.relationQuantifier), ParameterSpec.unnamed(Types.filterScope)),
-            returnType = UNIT,
-        )
+        val sink = ClassName("java.util.function", "BiConsumer").parameterizedBy(Types.relationQuantifier, Types.filterScope)
         val builder = TypeSpec.classBuilder(relationFilterName(model, relation))
             .addKdoc("How the related `${relation.targetModel}` rows have to match.\n")
             .primaryConstructor(FunSpec.constructorBuilder().addParameter("sink", sink).build())
@@ -104,7 +102,7 @@ internal class DslGenerator(private val types: TypeResolver) {
                 FunSpec.builder(name)
                     .addKdoc(quantifierDoc(name, relation))
                     .addParameter("block", lambdaOn(targetWhere))
-                    .addStatement("sink(%T.%L, %T().apply(block))", Types.relationQuantifier, constant, targetWhere)
+                    .addStatement("sink.accept(%T.%L, %T().apply(block))", Types.relationQuantifier, constant, targetWhere)
                     .build(),
             )
         }

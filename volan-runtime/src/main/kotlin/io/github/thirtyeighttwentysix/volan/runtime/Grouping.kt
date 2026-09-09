@@ -1,5 +1,8 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * A read that folds rows into groups and summarises each one.
  *
@@ -14,12 +17,13 @@ package io.github.thirtyeighttwentysix.volan.runtime
  * @property orderBy the sort terms, over the grouped fields.
  * @property pagination how many groups to return and from where.
  */
-public data class GroupSpec(
+@NullMarked
+public data class GroupSpec @JvmOverloads constructor(
     public val model: String,
     public val by: List<String>,
-    public val filter: Filter? = null,
+    public val filter: @Nullable Filter? = null,
     public val aggregations: List<Aggregation> = emptyList(),
-    public val having: Filter? = null,
+    public val having: @Nullable Filter? = null,
     public val havingAggregations: Map<String, Aggregation> = emptyMap(),
     public val orderBy: List<OrderTerm> = emptyList(),
     public val pagination: Pagination = Pagination.NONE,
@@ -31,7 +35,8 @@ public data class GroupSpec(
  * @property key the grouped fields, read the same way a partial `select` is read.
  * @property values the summaries, keyed by the alias each was asked for under.
  */
-public data class GroupRow<K>(public val key: K, public val values: Map<String, Any?>)
+@NullMarked
+public data class GroupRow<K : @Nullable Any?>(public val key: K, public val values: Map<String, @Nullable Any?>)
 
 /**
  * The receiver a generated `having { … }` block runs against.
@@ -43,11 +48,16 @@ public data class GroupRow<K>(public val key: K, public val values: Map<String, 
  * went into the group, which is what `where` is for — and `where` narrows before the grouping work is
  * done rather than after it.
  */
+@NullMarked
 public abstract class HavingScope protected constructor() : FilterScope() {
     private val known = LinkedHashMap<String, Aggregation>()
 
     /** Creates a handle for comparing the summary [function] works out over [column]. */
-    protected fun <T : Comparable<T>> aggregateField(function: AggregateFunction, column: String?, alias: String): OrderedFilterField<T> {
+    protected fun <T : Comparable<T>> aggregateField(
+        function: AggregateFunction,
+        column: @Nullable String?,
+        alias: String,
+    ): OrderedFilterField<T> {
         known[alias] = Aggregation(function, column, alias)
         return orderedField(alias)
     }
@@ -64,17 +74,18 @@ public abstract class HavingScope protected constructor() : FilterScope() {
  *
  * @param model the model being grouped.
  */
+@NullMarked
 public abstract class GroupScope protected constructor(private val model: String) {
     /** How many groups to return at most. Null returns all of them. */
-    public var take: Int? = null
+    public var take: @Nullable Int? = null
 
     /** How many groups to pass over before returning any. */
-    public var skip: Int? = null
+    public var skip: @Nullable Int? = null
 
     private val aggregations = ArrayList<Aggregation>()
     private var by: List<String> = emptyList()
-    private var filter: Filter? = null
-    private var having: Filter? = null
+    private var filter: @Nullable Filter? = null
+    private var having: @Nullable Filter? = null
     private var havingAggregations: Map<String, Aggregation> = emptyMap()
     private var orderTerms: List<OrderTerm> = emptyList()
 
@@ -100,7 +111,7 @@ public abstract class GroupScope protected constructor(private val model: String
     }
 
     /** Records one summary to work out for each group. */
-    protected fun record(function: AggregateFunction, column: String?, alias: String) {
+    protected fun record(function: AggregateFunction, column: @Nullable String?, alias: String) {
         aggregations.removeAll { it.alias == alias }
         aggregations.add(Aggregation(function, column, alias))
     }

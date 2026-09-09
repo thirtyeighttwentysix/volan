@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- M7: generated Java `Consumer` entry points for queries, writes, relations and summaries;
+  `CompletableFuture` variants of repository operations, transactions and raw SQL, with configurable
+  execution and a guard against dispatching work outside a thread-bound transaction.
+- JSpecify nullability in generated and runtime APIs, Java overloads for default arguments,
+  and a Java-only compatibility module with PostgreSQL tests and signature checks.
 - M6: `SchemaWriter` exports validated schema text; `DatabaseSync` provides pull, dry-run plans,
   transactional push and structural drift detection. A Clikt CLI exposes `db pull` / `db push`.
 - PostgreSQL advisory locks serialize migration writers; push verifies the resulting schema before

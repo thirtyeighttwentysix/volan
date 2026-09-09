@@ -1,3 +1,4 @@
 public final class io/github/thirtyeighttwentysix/volan/cli/MainKt {
 	public static final fun main ([Ljava/lang/String;)V
 }
+

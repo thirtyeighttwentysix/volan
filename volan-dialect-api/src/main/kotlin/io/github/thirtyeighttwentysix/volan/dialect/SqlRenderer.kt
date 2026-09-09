@@ -1,5 +1,8 @@
 package io.github.thirtyeighttwentysix.volan.dialect
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * Renders Volan's SQL model as standard SQL, leaving each database to override only what it does
  * differently.
@@ -8,6 +11,7 @@ package io.github.thirtyeighttwentysix.volan.dialect
  * is no method here that puts a value into the string, which is what makes the guarantee structural
  * rather than a matter of remembering.
  */
+@NullMarked
 public abstract class SqlRenderer(
     /** What the database can do; the renderer consults this instead of asking which database it is. */
     override val capabilities: DialectCapabilities,
@@ -104,7 +108,7 @@ public abstract class SqlRenderer(
         append(if (term.nulls == SqlNulls.FIRST) " NULLS FIRST" else " NULLS LAST")
     }
 
-    protected open fun Builder.appendLimit(limit: Int?, offset: Int?) {
+    protected open fun Builder.appendLimit(limit: @Nullable Int?, offset: @Nullable Int?) {
         limit?.let {
             append(" LIMIT ")
             bind(it)
@@ -302,7 +306,7 @@ public abstract class SqlRenderer(
         }
     }
 
-    protected fun qualified(table: String, alias: String?): String =
+    protected fun qualified(table: String, alias: @Nullable String?): String =
         if (alias == null) quote(table) else quote(table) + " AS " + quote(alias)
 
     /**
@@ -339,7 +343,7 @@ public abstract class SqlRenderer(
      */
     protected class Builder {
         private val sql = StringBuilder()
-        private val parameters = ArrayList<Any?>()
+        private val parameters = ArrayList<@Nullable Any?>()
 
         /** Appends statement text. Never call this with anything a caller supplied. */
         public fun append(text: String): Builder {
@@ -360,7 +364,7 @@ public abstract class SqlRenderer(
         }
 
         /** Binds [value] as a parameter and writes its placeholder. */
-        public fun bind(value: Any?): Builder {
+        public fun bind(value: @Nullable Any?): Builder {
             parameters.add(value)
             sql.append('?')
             return this

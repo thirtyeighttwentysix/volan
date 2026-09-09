@@ -63,6 +63,7 @@ tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
         freeCompilerArgs.add("-Xjdk-release=17")
+        freeCompilerArgs.add("-Xemit-jvm-type-annotations")
     }
 }
 

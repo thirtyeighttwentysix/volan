@@ -24,12 +24,16 @@ tasks.test {
     systemProperty("volan.updateGolden", providers.gradleProperty("volan.updateGolden").getOrElse("false"))
 }
 
-// The PostgreSQL suites must run when verifying migration coverage.
+// CI verifies this explicitly on Linux, where the PostgreSQL suites can run in Docker.
+// Normal builds also run on hosts without Docker, where integration coverage is unavailable.
 kover {
     reports {
-        verify {
-            rule {
-                bound { minValue = 85 }
+        total {
+            verify {
+                onCheck = false
+                rule {
+                    bound { minValue = 85 }
+                }
             }
         }
     }

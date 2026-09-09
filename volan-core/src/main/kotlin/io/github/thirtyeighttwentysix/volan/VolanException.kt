@@ -1,5 +1,8 @@
 package io.github.thirtyeighttwentysix.volan
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * Root of every exception Volan throws.
  *
@@ -10,6 +13,7 @@ package io.github.thirtyeighttwentysix.volan
  *
  * Every message names what failed and, where the cause is actionable, how to fix it.
  */
+@NullMarked
 public abstract class VolanException : RuntimeException {
     /**
      * Creates an exception with the given [message].
@@ -19,5 +23,5 @@ public abstract class VolanException : RuntimeException {
     /**
      * Creates an exception with the given [message], caused by [cause].
      */
-    protected constructor(message: String, cause: Throwable?) : super(message, cause)
+    protected constructor(message: String, cause: @Nullable Throwable?) : super(message, cause)
 }

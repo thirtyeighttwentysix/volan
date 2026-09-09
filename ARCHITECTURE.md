@@ -119,7 +119,7 @@ the structural reason Volan cannot be SQL-injected (see [ADR-0004](docs/adr/0004
 | `volan-maven-plugin` | `codegen` | `volan:generate` on `generate-sources` (M9) |
 | `volan-bom` | — | Version alignment for consumers |
 | `codegen-verify` | `codegen`, `runtime` | Generates a client during the build, compiles it and exercises it — the proof that generated code is buildable |
-| `java-compat-tests` | generated client | Java-language tests over the public API (M7) |
+| `java-compat-tests` | generated client, runtime, PostgreSQL | Java CRUD, relations, async transactions, nullability and signature checks |
 
 Dependency rules enforced by review:
 

@@ -41,6 +41,17 @@ class VolanGeneratorTest {
     }
 
     @Test
+    fun `Java entry points are opt in while Kotlin async remains available`() {
+        val kotlinOnly = schema.copy(generators = schema.generators.map { it.copy(javaFriendly = false) })
+        val user = VolanGenerator.generate(kotlinOnly).single { it.relativePath.endsWith("/User.kt") }.contents
+        user shouldNotContain "import java.util.function.Consumer"
+        user shouldNotContain "fun findManyJava"
+        user shouldContain "fun findManyAsync"
+        contents("User.kt") shouldContain "Consumer<UserQuery>"
+        contents("User.kt") shouldContain "@JvmSynthetic"
+    }
+
+    @Test
     fun `the client exposes one repository per model`() {
         val client = contents("VolanClient.kt")
         listOf("user", "profile", "post", "tag", "comment").forEach {

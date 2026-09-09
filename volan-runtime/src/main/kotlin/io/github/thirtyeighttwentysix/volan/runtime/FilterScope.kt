@@ -1,5 +1,9 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+import java.util.function.Function
+
 /**
  * The receiver a generated `where { … }` block runs against.
  *
@@ -10,6 +14,7 @@ package io.github.thirtyeighttwentysix.volan.runtime
  * Generated subclasses declare one field handle per column and call [record] for anything the handles
  * do not cover.
  */
+@NullMarked
 public abstract class FilterScope protected constructor() {
     internal val conditions: MutableList<Filter> = ArrayList()
 
@@ -48,11 +53,11 @@ public abstract class FilterScope protected constructor() {
     protected fun <T : Any> equalityField(column: String): EqualityFilterField<T> = EqualityFilterField(column, this)
 
     /** Creates a handle for an enum column, storing values as [toDatabaseValue] renders them. */
-    protected fun <E : Enum<E>> enumField(column: String, toDatabaseValue: (E) -> String): EnumFilterField<E> =
+    protected fun <E : Enum<E>> enumField(column: String, toDatabaseValue: Function<E, String>): EnumFilterField<E> =
         EnumFilterField(column, this, toDatabaseValue)
 
     /** Everything this scope collected, combined with `AND`, or `null` when it collected nothing. */
-    public fun build(): Filter? = Filter.all(conditions)
+    public fun build(): @Nullable Filter? = Filter.all(conditions)
 }
 
 /**
@@ -60,6 +65,7 @@ public abstract class FilterScope protected constructor() {
  *
  * @param T the type the column holds.
  */
+@NullMarked
 public open class EqualityFilterField<T : Any> internal constructor(internal val column: String, private val scope: FilterScope) {
     /** Matches rows where the column equals [value]. */
     public infix fun eq(value: T) {
@@ -92,7 +98,7 @@ public open class EqualityFilterField<T : Any> internal constructor(internal val
     }
 
     /** Converts a value to what the database stores. Overridden where the two differ, as for enums. */
-    internal open fun encode(value: T): Any? = value
+    internal open fun encode(value: T): @Nullable Any? = value
 
     /** How text comparisons on this handle treat case. Overridden by [TextFilterField.ignoringCase]. */
     internal open val matchMode: TextMatchMode
@@ -108,6 +114,7 @@ public open class EqualityFilterField<T : Any> internal constructor(internal val
  *
  * @param T the type the column holds.
  */
+@NullMarked
 public open class OrderedFilterField<T : Comparable<T>> internal constructor(column: String, scope: FilterScope) :
     EqualityFilterField<T>(column, scope) {
     /** Matches rows below [value]. */
@@ -140,6 +147,7 @@ public open class OrderedFilterField<T : Comparable<T>> internal constructor(col
  * A text column, which can additionally be matched by prefix, suffix or substring, with or without
  * regard to case.
  */
+@NullMarked
 public class TextFilterField internal constructor(
     column: String,
     scope: FilterScope,
@@ -181,10 +189,11 @@ public class TextFilterField internal constructor(
  *
  * @param E the enum type.
  */
+@NullMarked
 public class EnumFilterField<E : Enum<E>> internal constructor(
     column: String,
     scope: FilterScope,
-    private val toDatabaseValue: (E) -> String,
+    private val toDatabaseValue: Function<E, String>,
 ) : EqualityFilterField<E>(column, scope) {
-    override fun encode(value: E): Any = toDatabaseValue(value)
+    override fun encode(value: E): Any = toDatabaseValue.apply(value)
 }

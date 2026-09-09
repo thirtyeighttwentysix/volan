@@ -1,11 +1,15 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * The receiver a generated `orderBy { … }` block runs against.
  *
  * Terms apply in the order they are written, so `orderBy { role.asc(); createdAt.desc() }` sorts by
  * role first and breaks ties by date.
  */
+@NullMarked
 public abstract class OrderScope protected constructor() {
     internal val terms: MutableList<OrderTerm> = ArrayList()
 
@@ -17,6 +21,7 @@ public abstract class OrderScope protected constructor() {
 }
 
 /** A column being sorted on. */
+@NullMarked
 public class OrderField internal constructor(private val column: String, private val scope: OrderScope) {
     /** Sorts smallest first. */
     public fun asc(): Unit = add(SortDirection.ASCENDING, NullsOrder.DEFAULT)
@@ -47,6 +52,7 @@ public class OrderField internal constructor(private val column: String, private
  * Naming a field marks it for reading; everything not named is left out of the query and out of the
  * projection it produces.
  */
+@NullMarked
 public abstract class SelectScope protected constructor() {
     internal val fields: MutableSet<String> = LinkedHashSet()
 
@@ -64,6 +70,7 @@ public abstract class SelectScope protected constructor() {
  *
  * Each relation named here becomes one extra statement at execution time, never one per row.
  */
+@NullMarked
 public abstract class IncludeScope protected constructor() {
     internal val requests: MutableList<RelationRequest> = ArrayList()
 
@@ -85,19 +92,20 @@ public abstract class IncludeScope protected constructor() {
  *
  * @param model the model being read.
  */
+@NullMarked
 public abstract class QueryScope protected constructor(private val model: String) {
     /** How many rows to return at most. Null returns all of them. */
-    public var take: Int? = null
+    public var take: @Nullable Int? = null
 
     /** How many rows to pass over before returning any. */
-    public var skip: Int? = null
+    public var skip: @Nullable Int? = null
 
     private var distinctColumns: List<String> = emptyList()
-    private var filter: Filter? = null
+    private var filter: @Nullable Filter? = null
     private var orderTerms: List<OrderTerm> = emptyList()
-    private var selectedColumns: List<String>? = null
+    private var selectedColumns: @Nullable List<String>? = null
     private var relations: List<RelationRequest> = emptyList()
-    private var cursor: Map<String, Any?>? = null
+    private var cursor: @Nullable Map<String, @Nullable Any?>? = null
     private var skipCursorRow: Boolean = true
 
     /** Records the condition a `where { … }` block collected. */
@@ -130,7 +138,7 @@ public abstract class QueryScope protected constructor(private val model: String
      *
      * Cursor paging stays correct while rows are being inserted, which offset paging cannot promise.
      */
-    protected fun recordCursor(key: Map<String, Any?>, inclusive: Boolean) {
+    protected fun recordCursor(key: Map<String, @Nullable Any?>, inclusive: Boolean) {
         cursor = key
         skipCursorRow = !inclusive
     }

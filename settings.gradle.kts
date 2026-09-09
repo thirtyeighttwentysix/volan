@@ -33,6 +33,7 @@ include(
     ":volan-migrate",
     ":volan-coroutines",
     ":codegen-verify",
+    ":java-compat-tests",
     ":volan-cli",
     ":benchmarks",
 )

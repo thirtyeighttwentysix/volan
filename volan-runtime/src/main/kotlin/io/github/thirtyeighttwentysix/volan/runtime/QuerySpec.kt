@@ -1,6 +1,10 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /** Which way a sort runs. */
+@NullMarked
 public enum class SortDirection {
     /** Smallest first. */
     ASCENDING,
@@ -10,6 +14,7 @@ public enum class SortDirection {
 }
 
 /** Where nulls go in a sort. */
+@NullMarked
 public enum class NullsOrder {
     /** Wherever the database puts them by default. */
     DEFAULT,
@@ -28,7 +33,8 @@ public enum class NullsOrder {
  * @property direction which way the sort runs.
  * @property nulls where nulls go.
  */
-public data class OrderTerm(
+@NullMarked
+public data class OrderTerm @JvmOverloads constructor(
     public val column: String,
     public val direction: SortDirection,
     public val nulls: NullsOrder = NullsOrder.DEFAULT,
@@ -46,10 +52,11 @@ public data class OrderTerm(
  * @property cursor the key of the row to resume from, column name to value.
  * @property skipCursorRow whether the cursor row itself is excluded.
  */
-public data class Pagination(
-    public val take: Int? = null,
-    public val skip: Int? = null,
-    public val cursor: Map<String, Any?>? = null,
+@NullMarked
+public data class Pagination @JvmOverloads constructor(
+    public val take: @Nullable Int? = null,
+    public val skip: @Nullable Int? = null,
+    public val cursor: @Nullable Map<String, @Nullable Any?>? = null,
     public val skipCursorRow: Boolean = true,
 ) {
     public companion object {
@@ -66,6 +73,7 @@ public data class Pagination(
  * @property spec what to fetch on the far side, including its own filter, ordering, paging and
  *   further relations.
  */
+@NullMarked
 public data class RelationRequest(public val relation: String, public val spec: QuerySpec)
 
 /**
@@ -82,13 +90,14 @@ public data class RelationRequest(public val relation: String, public val spec: 
  * @property columns the columns to read; `null` means every column of the model.
  * @property includes the relations to load with the result.
  */
-public data class QuerySpec(
+@NullMarked
+public data class QuerySpec @JvmOverloads constructor(
     public val model: String,
-    public val filter: Filter? = null,
+    public val filter: @Nullable Filter? = null,
     public val orderBy: List<OrderTerm> = emptyList(),
     public val pagination: Pagination = Pagination.NONE,
     public val distinct: List<String> = emptyList(),
-    public val columns: List<String>? = null,
+    public val columns: @Nullable List<String>? = null,
     public val includes: List<RelationRequest> = emptyList(),
 )
 
@@ -100,9 +109,10 @@ public data class QuerySpec(
  * @property nested the rows to write alongside it on the other side of a relation. They are applied in
  *   one transaction with this row, so either the whole shape lands or none of it does.
  */
-public data class CreateSpec(
+@NullMarked
+public data class CreateSpec @JvmOverloads constructor(
     public val model: String,
-    public val values: Map<String, Any?>,
+    public val values: Map<String, @Nullable Any?>,
     public val nested: List<NestedWrite> = emptyList(),
 )
 
@@ -112,17 +122,21 @@ public data class CreateSpec(
  * Which of these can be expressed is decided by the generated DSL; the runtime's job is to apply them
  * in an order that leaves no row pointing at something that does not exist yet.
  */
+@NullMarked
 public sealed interface NestedWrite {
     /** The relation field on the row being written. */
     public val relation: String
 
     /** Rows to insert on the far side. */
+    @NullMarked
     public data class CreateRows(override val relation: String, public val rows: List<CreateSpec>) : NestedWrite
 
     /** Existing rows to attach, each identified by a filter that must select exactly one. */
+    @NullMarked
     public data class ConnectRows(override val relation: String, public val filters: List<Filter>) : NestedWrite
 
     /** Rows to attach if they exist and to insert if they do not. */
+    @NullMarked
     public data class ConnectOrCreateRows(override val relation: String, public val entries: List<ConnectOrCreateEntry>) : NestedWrite
 
     /**
@@ -131,20 +145,27 @@ public sealed interface NestedWrite {
      * An empty [filters] detaches everything currently attached, which is what `disconnect()` on a
      * relation holding one row means.
      */
-    public data class DisconnectRows(override val relation: String, public val filters: List<Filter> = emptyList()) : NestedWrite
+    @NullMarked
+    public data class DisconnectRows @JvmOverloads constructor(
+        override val relation: String,
+        public val filters: List<Filter> = emptyList(),
+    ) : NestedWrite
 
     /** The rows that should be attached afterwards, whatever was attached before. */
+    @NullMarked
     public data class SetRows(override val relation: String, public val filters: List<Filter>) : NestedWrite
 
     /** A change to apply to attached rows, to those [filter] selects when it is not null. */
+    @NullMarked
     public data class UpdateRows(
         override val relation: String,
-        public val filter: Filter?,
-        public val values: Map<String, Any?>,
+        public val filter: @Nullable Filter?,
+        public val values: Map<String, @Nullable Any?>,
     ) : NestedWrite
 
     /** Attached rows to delete, those [filter] selects when it is not null. */
-    public data class DeleteRows(override val relation: String, public val filter: Filter?) : NestedWrite
+    @NullMarked
+    public data class DeleteRows(override val relation: String, public val filter: @Nullable Filter?) : NestedWrite
 }
 
 /**
@@ -153,6 +174,7 @@ public sealed interface NestedWrite {
  * @property filter what to look for.
  * @property row what to insert when nothing matches.
  */
+@NullMarked
 public data class ConnectOrCreateEntry(public val filter: Filter, public val row: CreateSpec)
 
 /**
@@ -164,10 +186,11 @@ public data class ConnectOrCreateEntry(public val filter: Filter, public val row
  * @property nested what to do to the rows on the other side of this row's relations. They are applied
  *   in one transaction with the change itself, so either the whole shape moves or none of it does.
  */
-public data class UpdateSpec(
+@NullMarked
+public data class UpdateSpec @JvmOverloads constructor(
     public val model: String,
-    public val filter: Filter?,
-    public val values: Map<String, Any?>,
+    public val filter: @Nullable Filter?,
+    public val values: Map<String, @Nullable Any?>,
     public val nested: List<NestedWrite> = emptyList(),
 )
 
@@ -177,7 +200,8 @@ public data class UpdateSpec(
  * @property model the model being written.
  * @property filter which rows to delete; `null` for every row.
  */
-public data class DeleteSpec(public val model: String, public val filter: Filter?)
+@NullMarked
+public data class DeleteSpec(public val model: String, public val filter: @Nullable Filter?)
 
 /**
  * An insert-or-update: write [update] to the row [filter] selects, or insert [create] when it selects
@@ -191,9 +215,10 @@ public data class DeleteSpec(public val model: String, public val filter: Filter
  * @property create the values to insert when no row matches.
  * @property update the values to write when one does.
  */
+@NullMarked
 public data class UpsertSpec(
     public val model: String,
-    public val filter: Filter?,
-    public val create: Map<String, Any?>,
-    public val update: Map<String, Any?>,
+    public val filter: @Nullable Filter?,
+    public val create: Map<String, @Nullable Any?>,
+    public val update: Map<String, @Nullable Any?>,
 )

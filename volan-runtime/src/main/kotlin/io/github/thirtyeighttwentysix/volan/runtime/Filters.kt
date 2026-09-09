@@ -1,11 +1,15 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * How two values are compared.
  *
  * The operator is part of the query description, never of a SQL string: a dialect turns it into
  * whatever that database writes, and the value beside it is always bound as a parameter.
  */
+@NullMarked
 public enum class ComparisonOperator {
     /** Equal. */
     EQUAL,
@@ -36,6 +40,7 @@ public enum class ComparisonOperator {
 }
 
 /** Whether text comparisons distinguish upper and lower case. */
+@NullMarked
 public enum class TextMatchMode {
     /** Compare exactly as stored, which is what the database does by default. */
     SENSITIVE,
@@ -45,6 +50,7 @@ public enum class TextMatchMode {
 }
 
 /** How many rows on the far side of a relation have to match for the row on this side to match. */
+@NullMarked
 public enum class RelationQuantifier {
     /** At least one related row matches. */
     SOME,
@@ -68,39 +74,47 @@ public enum class RelationQuantifier {
  * This is a description, not SQL. Values sit in the tree as values and reach the database as
  * statement parameters, which is why no query Volan builds can be injected into.
  */
+@NullMarked
 public sealed interface Filter {
     /** Compares a column with a value. */
-    public data class Compare(
+    @NullMarked
+    public data class Compare @JvmOverloads constructor(
         public val column: String,
         public val operator: ComparisonOperator,
-        public val value: Any?,
+        public val value: @Nullable Any?,
         public val mode: TextMatchMode = TextMatchMode.SENSITIVE,
     ) : Filter
 
     /** Matches when a column's value lies between two bounds, both included. */
+    @NullMarked
     public data class Between(
         public val column: String,
-        public val lower: Any?,
-        public val upper: Any?,
+        public val lower: @Nullable Any?,
+        public val upper: @Nullable Any?,
     ) : Filter
 
     /** Matches when a column's value is one of [values], or none of them when [negated]. */
-    public data class InList(
+    @NullMarked
+    public data class InList @JvmOverloads constructor(
         public val column: String,
-        public val values: List<Any?>,
+        public val values: List<@Nullable Any?>,
         public val negated: Boolean = false,
     ) : Filter
 
     /** Matches when a column is null, or is not null when [negated]. */
-    public data class IsNull(public val column: String, public val negated: Boolean = false) : Filter
+    @NullMarked
+    public data class IsNull @JvmOverloads constructor(public val column: String, public val negated: Boolean = false) : Filter
 
     /** Matches when every one of [filters] matches. An empty list matches every row. */
+    @NullMarked
     public data class And(public val filters: List<Filter>) : Filter
 
     /** Matches when at least one of [filters] matches. An empty list matches no row. */
+    @NullMarked
     public data class Or(public val filters: List<Filter>) : Filter
 
     /** Matches when [filter] does not. */
+    @NullMarked
     public data class Not(public val filter: Filter) : Filter
 
     /**
@@ -110,10 +124,11 @@ public sealed interface Filter {
      * @property quantifier how many related rows have to match.
      * @property filter the condition applied to them; `null` means "any row at all".
      */
+    @NullMarked
     public data class Related(
         public val relation: String,
         public val quantifier: RelationQuantifier,
-        public val filter: Filter?,
+        public val filter: @Nullable Filter?,
     ) : Filter
 
     public companion object {
@@ -125,7 +140,7 @@ public sealed interface Filter {
          * that a single condition does not end up wrapped in a pointless `AND`.
          */
         @JvmStatic
-        public fun all(filters: List<Filter>): Filter? = when (filters.size) {
+        public fun all(filters: List<Filter>): @Nullable Filter? = when (filters.size) {
             0 -> null
             1 -> filters[0]
             else -> And(filters)
@@ -133,7 +148,7 @@ public sealed interface Filter {
 
         /** Combines [filters] with `OR`, collapsing the trivial cases the same way as [all]. */
         @JvmStatic
-        public fun any(filters: List<Filter>): Filter? = when (filters.size) {
+        public fun any(filters: List<Filter>): @Nullable Filter? = when (filters.size) {
             0 -> null
             1 -> filters[0]
             else -> Or(filters)

@@ -1,6 +1,8 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
 import io.github.thirtyeighttwentysix.volan.VolanException
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
 
 /**
  * Thrown when code reads a relation that the query did not ask for.
@@ -11,6 +13,7 @@ import io.github.thirtyeighttwentysix.volan.VolanException
  * @property model the model the relation is on.
  * @property relation the relation field that was read.
  */
+@NullMarked
 public class VolanRelationNotLoadedException internal constructor(public val model: String, public val relation: String) :
     VolanException(
         "`$model.$relation` was not loaded by the query that produced this row.\n" +
@@ -25,6 +28,7 @@ public class VolanRelationNotLoadedException internal constructor(public val mod
  * @property model the model the field is on.
  * @property field the field that was read.
  */
+@NullMarked
 public class VolanFieldNotSelectedException internal constructor(
     public val model: String,
     public val field: String,
@@ -40,6 +44,7 @@ public class VolanFieldNotSelectedException internal constructor(
  *
  * @property model the model that was queried.
  */
+@NullMarked
 public class VolanNotFoundException(public val model: String, message: String) : VolanException(message)
 
 /**
@@ -48,7 +53,9 @@ public class VolanNotFoundException(public val model: String, message: String) :
  * A bad JDBC URL, a dialect nothing on the classpath can handle, or a generated client asking about a
  * model its registry has never heard of all land here — problems of assembly rather than of data.
  */
-public class VolanConfigurationException(message: String, cause: Throwable? = null) : VolanException(message, cause)
+@NullMarked
+public class VolanConfigurationException @JvmOverloads constructor(message: String, cause: @Nullable Throwable? = null) :
+    VolanException(message, cause)
 
 /**
  * Thrown when a feature exists in the API but not yet behind it.
@@ -56,6 +63,7 @@ public class VolanConfigurationException(message: String, cause: Throwable? = nu
  * Volan would rather say so than answer a question it cannot answer correctly. The message names the
  * milestone the capability is scheduled for, so the answer is checkable rather than open-ended.
  */
+@NullMarked
 public class VolanUnsupportedException(message: String) : VolanException(message)
 
 /**
@@ -63,10 +71,11 @@ public class VolanUnsupportedException(message: String) : VolanException(message
  *
  * @property constraint the constraint the database named, when it named one.
  */
+@NullMarked
 public class VolanUniqueConstraintException(
-    public val constraint: String?,
+    public val constraint: @Nullable String?,
     message: String,
-    cause: Throwable?,
+    cause: @Nullable Throwable?,
 ) : VolanException(message, cause)
 
 /**
@@ -74,20 +83,24 @@ public class VolanUniqueConstraintException(
  *
  * @property constraint the constraint the database named, when it named one.
  */
+@NullMarked
 public class VolanForeignKeyException(
-    public val constraint: String?,
+    public val constraint: @Nullable String?,
     message: String,
-    cause: Throwable?,
+    cause: @Nullable Throwable?,
 ) : VolanException(message, cause)
 
 /** Thrown when a write breaks a check constraint or a not-null column. */
-public class VolanConstraintException(message: String, cause: Throwable?) : VolanException(message, cause)
+@NullMarked
+public class VolanConstraintException(message: String, cause: @Nullable Throwable?) : VolanException(message, cause)
 
 /** Thrown when Volan cannot reach the database, or the pool has nothing left to hand out. */
-public class VolanConnectionException(message: String, cause: Throwable?) : VolanException(message, cause)
+@NullMarked
+public class VolanConnectionException(message: String, cause: @Nullable Throwable?) : VolanException(message, cause)
 
 /** Thrown when a statement or a pool checkout took longer than it was allowed to. */
-public class VolanTimeoutException(message: String, cause: Throwable?) : VolanException(message, cause)
+@NullMarked
+public class VolanTimeoutException(message: String, cause: @Nullable Throwable?) : VolanException(message, cause)
 
 /**
  * Thrown when a transaction cannot be completed: a deadlock, a serialization failure, or a block that
@@ -96,14 +109,16 @@ public class VolanTimeoutException(message: String, cause: Throwable?) : VolanEx
  * @property retryable whether running the same block again could succeed. Serialization failures and
  *   deadlocks are the cases where it can.
  */
+@NullMarked
 public class VolanTransactionException(
     public val retryable: Boolean,
     message: String,
-    cause: Throwable?,
+    cause: @Nullable Throwable?,
 ) : VolanException(message, cause)
 
 /** Thrown when a statement failed for a reason Volan could not classify further. */
-public class VolanQueryException(message: String, cause: Throwable?) : VolanException(message, cause)
+@NullMarked
+public class VolanQueryException(message: String, cause: @Nullable Throwable?) : VolanException(message, cause)
 
 /**
  * Thrown when a write is missing something the schema requires, before any statement is sent.
@@ -111,6 +126,7 @@ public class VolanQueryException(message: String, cause: Throwable?) : VolanExce
  * Catching this at the boundary is the difference between a clear message about a field that was
  * never set and a constraint violation from the database three layers down.
  */
+@NullMarked
 public class VolanValidationException(message: String) : VolanException(message)
 
 /**
@@ -120,6 +136,7 @@ public class VolanValidationException(message: String) : VolanException(message)
  * longer has, for example. The message says which column and which value, because that is what a
  * migration to fix it needs.
  */
+@NullMarked
 public class VolanMappingException(message: String) : VolanException(message)
 
 /**
@@ -128,6 +145,8 @@ public class VolanMappingException(message: String) : VolanException(message)
  * A projection carries one, so that reading a field the query left out fails with a message naming the
  * query to change rather than with a silent null.
  */
+@NullMarked
+@Suppress("EqualsWithHashCodeExist", "WrongEqualsTypeParameter") // detekt does not recognise the annotated Any? parameter.
 public class SelectedFields private constructor(private val fields: Set<String>, private val block: String) {
     /** Whether [field] was selected. */
     public fun contains(field: String): Boolean = fields.contains(field)
@@ -137,13 +156,13 @@ public class SelectedFields private constructor(private val fields: Set<String>,
      *
      * @throws VolanFieldNotSelectedException if it was not, naming [model] and [field] in the message.
      */
-    public fun <T> require(model: String, field: String, value: T?): T {
+    public fun <T : @Nullable Any?> require(model: String, field: String, value: @Nullable T?): T {
         if (!fields.contains(field)) throw VolanFieldNotSelectedException(model, field, block)
         @Suppress("UNCHECKED_CAST")
         return value as T
     }
 
-    override fun equals(other: Any?): Boolean = this === other || (other is SelectedFields && fields == other.fields)
+    override fun equals(other: @Nullable Any?): Boolean = this === other || (other is SelectedFields && fields == other.fields)
 
     override fun hashCode(): Int = fields.hashCode()
 
@@ -173,8 +192,10 @@ public class SelectedFields private constructor(private val fields: Set<String>,
  * fetched and turned out to be absent is a loaded slot holding null, while one that was never
  * requested is an empty slot that refuses to be read.
  */
-public class RelationSlot<T> private constructor(
-    private val value: T?,
+@NullMarked
+@Suppress("EqualsWithHashCodeExist", "WrongEqualsTypeParameter") // detekt does not recognise the annotated Any? parameter.
+public class RelationSlot<T : @Nullable Any?> private constructor(
+    private val value: @Nullable T?,
     /** Whether the query loaded this relation. */
     public val isLoaded: Boolean,
 ) {
@@ -191,9 +212,9 @@ public class RelationSlot<T> private constructor(
     }
 
     /** Returns the loaded value, or `null` when the query did not load it. */
-    public fun orNull(): T? = value
+    public fun orNull(): @Nullable T? = value
 
-    override fun equals(other: Any?): Boolean =
+    override fun equals(other: @Nullable Any?): Boolean =
         this === other || (other is RelationSlot<*> && isLoaded == other.isLoaded && value == other.value)
 
     override fun hashCode(): Int = 31 * (if (isLoaded) 1 else 0) + (value?.hashCode() ?: 0)
@@ -201,15 +222,15 @@ public class RelationSlot<T> private constructor(
     override fun toString(): String = if (isLoaded) value.toString() else "<not loaded>"
 
     public companion object {
-        private val EMPTY = RelationSlot<Any?>(null, isLoaded = false)
+        private val EMPTY = RelationSlot<@Nullable Any?>(null, isLoaded = false)
 
         /** A slot holding [value], which the query loaded. */
         @JvmStatic
-        public fun <T> loaded(value: T): RelationSlot<T> = RelationSlot(value, isLoaded = true)
+        public fun <T : @Nullable Any?> loaded(value: T): RelationSlot<T> = RelationSlot(value, isLoaded = true)
 
         /** An empty slot: the query did not ask for this relation. */
         @JvmStatic
         @Suppress("UNCHECKED_CAST")
-        public fun <T> notLoaded(): RelationSlot<T> = EMPTY as RelationSlot<T>
+        public fun <T : @Nullable Any?> notLoaded(): RelationSlot<T> = EMPTY as RelationSlot<T>
     }
 }

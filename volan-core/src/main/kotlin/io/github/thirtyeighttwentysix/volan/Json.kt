@@ -1,5 +1,8 @@
 package io.github.thirtyeighttwentysix.volan
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * The value of a `Json` column, held as the text the database stores.
  *
@@ -13,8 +16,10 @@ package io.github.thirtyeighttwentysix.volan
  *
  * @property raw the JSON document exactly as stored.
  */
+@NullMarked
+@Suppress("EqualsWithHashCodeExist", "WrongEqualsTypeParameter") // detekt does not recognise type-annotated Any? as equals' parameter.
 public class Json private constructor(public val raw: String) {
-    override fun equals(other: Any?): Boolean = this === other || (other is Json && raw == other.raw)
+    override fun equals(other: @Nullable Any?): Boolean = this === other || (other is Json && raw == other.raw)
 
     override fun hashCode(): Int = raw.hashCode()
 

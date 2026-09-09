@@ -62,6 +62,14 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Aggregation {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/runtime/AsyncAccess {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/concurrent/Executor;)V
+	public fun <init> (Ljava/util/concurrent/Executor;Ljava/lang/Runnable;)V
+	public synthetic fun <init> (Ljava/util/concurrent/Executor;Ljava/lang/Runnable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun submit (Ljava/util/function/Supplier;)Ljava/util/concurrent/CompletableFuture;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/runtime/ColumnMetadata {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZZ)V
 	public final fun component1 ()Ljava/lang/String;
@@ -110,6 +118,7 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/ConnectOrCreateE
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/CreateSpec {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
 	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -195,6 +204,7 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$Companion
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$Compare : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;Ljava/lang/Object;)V
 	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;Ljava/lang/Object;Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;)V
 	public synthetic fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/ComparisonOperator;Ljava/lang/Object;Lio/github/thirtyeighttwentysix/volan/runtime/TextMatchMode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -213,6 +223,7 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$Compare :
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$InList : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
 	public fun <init> (Ljava/lang/String;Ljava/util/List;Z)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -229,6 +240,7 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$InList : 
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$IsNull : io/github/thirtyeighttwentysix/volan/runtime/Filter {
+	public fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Z)V
 	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -282,7 +294,7 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Filter$Related :
 public abstract class io/github/thirtyeighttwentysix/volan/runtime/FilterScope {
 	protected fun <init> ()V
 	public final fun build ()Lio/github/thirtyeighttwentysix/volan/runtime/Filter;
-	protected final fun enumField (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/github/thirtyeighttwentysix/volan/runtime/EnumFilterField;
+	protected final fun enumField (Ljava/lang/String;Ljava/util/function/Function;)Lio/github/thirtyeighttwentysix/volan/runtime/EnumFilterField;
 	protected final fun equalityField (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/EqualityFilterField;
 	protected final fun orderedField (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/runtime/OrderedFilterField;
 	protected final fun record (Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)V
@@ -322,6 +334,12 @@ public abstract class io/github/thirtyeighttwentysix/volan/runtime/GroupScope {
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/GroupSpec {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/Map;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/Map;Ljava/util/List;)V
 	public fun <init> (Ljava/lang/String;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/Map;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/Map;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -427,6 +445,7 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/NestedWrite$Dele
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/NestedWrite$DisconnectRows : io/github/thirtyeighttwentysix/volan/runtime/NestedWrite {
+	public fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -499,6 +518,7 @@ public abstract class io/github/thirtyeighttwentysix/volan/runtime/OrderScope {
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/OrderTerm {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;)V
 	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;)V
 	public synthetic fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/SortDirection;Lio/github/thirtyeighttwentysix/volan/runtime/NullsOrder;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -526,6 +546,9 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Pagination {
 	public static final field Companion Lio/github/thirtyeighttwentysix/volan/runtime/Pagination$Companion;
 	public static final field NONE Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;
 	public fun <init> ()V
+	public fun <init> (Ljava/lang/Integer;)V
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;)V
 	public fun <init> (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;Z)V
 	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Integer;
@@ -578,6 +601,12 @@ public abstract class io/github/thirtyeighttwentysix/volan/runtime/QueryScope {
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/QuerySpec {
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;)V
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;)V
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;)V
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;Ljava/util/List;)V
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;Ljava/util/List;Ljava/util/List;)V
 	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
 	public synthetic fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/Pagination;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -602,6 +631,9 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/QuerySpec {
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/RelationMetadata {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/util/List;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -674,6 +706,8 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/RetryPolicy {
 	public static final field Companion Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy$Companion;
 	public static final field DEFAULT Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy;
 	public static final field NONE Lio/github/thirtyeighttwentysix/volan/runtime/RetryPolicy;
+	public fun <init> (I)V
+	public fun <init> (IJ)V
 	public fun <init> (IJD)V
 	public synthetic fun <init> (IJDILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()I
@@ -804,6 +838,7 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/TextMatchMode : 
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/UpdateSpec {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/Map;)V
 	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/Map;Ljava/util/List;)V
 	public synthetic fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/runtime/Filter;Ljava/util/Map;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -842,9 +877,11 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Volan : java/lan
 	public static final field Companion Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Companion;
 	public static final fun builder ()Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public fun close ()V
+	public final fun getAsync ()Lio/github/thirtyeighttwentysix/volan/runtime/AsyncAccess;
 	public final fun getDialect ()Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;
 	public final fun getExecutor ()Lio/github/thirtyeighttwentysix/volan/runtime/QueryExecutor;
 	public final fun getTables ()Lio/github/thirtyeighttwentysix/volan/runtime/TableRegistry;
+	public final fun rawExecute (Ljava/lang/String;)J
 	public final fun rawExecute (Ljava/lang/String;Ljava/util/List;)J
 	public static synthetic fun rawExecute$default (Lio/github/thirtyeighttwentysix/volan/runtime/Volan;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)J
 	public final fun rawQuery (Ljava/lang/String;Ljava/util/List;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;)Ljava/util/List;
@@ -856,6 +893,7 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/Volan : java/lan
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/Volan$Builder {
+	public final fun asyncExecutor (Ljava/util/concurrent/Executor;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public final fun build ()Lio/github/thirtyeighttwentysix/volan/runtime/Volan;
 	public final fun clock (Ljava/time/Clock;)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
 	public final fun connectionTimeout (J)Lio/github/thirtyeighttwentysix/volan/runtime/Volan$Builder;
@@ -879,6 +917,7 @@ public final class io/github/thirtyeighttwentysix/volan/runtime/VolanAggregateNo
 }
 
 public final class io/github/thirtyeighttwentysix/volan/runtime/VolanConfigurationException : io/github/thirtyeighttwentysix/volan/VolanException {
+	public fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }

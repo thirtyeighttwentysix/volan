@@ -4,8 +4,12 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.github.thirtyeighttwentysix.volan.dialect.Dialect
 import io.github.thirtyeighttwentysix.volan.dialect.DialectProvider
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
 import java.time.Clock
 import java.util.ServiceLoader
+import java.util.concurrent.Executor
+import java.util.concurrent.ForkJoinPool
 import java.util.function.Function
 import javax.sql.DataSource
 
@@ -15,15 +19,24 @@ import javax.sql.DataSource
  * One instance is meant to live as long as the application does. It is thread-safe, and a transaction
  * belongs to the thread that opened it.
  */
+@NullMarked
 public class Volan internal constructor(
-    private val pool: AutoCloseable?,
+    private val pool: @Nullable AutoCloseable?,
     private val connections: ConnectionSource,
     private val registry: TableRegistry,
     /** The dialect in use, which is decided by the JDBC URL. */
     public val dialect: Dialect,
     readers: Map<String, EntityReader<*>>,
     clock: Clock,
+    asyncExecutor: Executor = ForkJoinPool.commonPool(),
 ) : AutoCloseable {
+    /** Dispatches independent operations; a transaction cannot cross a thread boundary. */
+    public val async: AsyncAccess = AsyncAccess(asyncExecutor) {
+        check(!connections.inTransaction) {
+            "Async operations cannot be dispatched from a transaction. Use synchronous calls inside transactionAsync."
+        }
+    }
+
     /** What generated repositories run their descriptions through. */
     public val executor: QueryExecutor = JdbcExecutor(
         connections = connections,
@@ -49,7 +62,7 @@ public class Volan internal constructor(
      *   an order between them. Only use it for a block that is safe to run twice.
      */
     @JvmOverloads
-    public fun <T> transaction(
+    public fun <T : @Nullable Any?> transaction(
         isolation: Isolation = Isolation.DEFAULT,
         retry: RetryPolicy = RetryPolicy.NONE,
         block: Function<QueryExecutor, T>,
@@ -65,7 +78,7 @@ public class Volan internal constructor(
      * val ids = db.rawQuery("select id from users where email = ?", listOf(email)) { it.getInt("id") }
      * ```
      */
-    public fun <T> rawQuery(sql: String, parameters: List<Any?>, mapper: RowMapper<T>): List<T> =
+    public fun <T : @Nullable Any?> rawQuery(sql: String, parameters: List<@Nullable Any?>, mapper: RowMapper<T>): List<T> =
         (executor as JdbcExecutor).rawQuery(sql, parameters, mapper)
 
     /**
@@ -73,7 +86,9 @@ public class Volan internal constructor(
      *
      * As with [rawQuery], values belong in [parameters] rather than in [sql].
      */
-    public fun rawExecute(sql: String, parameters: List<Any?> = emptyList()): Long = (executor as JdbcExecutor).rawExecute(sql, parameters)
+    @JvmOverloads
+    public fun rawExecute(sql: String, parameters: List<@Nullable Any?> = emptyList()): Long =
+        (executor as JdbcExecutor).rawExecute(sql, parameters)
 
     /** Closes the pool, when Volan opened one. A data source the caller supplied is left alone. */
     override fun close() {
@@ -104,27 +119,32 @@ public class Volan internal constructor(
      * A URL and the schema's tables are required; everything else has a working default. Generated
      * clients fill the tables in themselves, so applications only ever set the connection details.
      */
+    @NullMarked
     public class Builder internal constructor() {
-        private var url: String? = null
-        private var username: String? = null
-        private var password: String? = null
+        private var url: @Nullable String? = null
+        private var username: @Nullable String? = null
+        private var password: @Nullable String? = null
         private var maxPoolSize: Int = DEFAULT_POOL_SIZE
         private var connectionTimeout: Long = DEFAULT_CONNECTION_TIMEOUT
         private var poolName: String = "volan"
         private var tables: List<TableMetadata> = emptyList()
         private var readers: Map<String, EntityReader<*>> = emptyMap()
-        private var dialect: Dialect? = null
+        private var dialect: @Nullable Dialect? = null
         private var clock: Clock = Clock.systemUTC()
-        private var dataSource: DataSource? = null
+        private var dataSource: @Nullable DataSource? = null
+        private var asyncExecutor: Executor = ForkJoinPool.commonPool()
+
+        /** Executor for asynchronous JDBC calls. The application owns and shuts down this executor. */
+        public fun asyncExecutor(executor: Executor): Builder = apply { this.asyncExecutor = executor }
 
         /** The JDBC URL to connect to. It also decides which dialect is used. */
         public fun url(url: String): Builder = apply { this.url = url }
 
         /** The user to connect as, when the URL does not carry it. */
-        public fun username(username: String?): Builder = apply { this.username = username }
+        public fun username(username: @Nullable String?): Builder = apply { this.username = username }
 
         /** The password to connect with, when the URL does not carry it. */
-        public fun password(password: String?): Builder = apply { this.password = password }
+        public fun password(password: @Nullable String?): Builder = apply { this.password = password }
 
         /** How many connections the pool may open. */
         public fun maxPoolSize(size: Int): Builder = apply { this.maxPoolSize = size }
@@ -172,7 +192,7 @@ public class Volan internal constructor(
                     "a data source was given but no dialect could be chosen.\n" +
                         "  Set `url(…)` so the dialect can be inferred, or name it with `dialect(…)`.",
                 )
-                return Volan(null, ConnectionSource(supplied), TableRegistry(tables), resolved, readers, clock)
+                return Volan(null, ConnectionSource(supplied), TableRegistry(tables), resolved, readers, clock, asyncExecutor)
             }
             val jdbcUrl = url ?: throw VolanConfigurationException(
                 "no database URL was given.\n  Set one with `url(…)`, reading it from the environment as the schema does.",
@@ -187,7 +207,7 @@ public class Volan internal constructor(
                 this.poolName = this@Builder.poolName
             }
             val pool = HikariDataSource(configuration)
-            return Volan(pool, ConnectionSource(pool), TableRegistry(tables), resolved, readers, clock)
+            return Volan(pool, ConnectionSource(pool), TableRegistry(tables), resolved, readers, clock, asyncExecutor)
         }
 
         /**

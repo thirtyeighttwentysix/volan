@@ -1,11 +1,15 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * The few decisions generated write blocks need at run time.
  *
  * Everything else about a nested write is decided when the client is generated; these are the two
  * things that depend on what the caller actually filled in.
  */
+@NullMarked
 public object NestedWrites {
     /**
      * Builds the condition a `connectOrCreate` looks its row up by.
@@ -16,7 +20,7 @@ public object NestedWrites {
      * @throws VolanValidationException when nothing the block set identifies a row.
      */
     @JvmStatic
-    public fun uniqueFilter(model: String, values: Map<String, Any?>, uniqueKeys: List<List<String>>): Filter {
+    public fun uniqueFilter(model: String, values: Map<String, @Nullable Any?>, uniqueKeys: List<List<String>>): Filter {
         val usable = uniqueKeys.firstOrNull { key -> key.all { values[it] != null } } ?: throw VolanValidationException(
             "`connectOrCreate` on `$model` cannot tell which row to look for: the block set " +
                 "${describe(values.keys)}, and none of the unique keys of `$model` " +

@@ -1,6 +1,8 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
 import io.github.thirtyeighttwentysix.volan.VolanException
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
 import java.math.BigDecimal
 import java.sql.Time
 import java.sql.Timestamp
@@ -13,6 +15,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 /** The summaries a query can ask a database for. */
+@NullMarked
 public enum class AggregateFunction {
     /** How many rows there are. */
     COUNT,
@@ -37,9 +40,10 @@ public enum class AggregateFunction {
  * @property column the column to work it out over; `null` counts rows rather than values.
  * @property alias the name the answer comes back under.
  */
+@NullMarked
 public data class Aggregation(
     public val function: AggregateFunction,
-    public val column: String?,
+    public val column: @Nullable String?,
     public val alias: String,
 )
 
@@ -50,9 +54,10 @@ public data class Aggregation(
  * @property filter which rows to summarise; `null` for all of them.
  * @property aggregations what to work out, each under its own alias.
  */
+@NullMarked
 public data class AggregateSpec(
     public val model: String,
-    public val filter: Filter?,
+    public val filter: @Nullable Filter?,
     public val aggregations: List<Aggregation>,
 )
 
@@ -63,9 +68,10 @@ public data class AggregateSpec(
  *
  * @param model the model being summarised.
  */
+@NullMarked
 public abstract class AggregateScope protected constructor(private val model: String) {
     private val aggregations = ArrayList<Aggregation>()
-    private var filter: Filter? = null
+    private var filter: @Nullable Filter? = null
 
     /** Records the condition a `where { … }` block collected. */
     protected fun recordFilter(scope: FilterScope) {
@@ -73,7 +79,7 @@ public abstract class AggregateScope protected constructor(private val model: St
     }
 
     /** Records one summary to work out. */
-    protected fun record(function: AggregateFunction, column: String?, alias: String) {
+    protected fun record(function: AggregateFunction, column: @Nullable String?, alias: String) {
         aggregations.removeAll { it.alias == alias }
         aggregations.add(Aggregation(function, column, alias))
     }
@@ -89,6 +95,7 @@ public abstract class AggregateScope protected constructor(private val model: St
  * to a question that was asked. Generated accessors go through here so that reading one says what to
  * add to the query.
  */
+@NullMarked
 public object AggregateValues {
     /**
      * Returns the value under [alias].
@@ -96,19 +103,19 @@ public object AggregateValues {
      * @throws VolanAggregateNotAskedException when the query did not ask for it.
      */
     @JvmStatic
-    public fun require(values: Map<String, Any?>, alias: String, description: String): Any? {
+    public fun require(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable Any? {
         if (!values.containsKey(alias)) throw VolanAggregateNotAskedException(alias, description)
         return values[alias]
     }
 
     /** Reads a count, which every database returns as some integral type or other. */
     @JvmStatic
-    public fun count(values: Map<String, Any?>, alias: String, description: String): Long =
+    public fun count(values: Map<String, @Nullable Any?>, alias: String, description: String): Long =
         (require(values, alias, description) as? Number)?.toLong() ?: 0L
 
     /** Reads a total, widened so that no database's choice of return type loses precision. */
     @JvmStatic
-    public fun decimal(values: Map<String, Any?>, alias: String, description: String): BigDecimal? =
+    public fun decimal(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable BigDecimal? =
         when (val value = require(values, alias, description)) {
             null -> null
             is BigDecimal -> value
@@ -118,25 +125,28 @@ public object AggregateValues {
 
     /** Reads a mean. */
     @JvmStatic
-    public fun double(values: Map<String, Any?>, alias: String, description: String): Double? =
+    public fun double(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable Double? =
         (require(values, alias, description) as? Number)?.toDouble()
 
     /** Reads a smallest or largest text value. */
     @JvmStatic
-    public fun string(values: Map<String, Any?>, alias: String, description: String): String? =
+    public fun string(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable String? =
         require(values, alias, description)?.toString()
 
     /** Reads a smallest or largest whole number that fits in an `Int`. */
     @JvmStatic
-    public fun int(values: Map<String, Any?>, alias: String, description: String): Int? = number(values, alias, description)?.toInt()
+    public fun int(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable Int? =
+        number(values, alias, description)?.toInt()
 
     /** Reads a smallest or largest whole number. */
     @JvmStatic
-    public fun long(values: Map<String, Any?>, alias: String, description: String): Long? = number(values, alias, description)?.toLong()
+    public fun long(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable Long? =
+        number(values, alias, description)?.toLong()
 
     /** Reads a smallest or largest single-precision number. */
     @JvmStatic
-    public fun float(values: Map<String, Any?>, alias: String, description: String): Float? = number(values, alias, description)?.toFloat()
+    public fun float(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable Float? =
+        number(values, alias, description)?.toFloat()
 
     /**
      * Reads a smallest or largest moment in time.
@@ -145,7 +155,7 @@ public object AggregateValues {
      * out is accepted here rather than in each generated accessor.
      */
     @JvmStatic
-    public fun instant(values: Map<String, Any?>, alias: String, description: String): Instant? =
+    public fun instant(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable Instant? =
         when (val value = require(values, alias, description)) {
             null -> null
             is Instant -> value
@@ -157,7 +167,7 @@ public object AggregateValues {
 
     /** Reads a smallest or largest date. */
     @JvmStatic
-    public fun localDate(values: Map<String, Any?>, alias: String, description: String): LocalDate? =
+    public fun localDate(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable LocalDate? =
         when (val value = require(values, alias, description)) {
             null -> null
             is LocalDate -> value
@@ -167,7 +177,7 @@ public object AggregateValues {
 
     /** Reads a smallest or largest time of day. */
     @JvmStatic
-    public fun localTime(values: Map<String, Any?>, alias: String, description: String): LocalTime? =
+    public fun localTime(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable LocalTime? =
         when (val value = require(values, alias, description)) {
             null -> null
             is LocalTime -> value
@@ -177,7 +187,7 @@ public object AggregateValues {
 
     /** Reads a smallest or largest UUID. */
     @JvmStatic
-    public fun uuid(values: Map<String, Any?>, alias: String, description: String): UUID? =
+    public fun uuid(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable UUID? =
         when (val value = require(values, alias, description)) {
             null -> null
             is UUID -> value
@@ -185,7 +195,7 @@ public object AggregateValues {
             else -> throw unreadable(alias, value, "a UUID")
         }
 
-    private fun number(values: Map<String, Any?>, alias: String, description: String): Number? =
+    private fun number(values: Map<String, @Nullable Any?>, alias: String, description: String): @Nullable Number? =
         when (val value = require(values, alias, description)) {
             null -> null
             is Number -> value
@@ -201,6 +211,7 @@ public object AggregateValues {
  *
  * @property alias the summary that was read.
  */
+@NullMarked
 public class VolanAggregateNotAskedException internal constructor(public val alias: String, description: String) :
     VolanException(
         "this query did not work out $description.\n" +

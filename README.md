@@ -55,14 +55,17 @@ val users = db.user.findMany {
 }
 ```
 
-The planned Java builder API (M7) will expose the same model:
+Java uses the same model and queries (`javaFriendly = true`):
 
 ```java
-List<User> users = db.user().findMany(q -> q
-        .where(w -> w.email().endsWith("@acme.com"))
-        .include(i -> i.posts(p -> p.take(5)))
-        .orderBy(User_.CREATED_AT.desc())
-        .take(20));
+List<User> users = db.getUser().findMany(q -> {
+    q.where(w -> w.getEmail().endsWith("@acme.com"));
+    q.include(i -> i.posts(p -> p.setTake(5)));
+    q.orderBy(o -> o.getCreatedAt().desc());
+    q.setTake(20);
+});
+
+CompletableFuture<List<User>> pending = db.getUser().findManyAsync(q -> q.setTake(20));
 ```
 
 ## What makes it different
@@ -72,8 +75,8 @@ List<User> users = db.user().findMany(q -> q
 - **No runtime reflection on the hot path.** Row mapping is generated straight-line code.
 - **No hidden queries.** No lazy proxies, no persistence context. `include` costs one extra statement
   per relation level — and the tests assert it.
-- **Java is a first-class target.** Generated entities already have getters and builders; the Java
-  query layer, async methods and compatibility suite are scheduled for M7.
+- **Java is a first-class target.** Generated callbacks, getters, builders, JSpecify nullability and
+  `CompletableFuture` operations are tested from Java. [Java API and transactions →](docs/java-api.md)
 - **Errors that teach.** Schema problems are reported with a code frame, a caret and a suggested fix.
 
 ## ORM and SQL library comparison
@@ -81,11 +84,11 @@ List<User> users = db.user().findMany(q -> q
 | | **Volan** | Hibernate ORM | Exposed | jOOQ |
 |---|---|---|---|---|
 | Model definition | `.volan` schema | Entity classes | Kotlin tables / entities | Database-generated or dynamic tables |
-| Query style | Generated Kotlin DSL | HQL / Criteria / entity operations | Kotlin DSL / DAO | SQL DSL |
+| Query style | Generated Kotlin DSL / Java callbacks | HQL / Criteria / entity operations | Kotlin DSL / DAO | SQL DSL |
 | Row mapping | Generated code | Managed entities | Result rows / DAO entities | Records / explicit mappers |
 | Relations | Explicit, batched `include` | Entity associations and fetch plans | DSL joins / DAO references | SQL joins and nested records |
 | Nested writes | Generated relation operations | Entity cascades | Application / DAO operations | SQL operations |
-| Current Volan scope | PostgreSQL; Java query API next | — | — | — |
+| Current Volan scope | PostgreSQL; Kotlin and Java | — | — | — |
 
 These tools offer different abstractions. See the primary references for
 [Hibernate](https://docs.hibernate.org/orm/7.4/introduction/),
@@ -147,6 +150,7 @@ refuses inconsistent history. [Setup, library API and limitations →](docs/migr
 ## Documentation
 
 - [docs/schema-language.md](docs/schema-language.md) — the `schema.volan` syntax reference
+- [docs/java-api.md](docs/java-api.md) — Java queries, async operations and transaction semantics
 - [docs/migrations.md](docs/migrations.md) — pull, push, versioned migrations and drift detection
 - [benchmarks/README.md](benchmarks/README.md) — performance methodology and reproduction
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how Volan is built

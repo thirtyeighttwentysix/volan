@@ -1,5 +1,8 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * What the runtime knows about one column.
  *
@@ -11,6 +14,7 @@ package io.github.thirtyeighttwentysix.volan.runtime
  * @property isGenerated whether the database produces the value, so writes may leave it out.
  * @property isUpdatedAt whether Volan overwrites it on every update.
  */
+@NullMarked
 public data class ColumnMetadata(
     public val field: String,
     public val column: String,
@@ -34,14 +38,15 @@ public data class ColumnMetadata(
  * @property joinLocalColumns the join-table columns that point back at this model.
  * @property joinTargetColumns the join-table columns that point at the target.
  */
-public data class RelationMetadata(
+@NullMarked
+public data class RelationMetadata @JvmOverloads constructor(
     public val field: String,
     public val target: String,
     public val isList: Boolean,
     public val ownsForeignKey: Boolean,
     public val foreignKeyColumns: List<String>,
     public val referencedColumns: List<String>,
-    public val joinTable: String? = null,
+    public val joinTable: @Nullable String? = null,
     public val joinLocalColumns: List<String> = emptyList(),
     public val joinTargetColumns: List<String> = emptyList(),
 )
@@ -55,6 +60,7 @@ public data class RelationMetadata(
  * @property primaryKey the columns making up the primary key.
  * @property relations every relation the model takes part in.
  */
+@NullMarked
 public data class TableMetadata(
     public val model: String,
     public val table: String,
@@ -65,8 +71,8 @@ public data class TableMetadata(
     private val columnsByField: Map<String, ColumnMetadata> = columns.associateBy { it.field }
 
     /** Returns the column backing the field called [field], or `null` if the model has no such field. */
-    public fun column(field: String): ColumnMetadata? = columnsByField[field]
+    public fun column(field: String): @Nullable ColumnMetadata? = columnsByField[field]
 
     /** Returns the relation called [field], or `null` if the model has no such relation. */
-    public fun relation(field: String): RelationMetadata? = relations.firstOrNull { it.field == field }
+    public fun relation(field: String): @Nullable RelationMetadata? = relations.firstOrNull { it.field == field }
 }

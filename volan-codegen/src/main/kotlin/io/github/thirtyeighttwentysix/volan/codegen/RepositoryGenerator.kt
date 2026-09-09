@@ -33,7 +33,11 @@ import io.github.thirtyeighttwentysix.volan.ir.Schema
 internal class RepositoryGenerator(private val types: TypeResolver) {
     fun repository(model: Model): TypeSpec = TypeSpec.classBuilder("${model.name}Repository")
         .addKdoc("Reads and writes `${model.dbName}`.\n")
-        .primaryConstructor(FunSpec.constructorBuilder().addParameter("executor", Types.queryExecutor).build())
+        .primaryConstructor(
+            FunSpec.constructorBuilder().addParameter("executor", Types.queryExecutor)
+                .addParameter(ParameterSpec.builder("async", asyncAccess).defaultValue("%T()", asyncAccess).build()).build(),
+        )
+        .addProperty(PropertySpec.builder("async", asyncAccess).addModifiers(KModifier.PRIVATE).initializer("async").build())
         .addProperty(
             PropertySpec.builder("executor", Types.queryExecutor).addModifiers(KModifier.PRIVATE).initializer("executor").build(),
         )
@@ -303,6 +307,7 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
                     .addModifiers(KModifier.PRIVATE)
                     .addParameter("connection", Types.volan.copy(nullable = true))
                     .addParameter("executor", Types.queryExecutor)
+                    .addParameter("async", asyncAccess)
                     .build(),
             )
             .addProperty(
@@ -311,25 +316,30 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
                     .initializer("connection")
                     .build(),
             )
+            .addProperty(PropertySpec.builder("async", asyncAccess).addModifiers(KModifier.PRIVATE).initializer("async").build())
             .addFunction(
                 FunSpec.constructorBuilder()
                     .addKdoc("Builds a client over an executor, which is how a test puts a double in place of a database.\n")
                     .addParameter("executor", Types.queryExecutor)
-                    .callThisConstructor("null", "executor")
+                    .addParameter(
+                        ParameterSpec.builder("asyncExecutor", ClassName("java.util.concurrent", "Executor"))
+                            .defaultValue("%T.commonPool()", ClassName("java.util.concurrent", "ForkJoinPool")).build(),
+                    )
+                    .callThisConstructor(CodeBlock.of("null"), CodeBlock.of("executor"), CodeBlock.of("%T(asyncExecutor)", asyncAccess))
                     .build(),
             )
             .addFunction(
                 FunSpec.constructorBuilder()
                     .addKdoc("Builds a client over a connected database.\n")
                     .addParameter("connection", Types.volan)
-                    .callThisConstructor("connection", "connection.executor")
+                    .callThisConstructor("connection", "connection.executor", "connection.async")
                     .build(),
             )
         models.forEach { model ->
             builder.addProperty(
                 PropertySpec.builder(model.name.replaceFirstChar { it.lowercase() }, types.declared("${model.name}Repository"))
                     .addKdoc("Reads and writes `${model.dbName}`.\n")
-                    .initializer(CodeBlock.of("%T(executor)", types.declared("${model.name}Repository")))
+                    .initializer(CodeBlock.of("%T(executor, async)", types.declared("${model.name}Repository")))
                     .build(),
             )
         }
@@ -469,6 +479,9 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
             Triple("maxPoolSize", INT, "How many connections the pool may open."),
             Triple("connectionTimeout", LONG, "How long to wait for a connection from the pool, in milliseconds."),
             Triple("poolName", STRING, "The name the pool reports itself under."),
+            Triple("asyncExecutor", ClassName("java.util.concurrent", "Executor"), "Executor for asynchronous JDBC calls; caller owned."),
+            Triple("dataSource", ClassName("javax.sql", "DataSource"), "Uses a data source owned by the application."),
+            Triple("dialect", ClassName("io.github.thirtyeighttwentysix.volan.dialect", "Dialect"), "Overrides the inferred dialect."),
         )
         val builder = TypeSpec.classBuilder("Builder")
             .addKdoc("Configures a [%T].\n", client)
@@ -511,4 +524,6 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
     }
 
     private fun lambdaOn(receiver: TypeName): TypeName = LambdaTypeName.get(receiver = receiver, returnType = UNIT)
+
+    private val asyncAccess = ClassName("io.github.thirtyeighttwentysix.volan.runtime", "AsyncAccess")
 }

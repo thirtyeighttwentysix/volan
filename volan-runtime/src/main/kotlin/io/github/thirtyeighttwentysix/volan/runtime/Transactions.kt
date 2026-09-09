@@ -1,10 +1,13 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
 import java.sql.Connection
 import java.sql.SQLException
 import javax.sql.DataSource
 
 /** How much a transaction is protected from what other transactions are doing. */
+@NullMarked
 public enum class Isolation(internal val jdbcLevel: Int) {
     /** Reads may see rows other transactions have written but not committed. */
     READ_UNCOMMITTED(Connection.TRANSACTION_READ_UNCOMMITTED),
@@ -33,7 +36,8 @@ public enum class Isolation(internal val jdbcLevel: Int) {
  * @property initialDelay how long to wait before the second attempt, in milliseconds.
  * @property multiplier how much longer to wait before each further attempt.
  */
-public data class RetryPolicy(
+@NullMarked
+public data class RetryPolicy @JvmOverloads constructor(
     public val attempts: Int,
     public val initialDelay: Long = DEFAULT_DELAY_MILLIS,
     public val multiplier: Double = DEFAULT_MULTIPLIER,
@@ -64,7 +68,7 @@ public data class RetryPolicy(
  * the same unit of work — and what makes a transaction confined to the thread that opened it.
  */
 internal class ConnectionSource(private val dataSource: DataSource) {
-    private val active = ThreadLocal<Transaction?>()
+    private val active = ThreadLocal<@Nullable Transaction?>()
 
     /** Whether the calling thread is inside a transaction. */
     val inTransaction: Boolean get() = active.get() != null

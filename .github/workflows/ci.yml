@@ -13,6 +13,12 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  GRADLE_OPTS: >-
+    -Dorg.gradle.workers.max=2 -Dorg.gradle.parallel=false
+    "-Dorg.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
+    -Dorg.gradle.project.kotlin.compiler.execution.strategy=in-process
+
 jobs:
   build:
     name: build (${{ matrix.os }}, JDK ${{ matrix.java }})

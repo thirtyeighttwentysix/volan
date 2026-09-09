@@ -1,5 +1,8 @@
 package io.github.thirtyeighttwentysix.volan.dialect
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * Renders Volan's DDL model as standard SQL, leaving each database to override only what it does
  * differently.
@@ -8,6 +11,7 @@ package io.github.thirtyeighttwentysix.volan.dialect
  * one execution of a statement, so there is nowhere to bind it to. Everything that ends up in the text
  * comes from the schema file, which is the only reason writing it into the text is safe.
  */
+@NullMarked
 public abstract class DdlRenderer(capabilities: DialectCapabilities) : SqlRenderer(capabilities) {
     /**
      * Turns one described change into the statements this database needs for it.
@@ -44,13 +48,13 @@ public abstract class DdlRenderer(capabilities: DialectCapabilities) : SqlRender
     protected open val hasEnumTypes: Boolean get() = false
 
     /** How this database spells an auto-incrementing column of the given type. */
-    protected open fun autoIncrementType(type: ColumnType): String? = null
+    protected open fun autoIncrementType(type: ColumnType): @Nullable String? = null
 
     /** The expression this database uses for the moment a row is written. */
     protected open val currentTimestamp: String get() = "CURRENT_TIMESTAMP"
 
     /** The expression this database uses to generate a UUID, when it has one. */
-    protected open val generatedUuid: String? get() = null
+    protected open val generatedUuid: @Nullable String? get() = null
 
     protected open fun createTable(create: DdlStatement.CreateTable): String {
         val parts = create.columns.map { column(it) } +
@@ -131,7 +135,7 @@ public abstract class DdlRenderer(capabilities: DialectCapabilities) : SqlRender
 
     protected fun columns(names: List<String>): String = names.joinToString(", ", "(", ")") { quote(it) }
 
-    private fun named(name: String?): String = name?.let { "CONSTRAINT ${quote(it)} " }.orEmpty()
+    private fun named(name: @Nullable String?): String = name?.let { "CONSTRAINT ${quote(it)} " }.orEmpty()
 
     private fun one(sql: String): List<SqlStatement> = listOf(SqlStatement(sql, emptyList()))
 }

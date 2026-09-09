@@ -1,5 +1,8 @@
 package io.github.thirtyeighttwentysix.volan.dialect
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * A statement ready to be prepared, and the values to bind to it.
  *
@@ -9,26 +12,33 @@ package io.github.thirtyeighttwentysix.volan.dialect
  * @property sql the statement text, with `?` placeholders.
  * @property parameters the values to bind, in placeholder order.
  */
-public data class SqlStatement(public val sql: String, public val parameters: List<Any?>) {
+@NullMarked
+public data class SqlStatement(public val sql: String, public val parameters: List<@Nullable Any?>) {
     override fun toString(): String = sql
 }
 
 /** Something that can appear where SQL expects a value. */
+@NullMarked
 public sealed interface SqlExpression {
     /** A column, optionally qualified by a table alias. */
-    public data class Column(public val table: String?, public val name: String) : SqlExpression
+    @NullMarked
+    public data class Column(public val table: @Nullable String?, public val name: String) : SqlExpression
 
     /** A value bound as a statement parameter. */
-    public data class Parameter(public val value: Any?) : SqlExpression
+    @NullMarked
+    public data class Parameter(public val value: @Nullable Any?) : SqlExpression
 
     /** A fragment produced by Volan itself, never by a caller: `DEFAULT`, `CURRENT_TIMESTAMP`, and the like. */
+    @NullMarked
     public data class Keyword(public val text: String) : SqlExpression
 
     /** A call such as `LOWER(x)`. */
+    @NullMarked
     public data class Call(public val name: String, public val arguments: List<SqlExpression>) : SqlExpression
 }
 
 /** How two values are compared in SQL. */
+@NullMarked
 public enum class SqlComparison(public val symbol: String) {
     /** `=` */
     EQUAL("="),
@@ -50,6 +60,7 @@ public enum class SqlComparison(public val symbol: String) {
 }
 
 /** How a `LIKE` pattern is anchored. */
+@NullMarked
 public enum class SqlTextMatch {
     /** The value appears anywhere. */
     CONTAINS,
@@ -62,9 +73,11 @@ public enum class SqlTextMatch {
 }
 
 /** A condition in a `WHERE` clause. */
+@NullMarked
 public sealed interface SqlCondition {
     /** Compares two expressions. */
-    public data class Compare(
+    @NullMarked
+    public data class Compare @JvmOverloads constructor(
         public val left: SqlExpression,
         public val operator: SqlComparison,
         public val right: SqlExpression,
@@ -77,7 +90,8 @@ public sealed interface SqlCondition {
      * The value is bound as a parameter with its wildcards escaped, so a search for `100%` looks for
      * the text `100%` rather than for everything starting with `100`.
      */
-    public data class TextMatch(
+    @NullMarked
+    public data class TextMatch @JvmOverloads constructor(
         public val column: SqlExpression,
         public val match: SqlTextMatch,
         public val value: String,
@@ -85,6 +99,7 @@ public sealed interface SqlCondition {
     ) : SqlCondition
 
     /** Matches a range, both ends included. */
+    @NullMarked
     public data class Between(
         public val column: SqlExpression,
         public val lower: SqlExpression,
@@ -92,32 +107,39 @@ public sealed interface SqlCondition {
     ) : SqlCondition
 
     /** Matches membership in a list. An empty list matches nothing, or everything when [negated]. */
-    public data class InList(
+    @NullMarked
+    public data class InList @JvmOverloads constructor(
         public val column: SqlExpression,
         public val values: List<SqlExpression>,
         public val negated: Boolean = false,
     ) : SqlCondition
 
     /** Matches null, or not null when [negated]. */
-    public data class IsNull(public val column: SqlExpression, public val negated: Boolean = false) : SqlCondition
+    @NullMarked
+    public data class IsNull @JvmOverloads constructor(public val column: SqlExpression, public val negated: Boolean = false) : SqlCondition
 
     /** Every condition has to hold. */
+    @NullMarked
     public data class And(public val conditions: List<SqlCondition>) : SqlCondition
 
     /** At least one condition has to hold. */
+    @NullMarked
     public data class Or(public val conditions: List<SqlCondition>) : SqlCondition
 
     /** The condition must not hold. */
+    @NullMarked
     public data class Not(public val condition: SqlCondition) : SqlCondition
 
     /** A correlated subquery has to return a row, or none when [negated]. */
-    public data class Exists(public val subquery: SqlSelect, public val negated: Boolean = false) : SqlCondition
+    @NullMarked
+    public data class Exists @JvmOverloads constructor(public val subquery: SqlSelect, public val negated: Boolean = false) : SqlCondition
 
     /**
      * Compares a tuple of columns with a tuple of values, as cursor paging over a composite key needs.
      *
      * `(a, b) > (?, ?)` is not the same as `a > ? AND b > ?`, and getting it wrong silently skips rows.
      */
+    @NullMarked
     public data class CompareTuple(
         public val columns: List<SqlExpression>,
         public val operator: SqlComparison,
@@ -126,6 +148,7 @@ public sealed interface SqlCondition {
 }
 
 /** Where nulls go in an `ORDER BY`. */
+@NullMarked
 public enum class SqlNulls {
     /** Leave it to the database. */
     DEFAULT,
@@ -144,21 +167,26 @@ public enum class SqlNulls {
  * @property descending whether the sort runs largest first.
  * @property nulls where nulls go.
  */
-public data class SqlOrder(
+@NullMarked
+public data class SqlOrder @JvmOverloads constructor(
     public val expression: SqlExpression,
     public val descending: Boolean,
     public val nulls: SqlNulls = SqlNulls.DEFAULT,
 )
 
 /** Something a `SELECT` returns. */
+@NullMarked
 public sealed interface SqlSelectItem {
     /** A column, under an optional alias. */
-    public data class Column(public val expression: SqlExpression, public val alias: String?) : SqlSelectItem
+    @NullMarked
+    public data class Column(public val expression: SqlExpression, public val alias: @Nullable String?) : SqlSelectItem
 
     /** `COUNT(*)`, under an alias. */
+    @NullMarked
     public data class CountAll(public val alias: String) : SqlSelectItem
 
     /** An aggregate over a column, under an alias. */
+    @NullMarked
     public data class Aggregate(
         public val function: SqlAggregate,
         public val expression: SqlExpression,
@@ -167,6 +195,7 @@ public sealed interface SqlSelectItem {
 }
 
 /** The aggregates Volan can ask for. */
+@NullMarked
 public enum class SqlAggregate(public val function: String) {
     /** Number of non-null values. */
     COUNT("COUNT"),
@@ -198,16 +227,17 @@ public enum class SqlAggregate(public val function: String) {
  * @property offset how many rows to skip.
  * @property distinctOn the columns rows must differ in; empty for no de-duplication.
  */
-public data class SqlSelect(
+@NullMarked
+public data class SqlSelect @JvmOverloads constructor(
     public val table: String,
-    public val alias: String? = null,
+    public val alias: @Nullable String? = null,
     public val items: List<SqlSelectItem> = emptyList(),
-    public val condition: SqlCondition? = null,
+    public val condition: @Nullable SqlCondition? = null,
     public val groupBy: List<SqlExpression> = emptyList(),
-    public val having: SqlCondition? = null,
+    public val having: @Nullable SqlCondition? = null,
     public val orderBy: List<SqlOrder> = emptyList(),
-    public val limit: Int? = null,
-    public val offset: Int? = null,
+    public val limit: @Nullable Int? = null,
+    public val offset: @Nullable Int? = null,
     public val distinctOn: List<SqlExpression> = emptyList(),
 )
 
@@ -219,7 +249,8 @@ public data class SqlSelect(
  * @property rows the values, one list per row, matching [columns].
  * @property returning the columns to read back; empty to return nothing.
  */
-public data class SqlInsert(
+@NullMarked
+public data class SqlInsert @JvmOverloads constructor(
     public val table: String,
     public val columns: List<String>,
     public val rows: List<List<SqlExpression>>,
@@ -234,10 +265,11 @@ public data class SqlInsert(
  * @property condition which rows to change; `null` for every row.
  * @property returning the columns to read back; empty to return nothing.
  */
-public data class SqlUpdate(
+@NullMarked
+public data class SqlUpdate @JvmOverloads constructor(
     public val table: String,
     public val assignments: List<SqlAssignment>,
-    public val condition: SqlCondition?,
+    public val condition: @Nullable SqlCondition?,
     public val returning: List<String> = emptyList(),
 )
 
@@ -247,6 +279,7 @@ public data class SqlUpdate(
  * @property column the column to change.
  * @property value what to set it to.
  */
+@NullMarked
 public data class SqlAssignment(public val column: String, public val value: SqlExpression)
 
 /**
@@ -256,8 +289,9 @@ public data class SqlAssignment(public val column: String, public val value: Sql
  * @property condition which rows to delete; `null` for every row.
  * @property returning the columns to read back; empty to return nothing.
  */
-public data class SqlDelete(
+@NullMarked
+public data class SqlDelete @JvmOverloads constructor(
     public val table: String,
-    public val condition: SqlCondition?,
+    public val condition: @Nullable SqlCondition?,
     public val returning: List<String> = emptyList(),
 )

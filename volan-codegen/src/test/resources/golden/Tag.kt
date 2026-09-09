@@ -4,6 +4,7 @@ package com.example.blog
 import io.github.thirtyeighttwentysix.volan.runtime.AggregateFunction
 import io.github.thirtyeighttwentysix.volan.runtime.AggregateScope
 import io.github.thirtyeighttwentysix.volan.runtime.AggregateValues
+import io.github.thirtyeighttwentysix.volan.runtime.AsyncAccess
 import io.github.thirtyeighttwentysix.volan.runtime.ColumnMetadata
 import io.github.thirtyeighttwentysix.volan.runtime.ConnectOrCreateEntry
 import io.github.thirtyeighttwentysix.volan.runtime.CreateSpec
@@ -36,6 +37,9 @@ import io.github.thirtyeighttwentysix.volan.runtime.VolanConfigurationException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanNotFoundException
 import io.github.thirtyeighttwentysix.volan.runtime.VolanValidationException
 import java.math.BigDecimal
+import java.util.concurrent.CompletableFuture
+import java.util.function.BiConsumer
+import java.util.function.Consumer
 import kotlin.Any
 import kotlin.Boolean
 import kotlin.Double
@@ -49,12 +53,18 @@ import kotlin.collections.MutableList
 import kotlin.collections.MutableSet
 import kotlin.collections.Set
 import kotlin.jvm.JvmField
+import kotlin.jvm.JvmName
+import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
+import kotlin.jvm.JvmSynthetic
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
 
 /**
  * One row of `Tag`.
  */
-public class Tag(
+@NullMarked
+public class Tag @JvmOverloads constructor(
   /**
    * The `id` column.
    */
@@ -76,7 +86,7 @@ public class Tag(
   /**
    * The same rows, or `null` when the query did not load them.
    */
-  public val postsIfLoaded: List<Post>?
+  public val postsIfLoaded: @Nullable List<Post>?
     get() = postsSlot.orNull()
 
   /**
@@ -85,7 +95,7 @@ public class Tag(
   public val isPostsLoaded: Boolean
     get() = postsSlot.isLoaded
 
-  override fun equals(other: Any?): Boolean {
+  override fun equals(other: @Nullable Any?): Boolean {
     if (this === other) return true
     if (other !is Tag) return false
     return id == other.id &&
@@ -103,7 +113,7 @@ public class Tag(
   /**
    * Returns a copy of this row with `relation` loaded to `value`.
    */
-  internal fun withRelationValue(relation: String, `value`: Any?): Tag = when (relation) {
+  internal fun withRelationValue(relation: String, `value`: @Nullable Any?): Tag = when (relation) {
     "posts" -> Tag(id, name, postsSlot = RelationSlot.loaded(value as List<Post>))
     else -> this
   }
@@ -111,10 +121,11 @@ public class Tag(
   /**
    * Builds a [Tag] field by field.
    */
+  @NullMarked
   public class Builder {
-    private var idValue: Int? = null
+    private var idValue: @Nullable Int? = null
 
-    private var nameValue: String? = null
+    private var nameValue: @Nullable String? = null
 
     /**
      * Sets `id`.
@@ -141,6 +152,7 @@ public class Tag(
     )
   }
 
+  @NullMarked
   public companion object {
     /**
      * Starts building a [Tag].
@@ -153,6 +165,7 @@ public class Tag(
 /**
  * Column names and metadata for `Tag`, as constants.
  */
+@NullMarked
 public object TagTable {
   /**
    * What the runtime knows about `Tag`.
@@ -193,6 +206,7 @@ public object TagTable {
 /**
  * Reads one row of `Tag` into a [Tag], and gives the relation loader the two things it needs: this row's key, and a copy of it with a relation filled in.
  */
+@NullMarked
 public object TagRowMapper : EntityReader<Tag> {
   /**
    * The model these rows belong to.
@@ -207,7 +221,7 @@ public object TagRowMapper : EntityReader<Tag> {
   /**
    * Reads the values of `columns` out of `entity`, in order.
    */
-  override fun key(entity: Tag, columns: List<String>): List<Any?> = columns.map { column ->
+  override fun key(entity: Tag, columns: List<String>): List<@Nullable Any?> = columns.map { column ->
     when (column) {
       "id" -> entity.id
       "name" -> entity.name
@@ -221,7 +235,7 @@ public object TagRowMapper : EntityReader<Tag> {
   override fun withRelation(
     entity: Tag,
     relation: String,
-    `value`: Any?,
+    `value`: @Nullable Any?,
   ): Tag = entity.withRelationValue(relation, value)
 }
 
@@ -230,10 +244,11 @@ public object TagRowMapper : EntityReader<Tag> {
  *
  * Fields the query did not select refuse to be read, naming the `select` to change, rather than reading as null.
  */
-public class TagProjection(
+@NullMarked
+public class TagProjection @JvmOverloads constructor(
   private val selected: SelectedFields,
-  private val idValue: Int? = null,
-  private val nameValue: String? = null,
+  private val idValue: @Nullable Int? = null,
+  private val nameValue: @Nullable String? = null,
 ) {
   /**
    * The `id` column.
@@ -267,6 +282,7 @@ public class TagProjection(
 /**
  * Reads the columns a `select` or a `by` asked for into a [TagProjection].
  */
+@NullMarked
 public class TagProjectionMapper(
   private val selected: SelectedFields,
 ) : RowMapper<TagProjection> {
@@ -280,6 +296,7 @@ public class TagProjectionMapper(
 /**
  * Conditions on `Tag`. Conditions written one after another mean `AND`.
  */
+@NullMarked
 public class TagWhere : FilterScope() {
   /**
    * Conditions on `Tag.id`.
@@ -294,35 +311,64 @@ public class TagWhere : FilterScope() {
   /**
    * Groups the conditions in [block] with `OR`.
    */
+  @JvmSynthetic
   public fun or(block: TagWhere.() -> Unit) {
     recordAnyOf(TagWhere().apply(block))
   }
 
   /**
+   * Java entry point for [or]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("or")
+  public fun orJava(block: Consumer<TagWhere>): Unit = or({ block.accept(this) })
+
+  /**
    * Groups the conditions in [block] with `AND`.
    */
+  @JvmSynthetic
   public fun and(block: TagWhere.() -> Unit) {
     recordAllOf(TagWhere().apply(block))
   }
 
   /**
+   * Java entry point for [and]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("and")
+  public fun andJava(block: Consumer<TagWhere>): Unit = and({ block.accept(this) })
+
+  /**
    * Groups the conditions in [block] with `NOT`.
    */
+  @JvmSynthetic
   public fun not(block: TagWhere.() -> Unit) {
     recordNoneOf(TagWhere().apply(block))
   }
 
   /**
+   * Java entry point for [not]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("not")
+  public fun notJava(block: Consumer<TagWhere>): Unit = not({ block.accept(this) })
+
+  /**
    * Conditions on the related `Post` rows.
    */
+  @JvmSynthetic
   public fun posts(block: TagPostsFilter.() -> Unit) {
     TagPostsFilter { quantifier, nested -> recordRelated("posts", quantifier, nested) }.apply(block)
   }
+
+  /**
+   * Java entry point for [posts]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("posts")
+  public fun postsJava(block: Consumer<TagPostsFilter>): Unit = posts({ block.accept(this) })
 }
 
 /**
  * How to sort `Tag`. Terms apply in the order they are written.
  */
+@NullMarked
 public class TagOrderBy : OrderScope() {
   /**
    * Sorts on `Tag.id`.
@@ -338,18 +384,31 @@ public class TagOrderBy : OrderScope() {
 /**
  * Which fields of `Tag` to read. Naming a field selects it.
  */
+@NullMarked
 public class TagSelect : SelectScope() {
   /**
    * Selects `id`.
    */
+  @get:JvmSynthetic
   public val id: Unit
     get() = markSelected("id")
 
   /**
    * Selects `name`.
    */
+  @get:JvmSynthetic
   public val name: Unit
     get() = markSelected("name")
+
+  @JvmName("id")
+  public fun idJava() {
+    id
+  }
+
+  @JvmName("name")
+  public fun nameJava() {
+    name
+  }
 }
 
 /**
@@ -357,64 +416,111 @@ public class TagSelect : SelectScope() {
  *
  * Each one costs a single extra statement, whatever the size of the result.
  */
+@NullMarked
 public class TagInclude : IncludeScope() {
   /**
    * Loads the related `Post` rows.
    */
+  @JvmSynthetic
   public fun posts(block: PostQuery.() -> Unit = {}) {
     includeRelation("posts", PostQuery().apply(block).build())
   }
+
+  /**
+   * Java entry point for [posts]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("posts")
+  @JvmOverloads
+  public fun postsJava(block: Consumer<PostQuery> = Consumer {}): Unit = posts({ block.accept(this) })
 }
 
 /**
  * The fields of `Tag`, for the blocks that name some of them.
  */
+@NullMarked
 public class TagFields : SelectScope() {
   /**
    * Names `id`.
    */
+  @get:JvmSynthetic
   public val id: Unit
     get() = markSelected("id")
 
   /**
    * Names `name`.
    */
+  @get:JvmSynthetic
   public val name: Unit
     get() = markSelected("name")
+
+  @JvmName("id")
+  public fun idJava() {
+    id
+  }
+
+  @JvmName("name")
+  public fun nameJava() {
+    name
+  }
 }
 
 /**
  * A read of `Tag`: its filter, ordering, paging, projection and relations.
  */
+@NullMarked
 public class TagQuery : QueryScope("Tag") {
-  internal var selectedFields: Set<String>? = null
+  @get:JvmSynthetic
+  @set:JvmSynthetic
+  internal var selectedFields: @Nullable Set<String>? = null
 
   /**
    * Applies the `where` block.
    */
+  @JvmSynthetic
   public fun `where`(block: TagWhere.() -> Unit) {
     recordFilter(TagWhere().apply(block))
   }
 
   /**
+   * Java entry point for [where]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("where")
+  public fun whereJava(block: Consumer<TagWhere>): Unit = `where`({ block.accept(this) })
+
+  /**
    * Applies the `orderBy` block.
    */
+  @JvmSynthetic
   public fun orderBy(block: TagOrderBy.() -> Unit) {
     recordOrder(TagOrderBy().apply(block))
   }
 
   /**
+   * Java entry point for [orderBy]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("orderBy")
+  public fun orderByJava(block: Consumer<TagOrderBy>): Unit = orderBy({ block.accept(this) })
+
+  /**
    * Applies the `include` block.
    */
+  @JvmSynthetic
   public fun include(block: TagInclude.() -> Unit) {
     recordIncludes(TagInclude().apply(block))
   }
+
+  /**
+   * Java entry point for [include]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("include")
+  public fun includeJava(block: Consumer<TagInclude>): Unit = include({ block.accept(this) })
 
   /**
    * Reads only the named fields.
    *
    * Use it with the `project…` operations, whose result refuses to hand back a field this block left out.
    */
+  @JvmSynthetic
   public fun select(block: TagSelect.() -> Unit) {
     val fields = TagSelect().apply(block).build()
     selectedFields = fields
@@ -422,19 +528,33 @@ public class TagQuery : QueryScope("Tag") {
   }
 
   /**
+   * Java entry point for [select]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("select")
+  public fun selectJava(block: Consumer<TagSelect>): Unit = select({ block.accept(this) })
+
+  /**
    * Returns only rows that differ in the named fields.
    *
    * With no fields named, nothing is de-duplicated: the query returns every matching row.
    */
+  @JvmSynthetic
   public fun distinct(block: TagFields.() -> Unit) {
     recordDistinct(TagFields().apply(block).build().map { requireNotNull(TagTable.METADATA.column(it)).column })
   }
+
+  /**
+   * Java entry point for [distinct]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("distinct")
+  public fun distinctJava(block: Consumer<TagFields>): Unit = distinct({ block.accept(this) })
 
   /**
    * Resumes after the row with this key.
    *
    * Cursor paging stays correct while rows are being inserted, which `skip` cannot promise.
    */
+  @JvmOverloads
   public fun cursor(id: Int, inclusive: Boolean = false) {
     recordCursor(mapOf("id" to id), inclusive)
   }
@@ -443,41 +563,69 @@ public class TagQuery : QueryScope("Tag") {
 /**
  * The fields of `Tag` that can be totalled or averaged.
  */
+@NullMarked
 public class TagNumericFields : SelectScope() {
   /**
    * Summarises `id`.
    */
+  @get:JvmSynthetic
   public val id: Unit
     get() = markSelected("id")
+
+  @JvmName("id")
+  public fun idJava() {
+    id
+  }
 }
 
 /**
  * The fields of `Tag` that have a smallest and a largest value.
  */
+@NullMarked
 public class TagOrderedFields : SelectScope() {
   /**
    * Summarises `id`.
    */
+  @get:JvmSynthetic
   public val id: Unit
     get() = markSelected("id")
 
   /**
    * Summarises `name`.
    */
+  @get:JvmSynthetic
   public val name: Unit
     get() = markSelected("name")
+
+  @JvmName("id")
+  public fun idJava() {
+    id
+  }
+
+  @JvmName("name")
+  public fun nameJava() {
+    name
+  }
 }
 
 /**
  * What to work out about `Tag`, and over which rows.
  */
+@NullMarked
 public class TagAggregateScope : AggregateScope("Tag") {
   /**
    * Which rows to summarise.
    */
+  @JvmSynthetic
   public fun `where`(block: TagWhere.() -> Unit) {
     recordFilter(TagWhere().apply(block))
   }
+
+  /**
+   * Java entry point for [where]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("where")
+  public fun whereJava(block: Consumer<TagWhere>): Unit = `where`({ block.accept(this) })
 
   /**
    * Counts the matching rows.
@@ -489,6 +637,7 @@ public class TagAggregateScope : AggregateScope("Tag") {
   /**
    * Totals the named fields.
    */
+  @JvmSynthetic
   public fun sum(block: TagNumericFields.() -> Unit) {
     TagNumericFields().apply(block).build().forEach { field ->
       record(AggregateFunction.SUM, requireNotNull(TagTable.METADATA.column(field)).column, "sum_" + field)
@@ -496,8 +645,15 @@ public class TagAggregateScope : AggregateScope("Tag") {
   }
 
   /**
+   * Java entry point for [sum]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("sum")
+  public fun sumJava(block: Consumer<TagNumericFields>): Unit = sum({ block.accept(this) })
+
+  /**
    * Averages the named fields.
    */
+  @JvmSynthetic
   public fun average(block: TagNumericFields.() -> Unit) {
     TagNumericFields().apply(block).build().forEach { field ->
       record(AggregateFunction.AVERAGE, requireNotNull(TagTable.METADATA.column(field)).column, "avg_" + field)
@@ -505,8 +661,15 @@ public class TagAggregateScope : AggregateScope("Tag") {
   }
 
   /**
+   * Java entry point for [average]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("average")
+  public fun averageJava(block: Consumer<TagNumericFields>): Unit = average({ block.accept(this) })
+
+  /**
    * Takes the smallest value of the named fields.
    */
+  @JvmSynthetic
   public fun minimum(block: TagOrderedFields.() -> Unit) {
     TagOrderedFields().apply(block).build().forEach { field ->
       record(AggregateFunction.MINIMUM, requireNotNull(TagTable.METADATA.column(field)).column, "min_" + field)
@@ -514,13 +677,26 @@ public class TagAggregateScope : AggregateScope("Tag") {
   }
 
   /**
+   * Java entry point for [minimum]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("minimum")
+  public fun minimumJava(block: Consumer<TagOrderedFields>): Unit = minimum({ block.accept(this) })
+
+  /**
    * Takes the largest value of the named fields.
    */
+  @JvmSynthetic
   public fun maximum(block: TagOrderedFields.() -> Unit) {
     TagOrderedFields().apply(block).build().forEach { field ->
       record(AggregateFunction.MAXIMUM, requireNotNull(TagTable.METADATA.column(field)).column, "max_" + field)
     }
   }
+
+  /**
+   * Java entry point for [maximum]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("maximum")
+  public fun maximumJava(block: Consumer<TagOrderedFields>): Unit = maximum({ block.accept(this) })
 }
 
 /**
@@ -528,8 +704,9 @@ public class TagAggregateScope : AggregateScope("Tag") {
  *
  * A summary the query did not ask for refuses to be read, rather than reading as zero — zero being a perfectly good answer to a question that was asked.
  */
+@NullMarked
 public class TagAggregate(
-  private val values: Map<String, Any?>,
+  private val values: Map<String, @Nullable Any?>,
 ) {
   /**
    * How many rows there are.
@@ -540,37 +717,37 @@ public class TagAggregate(
   /**
    * The total of `Tag.id`.
    */
-  public val sumOfId: BigDecimal?
+  public val sumOfId: @Nullable BigDecimal?
     get() = AggregateValues.decimal(values, "sum_id", "the total of `Tag.id`")
 
   /**
    * The mean of `Tag.id`.
    */
-  public val averageOfId: Double?
+  public val averageOfId: @Nullable Double?
     get() = AggregateValues.double(values, "avg_id", "the mean of `Tag.id`")
 
   /**
    * The smallest value of `Tag.id`.
    */
-  public val minimumOfId: Int?
+  public val minimumOfId: @Nullable Int?
     get() = AggregateValues.int(values, "min_id", "the smallest value of `Tag.id`")
 
   /**
    * The largest value of `Tag.id`.
    */
-  public val maximumOfId: Int?
+  public val maximumOfId: @Nullable Int?
     get() = AggregateValues.int(values, "max_id", "the largest value of `Tag.id`")
 
   /**
    * The smallest value of `Tag.name`.
    */
-  public val minimumOfName: String?
+  public val minimumOfName: @Nullable String?
     get() = AggregateValues.string(values, "min_name", "the smallest value of `Tag.name`")
 
   /**
    * The largest value of `Tag.name`.
    */
-  public val maximumOfName: String?
+  public val maximumOfName: @Nullable String?
     get() = AggregateValues.string(values, "max_name", "the largest value of `Tag.name`")
 }
 
@@ -579,6 +756,7 @@ public class TagAggregate(
  *
  * Only summaries are on offer here. A condition on a grouped field is the same condition on the rows that went into the group, which is what `where` is for — and `where` narrows before the grouping work is done rather than after it.
  */
+@NullMarked
 public class TagHaving : HavingScope() {
   /**
    * How many rows are in the group.
@@ -626,34 +804,63 @@ public class TagHaving : HavingScope() {
 /**
  * How to fold `Tag` into groups, and what to work out about each one.
  */
+@NullMarked
 public class TagGroupScope : GroupScope("Tag") {
   /**
    * The fields whose values define a group.
    */
+  @JvmSynthetic
   public fun `by`(block: TagFields.() -> Unit) {
     recordGrouping(TagFields().apply(block).build())
   }
 
   /**
+   * Java entry point for [by]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("by")
+  public fun byJava(block: Consumer<TagFields>): Unit = `by`({ block.accept(this) })
+
+  /**
    * Which rows go into the groups at all.
    */
+  @JvmSynthetic
   public fun `where`(block: TagWhere.() -> Unit) {
     recordFilter(TagWhere().apply(block))
   }
 
   /**
+   * Java entry point for [where]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("where")
+  public fun whereJava(block: Consumer<TagWhere>): Unit = `where`({ block.accept(this) })
+
+  /**
    * Which groups survive, judged on what was worked out about them.
    */
+  @JvmSynthetic
   public fun having(block: TagHaving.() -> Unit) {
     recordHaving(TagHaving().apply(block))
   }
 
   /**
+   * Java entry point for [having]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("having")
+  public fun havingJava(block: Consumer<TagHaving>): Unit = having({ block.accept(this) })
+
+  /**
    * How to sort the groups, by the fields they are grouped on.
    */
+  @JvmSynthetic
   public fun orderBy(block: TagOrderBy.() -> Unit) {
     recordOrder(TagOrderBy().apply(block))
   }
+
+  /**
+   * Java entry point for [orderBy]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("orderBy")
+  public fun orderByJava(block: Consumer<TagOrderBy>): Unit = orderBy({ block.accept(this) })
 
   /**
    * Counts the matching rows.
@@ -665,6 +872,7 @@ public class TagGroupScope : GroupScope("Tag") {
   /**
    * Totals the named fields.
    */
+  @JvmSynthetic
   public fun sum(block: TagNumericFields.() -> Unit) {
     TagNumericFields().apply(block).build().forEach { field ->
       record(AggregateFunction.SUM, requireNotNull(TagTable.METADATA.column(field)).column, "sum_" + field)
@@ -672,8 +880,15 @@ public class TagGroupScope : GroupScope("Tag") {
   }
 
   /**
+   * Java entry point for [sum]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("sum")
+  public fun sumJava(block: Consumer<TagNumericFields>): Unit = sum({ block.accept(this) })
+
+  /**
    * Averages the named fields.
    */
+  @JvmSynthetic
   public fun average(block: TagNumericFields.() -> Unit) {
     TagNumericFields().apply(block).build().forEach { field ->
       record(AggregateFunction.AVERAGE, requireNotNull(TagTable.METADATA.column(field)).column, "avg_" + field)
@@ -681,8 +896,15 @@ public class TagGroupScope : GroupScope("Tag") {
   }
 
   /**
+   * Java entry point for [average]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("average")
+  public fun averageJava(block: Consumer<TagNumericFields>): Unit = average({ block.accept(this) })
+
+  /**
    * Takes the smallest value of the named fields.
    */
+  @JvmSynthetic
   public fun minimum(block: TagOrderedFields.() -> Unit) {
     TagOrderedFields().apply(block).build().forEach { field ->
       record(AggregateFunction.MINIMUM, requireNotNull(TagTable.METADATA.column(field)).column, "min_" + field)
@@ -690,13 +912,26 @@ public class TagGroupScope : GroupScope("Tag") {
   }
 
   /**
+   * Java entry point for [minimum]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("minimum")
+  public fun minimumJava(block: Consumer<TagOrderedFields>): Unit = minimum({ block.accept(this) })
+
+  /**
    * Takes the largest value of the named fields.
    */
+  @JvmSynthetic
   public fun maximum(block: TagOrderedFields.() -> Unit) {
     TagOrderedFields().apply(block).build().forEach { field ->
       record(AggregateFunction.MAXIMUM, requireNotNull(TagTable.METADATA.column(field)).column, "max_" + field)
     }
   }
+
+  /**
+   * Java entry point for [maximum]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("maximum")
+  public fun maximumJava(block: Consumer<TagOrderedFields>): Unit = maximum({ block.accept(this) })
 }
 
 /**
@@ -704,9 +939,10 @@ public class TagGroupScope : GroupScope("Tag") {
  *
  * A field the `by` block left out refuses to be read, because the group has no single value for it.
  */
+@NullMarked
 public class TagGroup(
   private val key: TagProjection,
-  private val values: Map<String, Any?>,
+  private val values: Map<String, @Nullable Any?>,
 ) {
   /**
    * The value of `id` this group is for.
@@ -745,37 +981,37 @@ public class TagGroup(
   /**
    * The total of `Tag.id`.
    */
-  public val sumOfId: BigDecimal?
+  public val sumOfId: @Nullable BigDecimal?
     get() = AggregateValues.decimal(values, "sum_id", "the total of `Tag.id`")
 
   /**
    * The mean of `Tag.id`.
    */
-  public val averageOfId: Double?
+  public val averageOfId: @Nullable Double?
     get() = AggregateValues.double(values, "avg_id", "the mean of `Tag.id`")
 
   /**
    * The smallest value of `Tag.id`.
    */
-  public val minimumOfId: Int?
+  public val minimumOfId: @Nullable Int?
     get() = AggregateValues.int(values, "min_id", "the smallest value of `Tag.id`")
 
   /**
    * The largest value of `Tag.id`.
    */
-  public val maximumOfId: Int?
+  public val maximumOfId: @Nullable Int?
     get() = AggregateValues.int(values, "max_id", "the largest value of `Tag.id`")
 
   /**
    * The smallest value of `Tag.name`.
    */
-  public val minimumOfName: String?
+  public val minimumOfName: @Nullable String?
     get() = AggregateValues.string(values, "min_name", "the smallest value of `Tag.name`")
 
   /**
    * The largest value of `Tag.name`.
    */
-  public val maximumOfName: String?
+  public val maximumOfName: @Nullable String?
     get() = AggregateValues.string(values, "max_name", "the largest value of `Tag.name`")
 }
 
@@ -784,6 +1020,7 @@ public class TagGroup(
  *
  * A field with a default may be left unset; every other field has to be given a value.
  */
+@NullMarked
 public class TagCreateData {
   private val touched: MutableSet<String> = linkedSetOf()
 
@@ -792,7 +1029,7 @@ public class TagCreateData {
    *
    * It is nullable here because it starts out unset; leaving it unset is what null means.
    */
-  public var id: Int? = null
+  public var id: @Nullable Int? = null
     set(`value`) {
       field = value
       touched.add("id")
@@ -803,7 +1040,7 @@ public class TagCreateData {
    *
    * It is nullable here because it starts out unset; leaving it unset is what null means.
    */
-  public var name: String? = null
+  public var name: @Nullable String? = null
     set(`value`) {
       field = value
       touched.add("name")
@@ -824,7 +1061,7 @@ public class TagCreateData {
   /**
    * The values to write, keyed by column name.
    */
-  internal fun toValues(): Map<String, Any?> {
+  internal fun toValues(): Map<String, @Nullable Any?> {
     val values = LinkedHashMap<String, Any?>()
     if (touched.contains("id")) {
       values["id"] = (id ?: throw VolanValidationException("Tag.id cannot be set to null"))
@@ -841,6 +1078,7 @@ public class TagCreateData {
  *
  * Only the fields this block mentions are written; everything else is left alone.
  */
+@NullMarked
 public class TagUpdateData {
   private val touched: MutableSet<String> = linkedSetOf()
 
@@ -849,7 +1087,7 @@ public class TagUpdateData {
    *
    * It is nullable here because it starts out unset; leaving it unset is what null means.
    */
-  public var id: Int? = null
+  public var id: @Nullable Int? = null
     set(`value`) {
       field = value
       touched.add("id")
@@ -860,7 +1098,7 @@ public class TagUpdateData {
    *
    * It is nullable here because it starts out unset; leaving it unset is what null means.
    */
-  public var name: String? = null
+  public var name: @Nullable String? = null
     set(`value`) {
       field = value
       touched.add("name")
@@ -881,7 +1119,7 @@ public class TagUpdateData {
   /**
    * The values to write, keyed by column name.
    */
-  internal fun toValues(): Map<String, Any?> {
+  internal fun toValues(): Map<String, @Nullable Any?> {
     val values = LinkedHashMap<String, Any?>()
     if (touched.contains("id")) {
       values["id"] = (id ?: throw VolanValidationException("Tag.id cannot be set to null"))
@@ -896,165 +1134,452 @@ public class TagUpdateData {
 /**
  * Several `Tag` rows to insert in one statement.
  */
+@NullMarked
 public class TagCreateMany {
+  @get:JvmSynthetic
   internal val rows: MutableList<CreateSpec> = mutableListOf()
 
   /**
    * Adds one row to insert.
    */
+  @JvmSynthetic
   public fun row(block: TagCreateData.() -> Unit) {
     val data = TagCreateData().apply(block)
     NestedWrites.requireFlat("createMany", data.toNested(), "writes its rows in one statement", "Use `create` once per row when the rows bring relations with them.")
     rows.add(CreateSpec("Tag", data.toValues()))
   }
+
+  /**
+   * Java entry point for [row]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("row")
+  public fun rowJava(block: Consumer<TagCreateData>): Unit = row({ block.accept(this) })
 }
 
 /**
  * Which `Tag` rows to change, and what to change on them.
  */
+@NullMarked
 public class TagUpdateScope {
+  @get:JvmSynthetic
   internal val filter: TagWhere = TagWhere()
 
+  @get:JvmSynthetic
   internal val payload: TagUpdateData = TagUpdateData()
 
   /**
    * Which rows to change.
    */
+  @JvmSynthetic
   public fun `where`(block: TagWhere.() -> Unit) {
     filter.apply(block)
   }
 
   /**
+   * Java entry point for [where]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("where")
+  public fun whereJava(block: Consumer<TagWhere>): Unit = `where`({ block.accept(this) })
+
+  /**
    * What to change.
    */
+  @JvmSynthetic
   public fun `data`(block: TagUpdateData.() -> Unit) {
     payload.apply(block)
   }
+
+  /**
+   * Java entry point for [data]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("data")
+  public fun dataJava(block: Consumer<TagUpdateData>): Unit = `data`({ block.accept(this) })
 }
 
 /**
  * Which `Tag` row to look for, what to insert when it is missing, what to change when it is not.
  */
+@NullMarked
 public class TagUpsertScope {
+  @get:JvmSynthetic
   internal val filter: TagWhere = TagWhere()
 
+  @get:JvmSynthetic
   internal val insert: TagCreateData = TagCreateData()
 
+  @get:JvmSynthetic
   internal val patch: TagUpdateData = TagUpdateData()
 
   /**
    * Which row to look for.
    */
+  @JvmSynthetic
   public fun `where`(block: TagWhere.() -> Unit) {
     filter.apply(block)
   }
 
   /**
+   * Java entry point for [where]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("where")
+  public fun whereJava(block: Consumer<TagWhere>): Unit = `where`({ block.accept(this) })
+
+  /**
    * What to insert when there is none.
    */
+  @JvmSynthetic
   public fun create(block: TagCreateData.() -> Unit) {
     insert.apply(block)
   }
 
   /**
+   * Java entry point for [create]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("create")
+  public fun createJava(block: Consumer<TagCreateData>): Unit = create({ block.accept(this) })
+
+  /**
    * What to change when there is one.
    */
+  @JvmSynthetic
   public fun update(block: TagUpdateData.() -> Unit) {
     patch.apply(block)
   }
+
+  /**
+   * Java entry point for [update]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("update")
+  public fun updateJava(block: Consumer<TagUpdateData>): Unit = update({ block.accept(this) })
 }
 
 /**
  * Which `Tag` rows to delete.
  */
+@NullMarked
 public class TagDeleteScope {
+  @get:JvmSynthetic
   internal val filter: TagWhere = TagWhere()
 
   /**
    * Which rows to delete.
    */
+  @JvmSynthetic
   public fun `where`(block: TagWhere.() -> Unit) {
     filter.apply(block)
   }
+
+  /**
+   * Java entry point for [where]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("where")
+  public fun whereJava(block: Consumer<TagWhere>): Unit = `where`({ block.accept(this) })
 }
 
 /**
  * Reads and writes `Tag`.
  */
-public class TagRepository(
+@NullMarked
+public class TagRepository @JvmOverloads constructor(
   private val executor: QueryExecutor,
+  private val async: AsyncAccess = AsyncAccess(),
 ) {
   /**
    * Reads every matching row.
    */
+  @JvmSynthetic
   public fun findMany(block: TagQuery.() -> Unit = {}): List<Tag> = executor.findMany(TagQuery().apply(block).build(), TagRowMapper)
+
+  /**
+   * Java entry point for [findMany]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("findMany")
+  @JvmOverloads
+  public fun findManyJava(block: Consumer<TagQuery> = Consumer {}): List<Tag> = findMany({ block.accept(this) })
+
+  /**
+   * Runs [findMany] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun findManyAsync(block: TagQuery.() -> Unit = {}): CompletableFuture<List<Tag>> = async.submit { findMany(block) }
+
+  /**
+   * Java entry point for [findManyAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("findManyAsync")
+  @JvmOverloads
+  public fun findManyAsyncJava(block: Consumer<TagQuery> = Consumer {}): CompletableFuture<List<Tag>> = findManyAsync({ block.accept(this) })
 
   /**
    * Reads the first matching row, or `null`.
    */
-  public fun findFirst(block: TagQuery.() -> Unit = {}): Tag? = executor.findFirst(TagQuery().apply(block).build(), TagRowMapper)
+  @JvmSynthetic
+  public fun findFirst(block: TagQuery.() -> Unit = {}): @Nullable Tag? = executor.findFirst(TagQuery().apply(block).build(), TagRowMapper)
+
+  /**
+   * Java entry point for [findFirst]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("findFirst")
+  @JvmOverloads
+  public fun findFirstJava(block: Consumer<TagQuery> = Consumer {}): @Nullable Tag? = findFirst({ block.accept(this) })
+
+  /**
+   * Runs [findFirst] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun findFirstAsync(block: TagQuery.() -> Unit = {}): CompletableFuture<@Nullable Tag?> = async.submit { findFirst(block) }
+
+  /**
+   * Java entry point for [findFirstAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("findFirstAsync")
+  @JvmOverloads
+  public fun findFirstAsyncJava(block: Consumer<TagQuery> = Consumer {}): CompletableFuture<@Nullable Tag?> = findFirstAsync({ block.accept(this) })
 
   /**
    * Like [findFirst], but fails instead of returning `null`.
    *
    * @throws io.github.thirtyeighttwentysix.volan.runtime.VolanNotFoundException if nothing matched the query.
    */
+  @JvmSynthetic
   public fun findFirstOrThrow(block: TagQuery.() -> Unit = {}): Tag = findFirst(block) ?: throw VolanNotFoundException("Tag", "no Tag matched the query")
+
+  /**
+   * Java entry point for [findFirstOrThrow]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("findFirstOrThrow")
+  @JvmOverloads
+  public fun findFirstOrThrowJava(block: Consumer<TagQuery> = Consumer {}): Tag = findFirstOrThrow({ block.accept(this) })
+
+  /**
+   * Runs [findFirstOrThrow] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun findFirstOrThrowAsync(block: TagQuery.() -> Unit = {}): CompletableFuture<Tag> = async.submit { findFirstOrThrow(block) }
+
+  /**
+   * Java entry point for [findFirstOrThrowAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("findFirstOrThrowAsync")
+  @JvmOverloads
+  public fun findFirstOrThrowAsyncJava(block: Consumer<TagQuery> = Consumer {}): CompletableFuture<Tag> = findFirstOrThrowAsync({ block.accept(this) })
 
   /**
    * Reads the row a unique key selects, or `null`.
    */
-  public fun findUnique(block: TagQuery.() -> Unit = {}): Tag? = executor.findFirst(TagQuery().apply(block).build(), TagRowMapper)
+  @JvmSynthetic
+  public fun findUnique(block: TagQuery.() -> Unit = {}): @Nullable Tag? = executor.findFirst(TagQuery().apply(block).build(), TagRowMapper)
+
+  /**
+   * Java entry point for [findUnique]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("findUnique")
+  @JvmOverloads
+  public fun findUniqueJava(block: Consumer<TagQuery> = Consumer {}): @Nullable Tag? = findUnique({ block.accept(this) })
+
+  /**
+   * Runs [findUnique] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun findUniqueAsync(block: TagQuery.() -> Unit = {}): CompletableFuture<@Nullable Tag?> = async.submit { findUnique(block) }
+
+  /**
+   * Java entry point for [findUniqueAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("findUniqueAsync")
+  @JvmOverloads
+  public fun findUniqueAsyncJava(block: Consumer<TagQuery> = Consumer {}): CompletableFuture<@Nullable Tag?> = findUniqueAsync({ block.accept(this) })
 
   /**
    * Like [findUnique], but fails instead of returning `null`.
    *
    * @throws io.github.thirtyeighttwentysix.volan.runtime.VolanNotFoundException if nothing matched the unique key.
    */
+  @JvmSynthetic
   public fun findUniqueOrThrow(block: TagQuery.() -> Unit = {}): Tag = findUnique(block) ?: throw VolanNotFoundException("Tag", "no Tag matched the unique key")
+
+  /**
+   * Java entry point for [findUniqueOrThrow]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("findUniqueOrThrow")
+  @JvmOverloads
+  public fun findUniqueOrThrowJava(block: Consumer<TagQuery> = Consumer {}): Tag = findUniqueOrThrow({ block.accept(this) })
+
+  /**
+   * Runs [findUniqueOrThrow] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun findUniqueOrThrowAsync(block: TagQuery.() -> Unit = {}): CompletableFuture<Tag> = async.submit { findUniqueOrThrow(block) }
+
+  /**
+   * Java entry point for [findUniqueOrThrowAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("findUniqueOrThrowAsync")
+  @JvmOverloads
+  public fun findUniqueOrThrowAsyncJava(block: Consumer<TagQuery> = Consumer {}): CompletableFuture<Tag> = findUniqueOrThrowAsync({ block.accept(this) })
 
   /**
    * Counts the matching rows.
    */
+  @JvmSynthetic
   public fun count(block: TagQuery.() -> Unit = {}): Long = executor.count(TagQuery().apply(block).build())
+
+  /**
+   * Java entry point for [count]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("count")
+  @JvmOverloads
+  public fun countJava(block: Consumer<TagQuery> = Consumer {}): Long = count({ block.accept(this) })
+
+  /**
+   * Runs [count] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun countAsync(block: TagQuery.() -> Unit = {}): CompletableFuture<Long> = async.submit { count(block) }
+
+  /**
+   * Java entry point for [countAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("countAsync")
+  @JvmOverloads
+  public fun countAsyncJava(block: Consumer<TagQuery> = Consumer {}): CompletableFuture<Long> = countAsync({ block.accept(this) })
 
   /**
    * Whether any row matches.
    */
+  @JvmSynthetic
   public fun exists(block: TagQuery.() -> Unit = {}): Boolean = executor.exists(TagQuery().apply(block).build())
+
+  /**
+   * Java entry point for [exists]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("exists")
+  @JvmOverloads
+  public fun existsJava(block: Consumer<TagQuery> = Consumer {}): Boolean = exists({ block.accept(this) })
+
+  /**
+   * Runs [exists] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun existsAsync(block: TagQuery.() -> Unit = {}): CompletableFuture<Boolean> = async.submit { exists(block) }
+
+  /**
+   * Java entry point for [existsAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("existsAsync")
+  @JvmOverloads
+  public fun existsAsyncJava(block: Consumer<TagQuery> = Consumer {}): CompletableFuture<Boolean> = existsAsync({ block.accept(this) })
 
   /**
    * Reads only the selected fields of every matching row.
    *
    * Fields the `select` block leaves out refuse to be read from the result.
    */
+  @JvmSynthetic
   public fun projectMany(block: TagQuery.() -> Unit): List<TagProjection> {
     val query = TagQuery().apply(block)
     return executor.findMany(query.build(), TagProjectionMapper(SelectedFields.of(query.selectedFields ?: ALL_FIELDS)))
   }
 
   /**
+   * Java entry point for [projectMany]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("projectMany")
+  public fun projectManyJava(block: Consumer<TagQuery>): List<TagProjection> = projectMany({ block.accept(this) })
+
+  /**
+   * Runs [projectMany] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun projectManyAsync(block: TagQuery.() -> Unit): CompletableFuture<List<TagProjection>> = async.submit { projectMany(block) }
+
+  /**
+   * Java entry point for [projectManyAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("projectManyAsync")
+  public fun projectManyAsyncJava(block: Consumer<TagQuery>): CompletableFuture<List<TagProjection>> = projectManyAsync({ block.accept(this) })
+
+  /**
    * Reads only the selected fields of the first matching row.
    *
    * Fields the `select` block leaves out refuse to be read from the result.
    */
-  public fun projectFirst(block: TagQuery.() -> Unit): TagProjection? {
+  @JvmSynthetic
+  public fun projectFirst(block: TagQuery.() -> Unit): @Nullable TagProjection? {
     val query = TagQuery().apply(block)
     return executor.findFirst(query.build(), TagProjectionMapper(SelectedFields.of(query.selectedFields ?: ALL_FIELDS)))
   }
+
+  /**
+   * Java entry point for [projectFirst]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("projectFirst")
+  public fun projectFirstJava(block: Consumer<TagQuery>): @Nullable TagProjection? = projectFirst({ block.accept(this) })
+
+  /**
+   * Runs [projectFirst] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun projectFirstAsync(block: TagQuery.() -> Unit): CompletableFuture<@Nullable TagProjection?> = async.submit { projectFirst(block) }
+
+  /**
+   * Java entry point for [projectFirstAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("projectFirstAsync")
+  public fun projectFirstAsyncJava(block: Consumer<TagQuery>): CompletableFuture<@Nullable TagProjection?> = projectFirstAsync({ block.accept(this) })
 
   /**
    * Works out summaries over the matching rows, in one statement.
    *
    * Only what the block asks for comes back; reading anything else from the result says so.
    */
+  @JvmSynthetic
   public fun aggregate(block: TagAggregateScope.() -> Unit): TagAggregate = TagAggregate(executor.aggregate(TagAggregateScope().apply(block).build()))
+
+  /**
+   * Java entry point for [aggregate]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("aggregate")
+  public fun aggregateJava(block: Consumer<TagAggregateScope>): TagAggregate = aggregate({ block.accept(this) })
+
+  /**
+   * Runs [aggregate] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun aggregateAsync(block: TagAggregateScope.() -> Unit): CompletableFuture<TagAggregate> = async.submit { aggregate(block) }
+
+  /**
+   * Java entry point for [aggregateAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("aggregateAsync")
+  public fun aggregateAsyncJava(block: Consumer<TagAggregateScope>): CompletableFuture<TagAggregate> = aggregateAsync({ block.accept(this) })
 
   /**
    * Folds the matching rows into groups and summarises each one, in one statement.
    *
    * A group carries values only for the fields the `by` block named; reading any other field of it says so.
    */
+  @JvmSynthetic
   public fun groupBy(block: TagGroupScope.() -> Unit): List<TagGroup> {
     val scope = TagGroupScope().apply(block)
     val mapper = TagProjectionMapper(SelectedFields.groupedBy(scope.groupedFields()))
@@ -1062,33 +1587,117 @@ public class TagRepository(
   }
 
   /**
+   * Java entry point for [groupBy]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("groupBy")
+  public fun groupByJava(block: Consumer<TagGroupScope>): List<TagGroup> = groupBy({ block.accept(this) })
+
+  /**
+   * Runs [groupBy] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun groupByAsync(block: TagGroupScope.() -> Unit): CompletableFuture<List<TagGroup>> = async.submit { groupBy(block) }
+
+  /**
+   * Java entry point for [groupByAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("groupByAsync")
+  public fun groupByAsyncJava(block: Consumer<TagGroupScope>): CompletableFuture<List<TagGroup>> = groupByAsync({ block.accept(this) })
+
+  /**
    * Inserts one row and reads it back.
    *
    * Anything the block asks to write on the far side of a relation is written in the same transaction, so either the whole shape lands or none of it does.
    */
+  @JvmSynthetic
   public fun create(block: TagCreateData.() -> Unit): Tag {
     val data = TagCreateData().apply(block)
     return executor.create(CreateSpec("Tag", data.toValues(), data.toNested()), TagRowMapper)
   }
 
   /**
+   * Java entry point for [create]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("create")
+  public fun createJava(block: Consumer<TagCreateData>): Tag = create({ block.accept(this) })
+
+  /**
+   * Runs [create] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun createAsync(block: TagCreateData.() -> Unit): CompletableFuture<Tag> = async.submit { create(block) }
+
+  /**
+   * Java entry point for [createAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("createAsync")
+  public fun createAsyncJava(block: Consumer<TagCreateData>): CompletableFuture<Tag> = createAsync({ block.accept(this) })
+
+  /**
    * Inserts several rows, returning how many were written.
    */
+  @JvmSynthetic
   public fun createMany(block: TagCreateMany.() -> Unit): Long = executor.createMany(TagCreateMany().apply(block).rows)
+
+  /**
+   * Java entry point for [createMany]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("createMany")
+  public fun createManyJava(block: Consumer<TagCreateMany>): Long = createMany({ block.accept(this) })
+
+  /**
+   * Runs [createMany] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun createManyAsync(block: TagCreateMany.() -> Unit): CompletableFuture<Long> = async.submit { createMany(block) }
+
+  /**
+   * Java entry point for [createManyAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("createManyAsync")
+  public fun createManyAsyncJava(block: Consumer<TagCreateMany>): CompletableFuture<Long> = createManyAsync({ block.accept(this) })
 
   /**
    * Changes the single row the `where` block selects and reads it back.
    *
    * Anything the block asks of the rows on the far side of a relation happens in the same transaction, so either the whole shape moves or none of it does.
    */
+  @JvmSynthetic
   public fun update(block: TagUpdateScope.() -> Unit): Tag {
     val scope = TagUpdateScope().apply(block)
     return executor.update(UpdateSpec("Tag", scope.filter.build(), scope.payload.toValues(), scope.payload.toNested()), TagRowMapper)
   }
 
   /**
+   * Java entry point for [update]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("update")
+  public fun updateJava(block: Consumer<TagUpdateScope>): Tag = update({ block.accept(this) })
+
+  /**
+   * Runs [update] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun updateAsync(block: TagUpdateScope.() -> Unit): CompletableFuture<Tag> = async.submit { update(block) }
+
+  /**
+   * Java entry point for [updateAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("updateAsync")
+  public fun updateAsyncJava(block: Consumer<TagUpdateScope>): CompletableFuture<Tag> = updateAsync({ block.accept(this) })
+
+  /**
    * Changes every row the `where` block selects, returning how many changed.
    */
+  @JvmSynthetic
   public fun updateMany(block: TagUpdateScope.() -> Unit): Long {
     val scope = TagUpdateScope().apply(block)
     NestedWrites.requireFlat("updateMany", scope.payload.toNested(), "changes every matching row, so it has no single row to reach out from", "Use `update` on the row itself when it reaches into its relations.")
@@ -1096,8 +1705,29 @@ public class TagRepository(
   }
 
   /**
+   * Java entry point for [updateMany]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("updateMany")
+  public fun updateManyJava(block: Consumer<TagUpdateScope>): Long = updateMany({ block.accept(this) })
+
+  /**
+   * Runs [updateMany] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun updateManyAsync(block: TagUpdateScope.() -> Unit): CompletableFuture<Long> = async.submit { updateMany(block) }
+
+  /**
+   * Java entry point for [updateManyAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("updateManyAsync")
+  public fun updateManyAsyncJava(block: Consumer<TagUpdateScope>): CompletableFuture<Long> = updateManyAsync({ block.accept(this) })
+
+  /**
    * Changes the row the `where` block selects, or inserts one when there is none.
    */
+  @JvmSynthetic
   public fun upsert(block: TagUpsertScope.() -> Unit): Tag {
     val scope = TagUpsertScope().apply(block)
     NestedWrites.requireFlat("upsert", scope.insert.toNested(), "decides between two payloads before it writes anything", "Use `update` on the row itself when it reaches into its relations.")
@@ -1106,21 +1736,84 @@ public class TagRepository(
   }
 
   /**
+   * Java entry point for [upsert]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("upsert")
+  public fun upsertJava(block: Consumer<TagUpsertScope>): Tag = upsert({ block.accept(this) })
+
+  /**
+   * Runs [upsert] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun upsertAsync(block: TagUpsertScope.() -> Unit): CompletableFuture<Tag> = async.submit { upsert(block) }
+
+  /**
+   * Java entry point for [upsertAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("upsertAsync")
+  public fun upsertAsyncJava(block: Consumer<TagUpsertScope>): CompletableFuture<Tag> = upsertAsync({ block.accept(this) })
+
+  /**
    * Deletes the single row the `where` block selects and reads back what was removed.
    */
+  @JvmSynthetic
   public fun delete(block: TagDeleteScope.() -> Unit): Tag {
     val scope = TagDeleteScope().apply(block)
     return executor.delete(DeleteSpec("Tag", scope.filter.build()), TagRowMapper)
   }
 
   /**
+   * Java entry point for [delete]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("delete")
+  public fun deleteJava(block: Consumer<TagDeleteScope>): Tag = delete({ block.accept(this) })
+
+  /**
+   * Runs [delete] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun deleteAsync(block: TagDeleteScope.() -> Unit): CompletableFuture<Tag> = async.submit { delete(block) }
+
+  /**
+   * Java entry point for [deleteAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("deleteAsync")
+  public fun deleteAsyncJava(block: Consumer<TagDeleteScope>): CompletableFuture<Tag> = deleteAsync({ block.accept(this) })
+
+  /**
    * Deletes every row the `where` block selects, returning how many were removed.
    */
+  @JvmSynthetic
   public fun deleteMany(block: TagDeleteScope.() -> Unit): Long {
     val scope = TagDeleteScope().apply(block)
     return executor.deleteMany(DeleteSpec("Tag", scope.filter.build()))
   }
 
+  /**
+   * Java entry point for [deleteMany]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("deleteMany")
+  public fun deleteManyJava(block: Consumer<TagDeleteScope>): Long = deleteMany({ block.accept(this) })
+
+  /**
+   * Runs [deleteMany] on the configured executor. The callback also runs there.
+   *
+   * Use synchronous operations inside a transaction; dispatch from a transaction fails the future.
+   */
+  @JvmSynthetic
+  public fun deleteManyAsync(block: TagDeleteScope.() -> Unit): CompletableFuture<Long> = async.submit { deleteMany(block) }
+
+  /**
+   * Java entry point for [deleteManyAsync]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("deleteManyAsync")
+  public fun deleteManyAsyncJava(block: Consumer<TagDeleteScope>): CompletableFuture<Long> = deleteManyAsync({ block.accept(this) })
+
+  @NullMarked
   public companion object {
     private val ALL_FIELDS: Set<String> = setOf("id", "name")
   }
@@ -1129,111 +1822,188 @@ public class TagRepository(
 /**
  * How the related `Post` rows have to match.
  */
+@NullMarked
 public class TagPostsFilter(
-  private val sink: (RelationQuantifier, FilterScope) -> Unit,
+  private val sink: BiConsumer<RelationQuantifier, FilterScope>,
 ) {
   /**
    * Matches when at least one related `Post` matches.
    */
+  @JvmSynthetic
   public fun some(block: PostWhere.() -> Unit) {
-    sink(RelationQuantifier.SOME, PostWhere().apply(block))
+    sink.accept(RelationQuantifier.SOME, PostWhere().apply(block))
   }
+
+  /**
+   * Java entry point for [some]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("some")
+  public fun someJava(block: Consumer<PostWhere>): Unit = some({ block.accept(this) })
 
   /**
    * Matches when every related `Post` matches.
    */
+  @JvmSynthetic
   public fun every(block: PostWhere.() -> Unit) {
-    sink(RelationQuantifier.EVERY, PostWhere().apply(block))
+    sink.accept(RelationQuantifier.EVERY, PostWhere().apply(block))
   }
+
+  /**
+   * Java entry point for [every]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("every")
+  public fun everyJava(block: Consumer<PostWhere>): Unit = every({ block.accept(this) })
 
   /**
    * Matches when no related `Post` matches.
    */
+  @JvmSynthetic
   public fun none(block: PostWhere.() -> Unit) {
-    sink(RelationQuantifier.NONE, PostWhere().apply(block))
+    sink.accept(RelationQuantifier.NONE, PostWhere().apply(block))
   }
+
+  /**
+   * Java entry point for [none]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("none")
+  public fun noneJava(block: Consumer<PostWhere>): Unit = none({ block.accept(this) })
 }
 
 /**
  * The `Post` rows to write together with a new `Tag`.
  */
+@NullMarked
 public class TagPostsWrite internal constructor(
+  @get:JvmSynthetic
   internal val writes: MutableList<NestedWrite>,
 ) {
   /**
    * Writes a new `Post` and attaches it.
    */
+  @JvmSynthetic
   public fun create(block: PostCreateData.() -> Unit) {
     val data = PostCreateData().apply(block)
     writes.add(NestedWrite.CreateRows("posts", listOf(CreateSpec("Post", data.toValues(), data.toNested()))))
   }
 
   /**
+   * Java entry point for [create]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("create")
+  public fun createJava(block: Consumer<PostCreateData>): Unit = create({ block.accept(this) })
+
+  /**
    * Attaches an existing `Post`, which the condition must select.
    */
+  @JvmSynthetic
   public fun connect(block: PostWhere.() -> Unit) {
     val filter = PostWhere().apply(block).build() ?: throw VolanValidationException("`connect` on `Tag.posts` needs a condition saying which `Post` to attach.")
     writes.add(NestedWrite.ConnectRows("posts", listOf(filter)))
   }
 
   /**
+   * Java entry point for [connect]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("connect")
+  public fun connectJava(block: Consumer<PostWhere>): Unit = connect({ block.accept(this) })
+
+  /**
    * Attaches the `Post` these values identify, writing it first if it is not there.
    */
+  @JvmSynthetic
   public fun connectOrCreate(block: PostCreateData.() -> Unit) {
     val data = PostCreateData().apply(block)
     val values = data.toValues()
     val filter = NestedWrites.uniqueFilter("Post", values, PostTable.UNIQUE_KEYS)
     writes.add(NestedWrite.ConnectOrCreateRows("posts", listOf(ConnectOrCreateEntry(filter, CreateSpec("Post", values, data.toNested())))))
   }
+
+  /**
+   * Java entry point for [connectOrCreate]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("connectOrCreate")
+  public fun connectOrCreateJava(block: Consumer<PostCreateData>): Unit = connectOrCreate({ block.accept(this) })
 }
 
 /**
  * The `Post` rows on the other side of `Tag.posts`.
  */
+@NullMarked
 public class TagPostsChange internal constructor(
+  @get:JvmSynthetic
   internal val writes: MutableList<NestedWrite>,
 ) {
   /**
    * Writes a new `Post` and attaches it.
    */
+  @JvmSynthetic
   public fun create(block: PostCreateData.() -> Unit) {
     val data = PostCreateData().apply(block)
     writes.add(NestedWrite.CreateRows("posts", listOf(CreateSpec("Post", data.toValues(), data.toNested()))))
   }
 
   /**
+   * Java entry point for [create]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("create")
+  public fun createJava(block: Consumer<PostCreateData>): Unit = create({ block.accept(this) })
+
+  /**
    * Attaches an existing `Post`, which the condition must select.
    */
+  @JvmSynthetic
   public fun connect(block: PostWhere.() -> Unit) {
     val filter = PostWhere().apply(block).build() ?: throw VolanValidationException("`connect` on `Tag.posts` needs a condition saying which `Post` to attach.")
     writes.add(NestedWrite.ConnectRows("posts", listOf(filter)))
   }
 
   /**
+   * Java entry point for [connect]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("connect")
+  public fun connectJava(block: Consumer<PostWhere>): Unit = connect({ block.accept(this) })
+
+  /**
    * Attaches the `Post` these values identify, writing it first if it is not there.
    */
+  @JvmSynthetic
   public fun connectOrCreate(block: PostCreateData.() -> Unit) {
     val data = PostCreateData().apply(block)
     val values = data.toValues()
     val filter = NestedWrites.uniqueFilter("Post", values, PostTable.UNIQUE_KEYS)
     writes.add(NestedWrite.ConnectOrCreateRows("posts", listOf(ConnectOrCreateEntry(filter, CreateSpec("Post", values, data.toNested())))))
   }
+
+  /**
+   * Java entry point for [connectOrCreate]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("connectOrCreate")
+  public fun connectOrCreateJava(block: Consumer<PostCreateData>): Unit = connectOrCreate({ block.accept(this) })
 
   /**
    * Lets go of the attached `Post` rows the condition selects, leaving them in the database.
    *
    * An empty block lets go of all of them.
    */
+  @JvmSynthetic
   public fun disconnect(block: PostWhere.() -> Unit = {}) {
     val filter = PostWhere().apply(block).build()
     writes.add(NestedWrite.DisconnectRows("posts", listOfNotNull(filter)))
   }
 
   /**
+   * Java entry point for [disconnect]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("disconnect")
+  @JvmOverloads
+  public fun disconnectJava(block: Consumer<PostWhere> = Consumer {}): Unit = disconnect({ block.accept(this) })
+
+  /**
    * Makes these the attached `Post` rows, whatever was attached before.
    *
    * Rows that were attached and are not named here are let go of, not deleted.
    */
+  @JvmSynthetic
   public fun `set`(block: TagPostsRows.() -> Unit) {
     val filters = mutableListOf<Filter>()
     TagPostsRows(filters).apply(block)
@@ -1241,8 +2011,15 @@ public class TagPostsChange internal constructor(
   }
 
   /**
+   * Java entry point for [set]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("set")
+  public fun setJava(block: Consumer<TagPostsRows>): Unit = `set`({ block.accept(this) })
+
+  /**
    * Changes the attached `Post` rows the `where` block selects, or all of them.
    */
+  @JvmSynthetic
   public fun update(block: PostUpdateScope.() -> Unit) {
     val scope = PostUpdateScope().apply(block)
     val data = scope.payload
@@ -1251,26 +2028,48 @@ public class TagPostsChange internal constructor(
   }
 
   /**
+   * Java entry point for [update]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("update")
+  public fun updateJava(block: Consumer<PostUpdateScope>): Unit = update({ block.accept(this) })
+
+  /**
    * Deletes the attached `Post` rows the condition selects.
    *
    * An empty block deletes all of them.
    */
+  @JvmSynthetic
   public fun delete(block: PostWhere.() -> Unit = {}) {
     val filter = PostWhere().apply(block).build()
     writes.add(NestedWrite.DeleteRows("posts", filter))
   }
+
+  /**
+   * Java entry point for [delete]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("delete")
+  @JvmOverloads
+  public fun deleteJava(block: Consumer<PostWhere> = Consumer {}): Unit = delete({ block.accept(this) })
 }
 
 /**
  * The `Post` rows that `Tag.posts` should hold.
  */
+@NullMarked
 public class TagPostsRows internal constructor(
   private val filters: MutableList<Filter>,
 ) {
   /**
    * Names one `Post` the condition must select.
    */
+  @JvmSynthetic
   public fun row(block: PostWhere.() -> Unit) {
     filters.add(PostWhere().apply(block).build() ?: throw VolanValidationException("a row of `Tag.posts` needs a condition saying which `Post` it is."))
   }
+
+  /**
+   * Java entry point for [row]. The callback configures the same scope as the Kotlin DSL.
+   */
+  @JvmName("row")
+  public fun rowJava(block: Consumer<PostWhere>): Unit = row({ block.accept(this) })
 }

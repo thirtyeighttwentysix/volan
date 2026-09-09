@@ -1,6 +1,7 @@
 package io.github.thirtyeighttwentysix.volan.codegen
 
 import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.TypeSpec
 import io.github.thirtyeighttwentysix.volan.VolanException
 import io.github.thirtyeighttwentysix.volan.ir.EnumType
 import io.github.thirtyeighttwentysix.volan.ir.GeneratorConfig
@@ -146,7 +147,12 @@ public object VolanGenerator {
 
     private fun file(generator: GeneratorConfig, name: String, spec: FileSpec): GeneratedFile = GeneratedFile(
         relativePath = generator.packageName.replace('.', '/') + "/$name.kt",
-        contents = spec.toString(),
+        contents = spec.toBuilder().apply {
+            members.clear()
+            spec.members.forEach { member ->
+                addType(JavaApiGenerator.adapt(member as TypeSpec, generator.javaFriendly))
+            }
+        }.build().toString(),
     )
 
     /**

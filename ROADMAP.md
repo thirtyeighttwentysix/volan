@@ -13,7 +13,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M4** | Runtime + PostgreSQL: query planning, SQL rendering, mapping, pooling, transactions, full CRUD and filters, raw SQL | Testcontainers PostgreSQL integration suite covering every must-have operation | ✅ |
 | **M5** | Relations, nested writes and summaries: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M, nested writes from `create` and `update`, `aggregate`, `groupBy`/`having`, `distinct` | Statement-count assertions prove the absence of N+1 | ✅ |
 | **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ✅ |
-| **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; signature check finds no Kotlin-only types in public API | ⬜ |
+| **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; Java-visible generated signatures and runtime ABI checked (compiler enum accessors excluded) | ✅ |
 | **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The same integration suite passes on every dialect | ⬜ |
 | **M9** | CLI and build plugins: Clikt CLI, Gradle plugin, Maven plugin | An example project builds through the plugin alone, with no manual steps | ⬜ |
 | **M10** | Coroutines, interceptors, Micrometer metrics | `suspend` API covered by tests; cancellation cancels the in-flight statement | ⬜ |

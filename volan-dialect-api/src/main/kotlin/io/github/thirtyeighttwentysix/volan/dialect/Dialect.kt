@@ -1,5 +1,7 @@
 package io.github.thirtyeighttwentysix.volan.dialect
 
+import org.jspecify.annotations.NullMarked
+
 /**
  * What a database can and cannot do.
  *
@@ -15,6 +17,7 @@ package io.github.thirtyeighttwentysix.volan.dialect
  * @property arrayColumns whether a column can hold an array.
  * @property maximumParameters how many placeholders one statement may carry.
  */
+@NullMarked
 public data class DialectCapabilities(
     public val returningClause: Boolean,
     public val insertOnConflict: Boolean,
@@ -33,6 +36,7 @@ public data class DialectCapabilities(
  * the model in this module, which is why a query can be built, inspected and tested without a database
  * anywhere near it.
  */
+@NullMarked
 public interface Dialect {
     /** The `provider` value in a schema that selects this dialect. */
     public val id: String

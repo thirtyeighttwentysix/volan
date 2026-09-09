@@ -4,10 +4,12 @@ package com.example.blog
 import io.github.thirtyeighttwentysix.volan.runtime.VolanMappingException
 import kotlin.String
 import kotlin.jvm.JvmStatic
+import org.jspecify.annotations.NullMarked
 
 /**
  * What a person is allowed to do.
  */
+@NullMarked
 public enum class Role(
   /**
    * The value stored in the database, which `@map` can make differ from the name.
@@ -18,6 +20,7 @@ public enum class Role(
   ADMIN("administrator"),
   ;
 
+  @NullMarked
   public companion object {
     /**
      * Returns the value stored as [value].

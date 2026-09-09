@@ -1,5 +1,8 @@
 package io.github.thirtyeighttwentysix.volan.dialect
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * The column types Volan describes a schema in.
  *
@@ -7,6 +10,7 @@ package io.github.thirtyeighttwentysix.volan.dialect
  * on the way into this model, and what a [TIMESTAMP] is called is decided on the way out of it by the
  * dialect. Neither end has to know the other's names.
  */
+@NullMarked
 public enum class SqlType {
     /** Text of no fixed length. */
     TEXT,
@@ -49,17 +53,23 @@ public enum class SqlType {
 }
 
 /** What a column holds. */
+@NullMarked
 public sealed interface ColumnType {
     /** One of Volan's own types, named by the dialect. */
+    @NullMarked
     public data class Scalar(public val type: SqlType) : ColumnType
 
     /** Exactly the type the schema asked for with `@db.…`, passed through untranslated. */
-    public data class Native(public val name: String, public val arguments: List<String> = emptyList()) : ColumnType
+    @NullMarked
+    public data class Native @JvmOverloads constructor(public val name: String, public val arguments: List<String> = emptyList()) :
+        ColumnType
 
     /** A type declared by an `enum` block. */
+    @NullMarked
     public data class Enumeration(public val name: String) : ColumnType
 
     /** A list of values of [element]. */
+    @NullMarked
     public data class Array(public val element: ColumnType) : ColumnType
 }
 
@@ -70,26 +80,34 @@ public sealed interface ColumnType {
  * rather than to any one statement — there is nowhere to bind it to. Every literal here comes from the
  * schema file, never from a caller's value, which is what keeps that safe.
  */
+@NullMarked
 public sealed interface ColumnDefault {
     /** A text literal. */
+    @NullMarked
     public data class Text(public val value: String) : ColumnDefault
 
     /** A numeric literal, kept as text so that no precision is lost on the way through. */
+    @NullMarked
     public data class Number(public val value: String) : ColumnDefault
 
     /** A truth literal. */
+    @NullMarked
     public data class Boolean(public val value: kotlin.Boolean) : ColumnDefault
 
     /** The empty list, the only default a list column may have. */
+    @NullMarked
     public data object EmptyArray : ColumnDefault
 
     /** The moment the row is written, named by the dialect. */
+    @NullMarked
     public data object CurrentTimestamp : ColumnDefault
 
     /** A UUID the database generates, named by the dialect. */
+    @NullMarked
     public data object GeneratedUuid : ColumnDefault
 
     /** An expression written in the schema, passed through as it stands. */
+    @NullMarked
     public data class Expression(public val sql: String) : ColumnDefault
 }
 
@@ -102,21 +120,25 @@ public sealed interface ColumnDefault {
  * @property default what it holds when a write supplies nothing.
  * @property autoIncrement whether the database assigns an increasing value.
  */
-public data class ColumnDefinition(
+@NullMarked
+public data class ColumnDefinition @JvmOverloads constructor(
     public val name: String,
     public val type: ColumnType,
     public val nullable: Boolean,
-    public val default: ColumnDefault? = null,
+    public val default: @Nullable ColumnDefault? = null,
     public val autoIncrement: Boolean = false,
 )
 
 /** A primary key over one or more columns. */
-public data class PrimaryKeyDefinition(public val name: String?, public val columns: List<String>)
+@NullMarked
+public data class PrimaryKeyDefinition(public val name: @Nullable String?, public val columns: List<String>)
 
 /** A unique constraint over one or more columns. */
+@NullMarked
 public data class UniqueDefinition(public val name: String, public val columns: List<String>)
 
 /** What to do to the dependent rows when the row they point at is deleted or its key changes. */
+@NullMarked
 public enum class ForeignKeyAction(public val sql: String) {
     /** Do the same to them. */
     CASCADE("CASCADE"),
@@ -142,7 +164,8 @@ public enum class ForeignKeyAction(public val sql: String) {
  * @property targetTable the table pointed at.
  * @property targetColumns the columns pointed at, matching [columns] in order.
  */
-public data class ForeignKeyDefinition(
+@NullMarked
+public data class ForeignKeyDefinition @JvmOverloads constructor(
     public val name: String,
     public val columns: List<String>,
     public val targetTable: String,
@@ -152,7 +175,8 @@ public data class ForeignKeyDefinition(
 )
 
 /** An index over one or more columns. */
-public data class IndexDefinition(
+@NullMarked
+public data class IndexDefinition @JvmOverloads constructor(
     public val name: String,
     public val columns: List<String>,
     public val unique: Boolean = false,
@@ -160,15 +184,19 @@ public data class IndexDefinition(
 )
 
 /** One thing to change about a column that already exists. */
+@NullMarked
 public sealed interface ColumnChange {
     /** Give it a different type. */
-    public data class Type(public val type: ColumnType, public val using: String? = null) : ColumnChange
+    @NullMarked
+    public data class Type @JvmOverloads constructor(public val type: ColumnType, public val using: @Nullable String? = null) : ColumnChange
 
     /** Let it hold null, or stop letting it. */
+    @NullMarked
     public data class Nullability(public val nullable: kotlin.Boolean) : ColumnChange
 
     /** Give it a default, or take its default away. */
-    public data class Default(public val default: ColumnDefault?) : ColumnChange
+    @NullMarked
+    public data class Default(public val default: @Nullable ColumnDefault?) : ColumnChange
 }
 
 /**
@@ -177,24 +205,30 @@ public sealed interface ColumnChange {
  * A dialect turns each of these into the text its database understands — one statement in most cases,
  * several where a database has no direct way to say it. Nothing above this layer writes DDL.
  */
+@NullMarked
 public sealed interface DdlStatement {
     /** Creates a table with its columns and primary key; constraints and indexes follow separately. */
-    public data class CreateTable(
+    @NullMarked
+    public data class CreateTable @JvmOverloads constructor(
         public val table: String,
         public val columns: List<ColumnDefinition>,
-        public val primaryKey: PrimaryKeyDefinition? = null,
+        public val primaryKey: @Nullable PrimaryKeyDefinition? = null,
     ) : DdlStatement
 
     /** Drops a table and everything that belongs to it. */
+    @NullMarked
     public data class DropTable(public val table: String) : DdlStatement
 
     /** Adds a column to a table that already exists. */
+    @NullMarked
     public data class AddColumn(public val table: String, public val column: ColumnDefinition) : DdlStatement
 
     /** Drops a column. */
+    @NullMarked
     public data class DropColumn(public val table: String, public val column: String) : DdlStatement
 
     /** Changes one thing about a column. */
+    @NullMarked
     public data class AlterColumn(
         public val table: String,
         public val column: String,
@@ -202,33 +236,42 @@ public sealed interface DdlStatement {
     ) : DdlStatement
 
     /** Adds a primary key to a table that had none. */
+    @NullMarked
     public data class AddPrimaryKey(public val table: String, public val key: PrimaryKeyDefinition) : DdlStatement
 
     /** Adds a unique constraint. */
+    @NullMarked
     public data class AddUnique(public val table: String, public val constraint: UniqueDefinition) : DdlStatement
 
     /** Adds a foreign key. */
+    @NullMarked
     public data class AddForeignKey(public val table: String, public val key: ForeignKeyDefinition) : DdlStatement
 
     /** Drops a named constraint: a primary key, a unique constraint or a foreign key. */
+    @NullMarked
     public data class DropConstraint(public val table: String, public val name: String) : DdlStatement
 
     /** Creates an index. */
+    @NullMarked
     public data class CreateIndex(public val table: String, public val index: IndexDefinition) : DdlStatement
 
     /** Drops an index. */
+    @NullMarked
     public data class DropIndex(public val table: String, public val name: String) : DdlStatement
 
     /** Creates an enum type. */
+    @NullMarked
     public data class CreateEnum(public val name: String, public val values: List<String>) : DdlStatement
 
     /** Drops an enum type. */
+    @NullMarked
     public data class DropEnum(public val name: String) : DdlStatement
 
     /** Adds a value to an enum type that already exists. */
-    public data class AddEnumValue(
+    @NullMarked
+    public data class AddEnumValue @JvmOverloads constructor(
         public val name: String,
         public val value: String,
-        public val after: String? = null,
+        public val after: @Nullable String? = null,
     ) : DdlStatement
 }

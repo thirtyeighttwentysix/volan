@@ -1,5 +1,8 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+
 /**
  * What the runtime knows about the models of one schema.
  *
@@ -7,6 +10,7 @@ package io.github.thirtyeighttwentysix.volan.runtime
  * `User` is stored in `users`, which is what lets everything above it speak in schema names while
  * everything below it speaks in database names.
  */
+@NullMarked
 public class TableRegistry(tables: List<TableMetadata>) {
     private val byModel: Map<String, TableMetadata> = tables.associateBy { it.model }
 
@@ -14,7 +18,7 @@ public class TableRegistry(tables: List<TableMetadata>) {
     public val models: List<TableMetadata> = tables.toList()
 
     /** Returns what is known about [model], or `null` when the schema has no such model. */
-    public fun find(model: String): TableMetadata? = byModel[model]
+    public fun find(model: String): @Nullable TableMetadata? = byModel[model]
 
     /**
      * Returns what is known about [model].
