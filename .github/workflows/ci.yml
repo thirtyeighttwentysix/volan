@@ -45,7 +45,7 @@ jobs:
 
       - name: Upload test reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-reports-${{ matrix.os }}-jdk${{ matrix.java }}
           path: '**/build/reports/tests/**'
@@ -72,7 +72,7 @@ jobs:
 
       - name: Upload detekt SARIF
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: detekt-sarif
           path: '**/build/reports/detekt/*.sarif'
