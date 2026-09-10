@@ -12,6 +12,10 @@ are excluded; the CLI is currently built from source.
 
 ## One-time credentials
 
+The release signing public key is [release-signing-key.asc](release-signing-key.asc), fingerprint
+`9BCA38B9051840A4C32009963C84C65D9B915BE4` (RSA 4096, expires September 9, 2028).
+It is also available from [Ubuntu's keyserver](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x9BCA38B9051840A4C32009963C84C65D9B915BE4).
+
 The Central Portal account must own the verified namespace `io.github.thirtyeighttwentysix`.
 Store these repository Actions secrets:
 

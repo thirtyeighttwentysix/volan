@@ -74,7 +74,11 @@ def verify(repository, version, public_key):
         gpg = shutil.which("gpg")
         if public_key:
             require(gpg, "gpg is required to verify release signatures")
-            subprocess.run([gpg, "--homedir", keyring, "--batch", "--import", str(public_key)], check=True, capture_output=True)
+            # Relative paths also work with the MSYS GPG bundled with Git for Windows.
+            Path(keyring, "common.conf").write_text("")
+            shutil.copyfile(public_key, Path(keyring, "public-key.asc"))
+            subprocess.run([gpg, "--homedir", ".", "--batch", "--import", "public-key.asc"],
+                           cwd=keyring, check=True, capture_output=True)
         for artifact in sorted(ARTIFACTS):
             folder = base / artifact / version
             pom = ET.parse(folder / f"{artifact}-{version}.pom").getroot()
@@ -116,8 +120,10 @@ def verify(repository, version, public_key):
                                 if entry.endswith(".class"):
                                     require(int.from_bytes(jar.read(entry)[6:8], "big") <= 61, f"Requires newer than Java 17: {entry}")
                 if public_key:
-                    subprocess.run([gpg, "--homedir", keyring, "--batch", "--verify", str(path) + ".asc", str(path)],
-                                   check=True, capture_output=True)
+                    shutil.copyfile(path, Path(keyring, "artifact"))
+                    shutil.copyfile(str(path) + ".asc", Path(keyring, "artifact.asc"))
+                    subprocess.run([gpg, "--homedir", ".", "--batch", "--verify", "artifact.asc", "artifact"],
+                                   cwd=keyring, check=True, capture_output=True)
             print(f"Verified {artifact}:{version}")
 
 
