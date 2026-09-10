@@ -7,6 +7,8 @@ dependencies {
     implementation(libs.build.ktlint)
     implementation(libs.build.detekt)
     implementation(libs.build.kover)
+    implementation(libs.build.dokka)
+    implementation(libs.build.maven.publish)
 }
 
 kotlin {

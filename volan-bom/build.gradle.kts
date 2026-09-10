@@ -1,6 +1,11 @@
+import com.vanniktech.maven.publish.JavaPlatform
+
 plugins {
     `java-platform`
+    id("volan.publishing")
 }
+
+mavenPublishing { configure(JavaPlatform()) }
 
 description = "Bill of materials pinning every Volan module to a single version."
 
@@ -12,11 +17,7 @@ dependencies {
         api(project(":volan-codegen"))
         api(project(":volan-dialect-api"))
         api(project(":volan-dialect-postgres"))
-        api(project(":volan-dialect-mysql"))
-        api(project(":volan-dialect-sqlite"))
-        api(project(":volan-dialect-h2"))
         api(project(":volan-runtime"))
         api(project(":volan-migrate"))
-        api(project(":volan-coroutines"))
     }
 }

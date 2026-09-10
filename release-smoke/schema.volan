@@ -1,0 +1,18 @@
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "volan-kotlin"
+  package = "smoke.generated"
+  javaFriendly = true
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  name String?
+
+  @@map("users")
+}

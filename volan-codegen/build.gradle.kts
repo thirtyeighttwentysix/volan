@@ -1,5 +1,5 @@
 plugins {
-    id("volan.kotlin-library")
+    id("volan.published-library")
 }
 
 description = "KotlinPoet-based generator producing the type-safe Volan client."

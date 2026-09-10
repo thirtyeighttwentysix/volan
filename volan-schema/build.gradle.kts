@@ -1,5 +1,5 @@
 plugins {
-    id("volan.kotlin-library")
+    id("volan.published-library")
 }
 
 description = "Lexer, parser, AST and formatter for the schema.volan schema language."

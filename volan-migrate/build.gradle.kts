@@ -1,5 +1,5 @@
 plugins {
-    id("volan.kotlin-library")
+    id("volan.published-library")
 }
 
 description = "Database introspection, schema diffing and SQL migration generation."

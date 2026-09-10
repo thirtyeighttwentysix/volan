@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Prepared `0.1.0-alpha.1` Maven Central publications for eight library modules and their BOM,
+  including sources, Dokka documentation, signing configuration and a tag-driven release workflow.
+- Release artifact verification and an independent Maven consumer covering generated Java API,
+  PostgreSQL migrations, asynchronous queries and transaction rollback.
 - M7: generated Java `Consumer` entry points for queries, writes, relations and summaries;
   `CompletableFuture` variants of repository operations, transactions and raw SQL, with configurable
   execution and a guard against dispatching work outside a thread-bound transaction.

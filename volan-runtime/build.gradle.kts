@@ -1,5 +1,5 @@
 plugins {
-    id("volan.kotlin-library")
+    id("volan.published-library")
 }
 
 description = "Volan runtime: query planning, JDBC execution, result mapping, transactions and pooling."

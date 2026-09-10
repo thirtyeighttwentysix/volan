@@ -1,5 +1,5 @@
 plugins {
-    id("volan.kotlin-library")
+    id("volan.published-library")
 }
 
 description = "Semantic analysis and the normalized intermediate representation of a Volan schema."

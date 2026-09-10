@@ -16,7 +16,8 @@
 
 > **Status: in development, pre-1.0.**
 > PostgreSQL CRUD, relations, summaries and migration tooling are implemented. Nothing is published
-> to Maven Central yet. See [ROADMAP.md](ROADMAP.md) for what works today and what comes next, and
+> to Maven Central yet; `0.1.0-alpha.1` is being prepared with a verified Maven consumer and release
+> workflow. See [publishing](docs/publishing.md), [ROADMAP.md](ROADMAP.md) for what works today and what comes next, and
 > [ARCHITECTURE.md](ARCHITECTURE.md) for how it is put together.
 
 ## The idea

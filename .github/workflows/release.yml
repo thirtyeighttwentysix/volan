@@ -1,0 +1,134 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: >-
+    -Dorg.gradle.workers.max=2 -Dorg.gradle.parallel=false
+    "-Dorg.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
+    -Dorg.gradle.project.kotlin.compiler.execution.strategy=in-process
+
+jobs:
+  release:
+    name: Verify artifacts and release
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Read and validate version
+        id: version
+        shell: bash
+        run: |
+          version=$(sed -n 's/^version=//p' gradle.properties | tr -d '\r')
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]
+          [[ "$version" != *SNAPSHOT* ]]
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then
+            [[ "$GITHUB_REF_NAME" == "v$version" ]]
+          fi
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check publishing secrets
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.MAVEN_SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
+        run: |
+          for variable in CENTRAL_USERNAME CENTRAL_PASSWORD SIGNING_KEY SIGNING_PASSWORD; do
+            if [[ -z "${!variable}" ]]; then
+              echo "::error::Missing release secret: $variable"
+              exit 1
+            fi
+          done
+          test -s docs/release-signing-key.asc
+
+      - name: Build, test and check public API
+        run: ./gradlew build apiCheck :volan-migrate:koverVerify --stacktrace
+
+      - name: Stage unsigned artifacts for a rehearsal
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        run: ./gradlew publishAllPublicationsToReleaseTestRepository -PvolanUnsignedLocalPublication --no-configuration-cache --stacktrace
+
+      - name: Stage signed release artifacts
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
+        run: ./gradlew publishAllPublicationsToReleaseTestRepository --no-configuration-cache --stacktrace
+
+      - name: Verify contents, metadata, checksums and signatures
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          signature_args=()
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then
+            signature_args=(--public-key docs/release-signing-key.asc)
+          fi
+          python3 scripts/verify-release.py --version "$VERSION" "${signature_args[@]}"
+
+      - name: Consume staged artifacts in an independent project
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: ./gradlew -p release-smoke clean test "-PvolanVersion=$VERSION" "-PvolanRepository=$GITHUB_WORKSPACE/build/release-repository" --stacktrace
+
+      - name: Publish to Maven Central
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
+        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache --stacktrace
+
+      - name: Download and verify artifacts from Maven Central
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: >-
+          python3 scripts/verify-release.py --central --version "$VERSION"
+          --repository build/central-repository --public-key docs/release-signing-key.asc
+
+      - name: Consume Maven Central release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: ./gradlew -p release-smoke clean test "-PvolanVersion=$VERSION" --refresh-dependencies --stacktrace
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          args=()
+          if [[ "$VERSION" == *-* ]]; then args+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" --verify-tag --title "Volan $VERSION" --notes-file "docs/releases/$VERSION.md" "${args[@]}"
+
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-verification
+          path: |
+            **/build/reports/tests/**
+            **/build/publications/**/*.pom
+          retention-days: 14

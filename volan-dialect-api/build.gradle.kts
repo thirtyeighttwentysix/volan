@@ -1,5 +1,5 @@
 plugins {
-    id("volan.kotlin-library")
+    id("volan.published-library")
 }
 
 description = "Dialect-independent SQL model and the SPI every Volan dialect implements."
