@@ -190,6 +190,34 @@ Requires JDK 17 or newer. The Gradle wrapper provisions build dependencies. Dock
 the PostgreSQL integration suites and the benchmark database; integration tests are skipped if Docker
 is unavailable. Build the CLI with `./gradlew :volan-cli:installDist`.
 
+## Support development / Поддержать разработку
+
+### English
+
+If Volan is useful to you, you can support its development. Donations help me spend more time on
+new features, database support, tests and documentation. Thank you for helping the project grow!
+
+### Русский
+
+Если Volan тебе полезен, ты можешь поддержать его разработку. Донаты помогают мне уделять больше
+времени новым возможностям, поддержке баз данных, тестам и документации. Спасибо за поддержку проекта!
+
+<p align="center">
+  <a href="https://pay.cloudtips.ru/p/b05a329d"><img alt="Support Volan via CloudTips / Поддержать Volan через CloudTips" src="https://img.shields.io/badge/Support_Volan-CloudTips-7F52FF?style=for-the-badge"></a>
+</p>
+
+<p align="center">
+  <a href="https://pay.cloudtips.ru/p/b05a329d">Donate via CloudTips · Поддержать через CloudTips</a>
+</p>
+
+### Crypto / Криптовалюта
+
+| Asset / Валюта | Network / Сеть | Wallet address / Адрес кошелька |
+|---|---|---|
+| **GRAM** | TON | `UQAIjKkz-_UKju3uxH_ixEbk_10ha_qNl8LwHM7rwLVYlWdD` |
+| **USDT (Tether)** | TRON (TRC20) | `TArsteJh5PmWk9qzY3rhE5L8L1znVhZt3E` |
+| **SOL** | Solana | `EGGK8uTCYc7YDorXHLUzZQduj3zubzuiXYU2wKY2ii8W` |
+
 ## Licence
 
 [Apache License 2.0](LICENSE).
