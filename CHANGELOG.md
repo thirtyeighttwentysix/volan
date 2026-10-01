@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   summaries, paging, asynchronous operations, transaction savepoints and portable constraint errors.
 - SQLite schema diagnostics for unsupported storage shapes and a database feature matrix.
 - SQLite Maven publication and BOM constraint for the next release, with an independent Java consumer.
+- SQLite DDL, introspection, pull/push, structural drift detection and versioned migrations.
+  Transactional table rebuilds retain rows, indexes and AUTOINCREMENT history, check foreign keys
+  before commit and serialize concurrent writers. The CLI supports SQLite JDBC URLs.
 
 ### Fixed
 

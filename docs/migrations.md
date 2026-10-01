@@ -1,8 +1,9 @@
-# PostgreSQL migrations
+# Migrations
 
 M6 provides SQL plans, migration files, a checksum journal, database introspection and schema
-synchronization. The database must use PostgreSQL. Multi-schema models and the other dialects are
-scheduled separately; all operations below address the connection's current schema.
+synchronization. Alpha.1 supports PostgreSQL; SQLite support is on main for the next alpha.
+The PostgreSQL examples below address the connection's current schema. SQLite addresses main.
+Multi-schema models and MySQL/MariaDB/H2 remain scheduled separately.
 
 ## Pull and push
 
@@ -98,3 +99,49 @@ full-text index shape is supported. Column renames are represented as drop/add, 
 an explicit `ALTER TABLE ... RENAME COLUMN ...` migration to preserve the data. Removing/reordering
 enum values, inserting values in the middle, and changing auto-increment sequences also require
 explicit migration SQL.
+
+## SQLite migrations on main
+
+Use `provider = "sqlite"` and a `jdbc:sqlite:` datasource URL. The CLI selects the database from the URL;
+the library uses `DatabaseSync(SqliteReader(), SqliteDialect)`. Add `volan-migrate` and
+`volan-dialect-sqlite` to your dependencies alongside the SQLite JDBC driver.
+
+```kotlin
+val sync = DatabaseSync(SqliteReader(), SqliteDialect)
+DriverManager.getConnection("jdbc:sqlite:./data.db").use { connection ->
+    val plan = sync.plan(connection, schema)
+    println(plan.toSql(SqliteDialect))
+    sync.push(connection, schema) // warning-bearing changes require explicit acceptance
+}
+```
+
+For deployments, write the reviewed plan to a `MigrationDirectory` and use `Migrator`, as in the
+PostgreSQL example, with `SqliteDialect` when rendering. Use `DatabaseSync.plan` rather than the generic
+`SchemaDiffer.diff`: SQLite constraints must be included when creating or rebuilding a table.
+Do not add BEGIN/COMMIT/ROLLBACK or other transaction control to migration scripts.
+
+Push acquires SQLite's write lock before introspection with BEGIN IMMEDIATE. Migrations acquire it
+for each file and recheck history after acquiring it. Separate connections and processes therefore
+cannot apply the same migration twice. SQLite's configured busy timeout controls how long a competing
+writer waits; an expired timeout reports a failed migration.
+
+Column or constraint changes rebuild a table atomically: create a replacement, copy surviving columns,
+drop the old table, rename the replacement and recreate indexes. Added columns get their defaults or
+NULL; required columns without defaults fail on populated tables. Surviving values and the
+AUTOINCREMENT high-water mark are retained. Index-only changes avoid rebuilding.
+
+Foreign keys are disabled before the transaction to prevent cascading deletes when replacing a parent.
+Every migration checks foreign keys before commit and restores the connection's original setting,
+including on failure. Invalid references, uniqueness violations and NOT NULL failures roll back both
+the changes and the journal record. Use dedicated connections starting in auto-commit mode.
+
+Introspection retains supported scalar declarations, defaults, keys, constraint names, ordinary indexes,
+and referential actions. Pull validates its output by mapping it back to the database shape. Application
+enum declarations are not stored in SQLite: pull exposes their columns as String. Original client aliases,
+generators and updatedAt also require keeping the source schema.
+
+Schema synchronization refuses views, triggers, virtual tables, CHECK constraints, generated columns,
+custom collations, STRICT/WITHOUT ROWID tables, partial/expression/descending indexes, temporary objects
+and attached databases. It does not silently discard them during a rebuild. Unique indexes can be read
+and compared, but pull cannot export them as different unique constraints. Use explicit SQL for shapes
+outside this supported subset, and column renames or changes to autoincrement.

@@ -1,10 +1,11 @@
-public final class io/github/thirtyeighttwentysix/volan/dialect/sqlite/SqliteDialect : io/github/thirtyeighttwentysix/volan/dialect/SqlRenderer {
+public final class io/github/thirtyeighttwentysix/volan/dialect/sqlite/SqliteDialect : io/github/thirtyeighttwentysix/volan/dialect/DdlRenderer {
 	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/dialect/sqlite/SqliteDialect;
 	public fun connectionMaxLifetime (Ljava/lang/String;)Ljava/lang/Long;
 	public fun getId ()Ljava/lang/String;
 	public fun initialize (Ljava/sql/Connection;)V
 	public fun jdbcValue (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun poolSize (Ljava/lang/String;I)I
+	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement;)Ljava/util/List;
 	public fun sqlState (Ljava/sql/SQLException;)Ljava/lang/String;
 }
 

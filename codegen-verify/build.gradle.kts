@@ -59,6 +59,7 @@ dependencies {
 
     testImplementation(project(":volan-dialect-postgres"))
     testImplementation(project(":volan-dialect-sqlite"))
+    testImplementation(project(":volan-migrate"))
     testImplementation(libs.jdbc.sqlite)
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.postgres)

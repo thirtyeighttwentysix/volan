@@ -14,6 +14,7 @@ import io.github.thirtyeighttwentysix.volan.ir.DefaultValue
 import io.github.thirtyeighttwentysix.volan.ir.FieldType
 import io.github.thirtyeighttwentysix.volan.ir.IndexKind
 import io.github.thirtyeighttwentysix.volan.ir.Model
+import io.github.thirtyeighttwentysix.volan.ir.Provider
 import io.github.thirtyeighttwentysix.volan.ir.ReferentialAction
 import io.github.thirtyeighttwentysix.volan.ir.Relation
 import io.github.thirtyeighttwentysix.volan.ir.RelationKind
@@ -40,7 +41,11 @@ public object SchemaMapper {
     /** The database [schema] describes, with [types] deciding what its `@db.…` types mean. */
     @JvmStatic
     public fun map(schema: Schema, types: NativeTypeTable): DatabaseSchema {
-        val enums = schema.enums.map { EnumDefinition(it.dbName, it.values.map { value -> value.dbName }) }
+        val enums = if (schema.datasource.provider == Provider.SQLITE) {
+            emptyList()
+        } else {
+            schema.enums.map { EnumDefinition(it.dbName, it.values.map { value -> value.dbName }) }
+        }
         val tables = schema.models.map { table(schema, types, it) } + joinTables(schema, types)
         return DatabaseSchema(enums.sortedBy { it.name }, tables.sortedBy { it.name })
     }
@@ -74,7 +79,11 @@ public object SchemaMapper {
     private fun columnType(schema: Schema, types: NativeTypeTable, field: ScalarField): ColumnType {
         val element = when (val type = field.type) {
             is FieldType.Scalar -> field.nativeType?.let { types.canonical(type.type, it) } ?: ColumnType.Scalar(sqlType(type.type))
-            is FieldType.EnumRef -> ColumnType.Enumeration(enumTable(schema, type.enumName))
+            is FieldType.EnumRef -> if (schema.datasource.provider == Provider.SQLITE) {
+                ColumnType.Scalar(SqlType.TEXT)
+            } else {
+                ColumnType.Enumeration(enumTable(schema, type.enumName))
+            }
         }
         return if (field.cardinality == Cardinality.LIST) ColumnType.Array(element) else element
     }
@@ -120,7 +129,13 @@ public object SchemaMapper {
                 "Volan does not yet generate on its way to one.\n" +
                 "  Use `@default(uuid())`, or `@default(dbgenerated(\"…\"))` with an expression the database has.",
         )
-        is DefaultValue.DatabaseGenerated -> default.expression?.let { ColumnDefault.Expression(it) }
+        is DefaultValue.DatabaseGenerated -> default.expression?.let {
+            if (schema.datasource.provider == Provider.SQLITE) {
+                SqliteDefaults.read(SqliteSql.tokens(it), columnType(schema, types = SqliteTypes, field))
+            } else {
+                ColumnDefault.Expression(it)
+            }
+        }
             ?: throw VolanMigrationException(
                 "`${model.name}.${field.name}` defaults to `dbgenerated()` with no expression, so there is " +
                     "nothing to write into the column definition.\n" +

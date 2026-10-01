@@ -43,8 +43,9 @@ the JVM without giving up something the brief also asks for.
   nested writes, summaries, composite cursors, async operations and savepoint transactions are tested
   against real SQLite on every CI OS. [Feature matrix and limitations](docs/dialects.md).
 - SQLite publication and its BOM entry are configured for the next alpha; alpha.1 remains PostgreSQL-only.
-- Remaining: SQLite DDL/introspection and migration table rebuilds; MySQL, MariaDB and H2 implementations
-  and their integration suites. M8 is not complete.
+- SQLite schema management: DDL, strict introspection, pull/push, drift detection and migration journals
+  are tested. Table rebuilds retain rows, indexes and AUTOINCREMENT history; concurrent writers serialize.
+- Remaining: MySQL, MariaDB and H2 implementations and their integration suites. M8 is not complete.
 
 ## Deliberately deferred
 

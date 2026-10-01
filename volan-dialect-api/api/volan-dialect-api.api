@@ -186,6 +186,7 @@ public abstract class io/github/thirtyeighttwentysix/volan/dialect/DdlRenderer :
 	protected fun autoIncrementType (Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;)Ljava/lang/String;
 	protected fun column (Lio/github/thirtyeighttwentysix/volan/dialect/ColumnDefinition;)Ljava/lang/String;
 	protected final fun columns (Ljava/util/List;)Ljava/lang/String;
+	protected final fun createConstrainedTable (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;)Ljava/lang/String;
 	protected fun createEnum (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateEnum;)Ljava/util/List;
 	protected fun createIndex (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/dialect/IndexDefinition;)Ljava/lang/String;
 	protected fun createTable (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateTable;)Ljava/lang/String;
@@ -284,6 +285,24 @@ public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$Alt
 	public final fun getChange ()Lio/github/thirtyeighttwentysix/volan/dialect/ColumnChange;
 	public final fun getColumn ()Ljava/lang/String;
 	public final fun getTable ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable : io/github/thirtyeighttwentysix/volan/dialect/DdlStatement {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateTable;)V
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateTable;Ljava/util/List;)V
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateTable;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateTable;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateTable;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateTable;Ljava/util/List;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateTable;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDefinition ()Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateTable;
+	public final fun getForeignKeys ()Ljava/util/List;
+	public final fun getUniques ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -388,6 +407,21 @@ public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$Dro
 	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$DropTable;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$DropTable;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getTable ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$RebuildTable : io/github/thirtyeighttwentysix/volan/dialect/DdlStatement {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;Ljava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;Ljava/util/List;Ljava/util/List;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$RebuildTable;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$RebuildTable;Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$RebuildTable;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCopiedColumns ()Ljava/util/List;
+	public final fun getDefinition ()Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;
+	public final fun getIndexes ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }

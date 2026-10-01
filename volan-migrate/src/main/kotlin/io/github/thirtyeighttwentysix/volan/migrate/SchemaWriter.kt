@@ -6,10 +6,11 @@ import io.github.thirtyeighttwentysix.volan.dialect.ColumnType
 import io.github.thirtyeighttwentysix.volan.dialect.ForeignKeyAction
 import io.github.thirtyeighttwentysix.volan.dialect.ForeignKeyDefinition
 import io.github.thirtyeighttwentysix.volan.dialect.SqlType
+import io.github.thirtyeighttwentysix.volan.ir.Provider
 import io.github.thirtyeighttwentysix.volan.ir.SchemaLoader
 import io.github.thirtyeighttwentysix.volan.schema.SchemaFormatter
 
-/** Writes introspected PostgreSQL tables as a validated, canonical schema.volan document. */
+/** Writes introspected tables as a validated, canonical schema.volan document. */
 public object SchemaWriter {
     /**
      * Serializes [database], retaining database names through mapping attributes.
@@ -17,10 +18,11 @@ public object SchemaWriter {
      * Client-only information (comments, generators, updatedAt) cannot be recovered from a database.
      */
     @JvmStatic
-    public fun write(database: DatabaseSchema): String = Writer(database).write()
+    @JvmOverloads
+    public fun write(database: DatabaseSchema, provider: Provider = Provider.POSTGRESQL): String = Writer(database, provider).write()
 }
 
-private class Writer(private val database: DatabaseSchema) {
+private class Writer(private val database: DatabaseSchema, private val provider: Provider) {
     private val names = Names()
     private val models = database.tables.associate { it.name to names.add(it.name) }
     private val enums = database.enums.associate { it.name to names.add(it.name) }
@@ -37,7 +39,7 @@ private class Writer(private val database: DatabaseSchema) {
     fun write(): String {
         database.tables.forEach { table -> table.foreignKeys.forEach { relation(table, it) } }
         val text = buildString {
-            append("datasource db {\n  provider = \"postgresql\"\n  url = env(\"DATABASE_URL\")\n}\n\n")
+            append("datasource db {\n  provider = \"${provider.id}\"\n  url = env(\"DATABASE_URL\")\n}\n\n")
             database.enums.forEach { type ->
                 append("enum ${enums.getValue(type.name)} {\n")
                 type.values.forEach { append("  ${values.getValue(type.name).getValue(it)} @map(${quoted(it)})\n") }

@@ -6,12 +6,15 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import io.github.thirtyeighttwentysix.volan.dialect.DdlRenderer
 import io.github.thirtyeighttwentysix.volan.dialect.postgres.PostgresDialect
+import io.github.thirtyeighttwentysix.volan.dialect.sqlite.SqliteDialect
 import io.github.thirtyeighttwentysix.volan.ir.ConnectionUrl
+import io.github.thirtyeighttwentysix.volan.ir.Provider
 import io.github.thirtyeighttwentysix.volan.ir.Schema
 import io.github.thirtyeighttwentysix.volan.ir.SchemaLoader
+import io.github.thirtyeighttwentysix.volan.migrate.DatabaseReader
 import io.github.thirtyeighttwentysix.volan.migrate.DatabaseSync
-import io.github.thirtyeighttwentysix.volan.migrate.PostgresReader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -34,8 +37,15 @@ private class Database : CliktCommand(name = "db") {
 
 private abstract class DatabaseCommand(name: String) : CliktCommand(name = name) {
     protected val schemaPath: String by option("--schema", help = "Schema file.").default("schema.volan")
-    private val url: String? by option("--url", help = "PostgreSQL JDBC URL; defaults to DATABASE_URL or the schema datasource.")
-    protected val sync: DatabaseSync = DatabaseSync(PostgresReader(), PostgresDialect)
+    private val url: String? by option("--url", help = "PostgreSQL or SQLite JDBC URL; defaults to DATABASE_URL or the schema datasource.")
+
+    protected fun dialect(connection: java.sql.Connection): DdlRenderer =
+        if (connection.metaData.databaseProductName == "SQLite") SqliteDialect else PostgresDialect
+
+    protected fun sync(connection: java.sql.Connection): DatabaseSync {
+        val provider = if (connection.metaData.databaseProductName == "SQLite") Provider.SQLITE else Provider.POSTGRESQL
+        return DatabaseSync(DatabaseReader.forProvider(provider), dialect(connection))
+    }
 
     protected fun schema(): Schema = SchemaLoader.load(schemaPath, Path.of(schemaPath).readText()).schemaOrThrow()
 
@@ -47,7 +57,9 @@ private abstract class DatabaseCommand(name: String) : CliktCommand(name = name)
             null -> null
         }
         val address = url ?: schemaUrl ?: System.getenv("DATABASE_URL")
-        require(address?.startsWith("jdbc:postgresql:") == true) { "Set DATABASE_URL to a PostgreSQL JDBC URL." }
+        require(address?.startsWith("jdbc:postgresql:") == true || address?.startsWith("jdbc:sqlite:") == true) {
+            "Set DATABASE_URL to a PostgreSQL or SQLite JDBC URL."
+        }
         val properties = Properties()
         System.getenv("DATABASE_USER")?.let { properties.setProperty("user", it) }
         System.getenv("DATABASE_PASSWORD")?.let { properties.setProperty("password", it) }
@@ -60,7 +72,7 @@ private class Pull : DatabaseCommand("pull") {
     private val force: Boolean by option("--force", help = "Replace an existing schema file.").flag()
 
     override fun run() {
-        val text = connect().use { sync.pull(it) }
+        val text = connect().use { sync(it).pull(it) }
         if (stdout) {
             echo(text, trailingNewline = false)
         } else {
@@ -82,10 +94,11 @@ private class Push : DatabaseCommand("push") {
     override fun run() {
         val wanted = schema()
         connect(wanted).use { connection ->
+            val sync = sync(connection)
             if (dryRun) {
                 val plan = sync.plan(connection, wanted)
                 plan.warnings.forEach { echo("Warning: $it", err = true) }
-                echo(if (plan.isEmpty) "Schema is up to date." else plan.toSql(PostgresDialect))
+                echo(if (plan.isEmpty) "Schema is up to date." else plan.toSql(dialect(connection)))
             } else {
                 val plan = sync.push(connection, wanted, acceptWarnings)
                 echo(if (plan.isEmpty) "Schema is up to date." else "Applied ${plan.steps.size} schema changes.")

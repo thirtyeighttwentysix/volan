@@ -20,6 +20,8 @@ public abstract class DdlRenderer(capabilities: DialectCapabilities) : SqlRender
      * is enough, the list holds one.
      */
     public open fun render(ddl: DdlStatement): List<SqlStatement> = when (ddl) {
+        is DdlStatement.CreateConstrainedTable -> one(createConstrainedTable(ddl))
+        is DdlStatement.RebuildTable -> throw VolanDialectException("$id does not support automatic table rebuilds.")
         is DdlStatement.CreateTable -> one(createTable(ddl))
         is DdlStatement.DropTable -> one("DROP TABLE ${quote(ddl.table)}")
         is DdlStatement.AddColumn -> one("ALTER TABLE ${quote(ddl.table)} ADD COLUMN ${column(ddl.column)}")
@@ -60,6 +62,17 @@ public abstract class DdlRenderer(capabilities: DialectCapabilities) : SqlRender
         val parts = create.columns.map { column(it) } +
             listOfNotNull(create.primaryKey?.let { "${named(it.name)}PRIMARY KEY ${columns(it.columns)}" })
         return "CREATE TABLE ${quote(create.table)} (\n  " + parts.joinToString(",\n  ") + "\n)"
+    }
+
+    protected fun createConstrainedTable(create: DdlStatement.CreateConstrainedTable): String {
+        val constraints = create.uniques.map { "CONSTRAINT ${quote(it.name)} UNIQUE ${columns(it.columns)}" } +
+            create.foreignKeys.map { foreignKey(it) }
+        val table = createTable(create.definition)
+        return if (constraints.isEmpty()) {
+            table
+        } else {
+            table.removeSuffix("\n)") + ",\n  " + constraints.joinToString(",\n  ") + "\n)"
+        }
     }
 
     protected open fun column(column: ColumnDefinition): String {

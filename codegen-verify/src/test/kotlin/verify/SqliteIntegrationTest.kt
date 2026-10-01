@@ -4,6 +4,10 @@ import com.example.sqlite.Role
 import com.example.sqlite.VolanClient
 import io.github.thirtyeighttwentysix.volan.Json
 import io.github.thirtyeighttwentysix.volan.dialect.VolanDialectException
+import io.github.thirtyeighttwentysix.volan.dialect.sqlite.SqliteDialect
+import io.github.thirtyeighttwentysix.volan.ir.SchemaLoader
+import io.github.thirtyeighttwentysix.volan.migrate.DatabaseSync
+import io.github.thirtyeighttwentysix.volan.migrate.SqliteReader
 import io.github.thirtyeighttwentysix.volan.runtime.Isolation
 import io.github.thirtyeighttwentysix.volan.runtime.Volan
 import io.github.thirtyeighttwentysix.volan.runtime.VolanConstraintException
@@ -21,6 +25,8 @@ import org.junit.jupiter.api.io.TempDir
 import org.sqlite.SQLiteDataSource
 import java.math.BigDecimal
 import java.nio.file.Path
+import java.sql.DriverManager
+import kotlin.io.path.readText
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -279,7 +285,10 @@ class SqliteIntegrationTest {
     }
 
     private fun initialize(database: VolanClient) {
-        val ddl = requireNotNull(javaClass.getResourceAsStream("/sqlite-schema.sql")).bufferedReader().use { it.readText() }
-        ddl.split(';').filter { it.isNotBlank() }.forEach { database.rawExecute(it) }
+        val schema = SchemaLoader.load("sqlite.volan", Path.of("schema/sqlite.volan").readText()).schemaOrThrow()
+        val statements = DriverManager.getConnection("jdbc:sqlite::memory:").use {
+            DatabaseSync(SqliteReader(), SqliteDialect).plan(it, schema).render(SqliteDialect)
+        }
+        statements.forEach { database.rawExecute(it) }
     }
 }

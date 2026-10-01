@@ -64,6 +64,7 @@ public class Migrator(
      *   produce a database neither of them describes.
      */
     public fun apply(connection: Connection): List<MigrationFile> = withMigrationLock(connection) {
+        if (connection.isSqlite()) return@withMigrationLock sqliteApply(connection)
         journal.ensure(connection)
         val status = status(connection)
         refuseDrift(status)
@@ -71,6 +72,40 @@ public class Migrator(
             run(connection, migration)
             migration
         }
+    }
+
+    private fun sqliteApply(connection: Connection): List<MigrationFile> {
+        val applied = ArrayList<MigrationFile>()
+        sqliteMigrationTransaction(connection) {
+            journal.ensure(connection)
+            refuseDrift(status(connection))
+        }
+        directory.read().forEach { migration ->
+            sqliteMigrationTransaction(connection) {
+                // Another process may have applied this file while we waited for BEGIN IMMEDIATE.
+                val current = status(connection)
+                refuseDrift(current)
+                if (current.pending.any { it.id == migration.id }) {
+                    execute(connection, migration)
+                    applied += migration
+                }
+            }
+        }
+        return applied
+    }
+
+    private fun execute(connection: Connection, migration: MigrationFile) {
+        val statements = split(migration.sql)
+        if (connection.isSqlite() && statements.any { sql ->
+                val first = SqliteSql.tokens(sql).firstOrNull()
+                listOf("BEGIN", "COMMIT", "END", "ROLLBACK", "SAVEPOINT", "RELEASE").any { first?.keyword(it) == true }
+            }
+        ) {
+            throw VolanMigrationException("SQLite migration scripts must not contain transaction control; Migrator owns the transaction.")
+        }
+        journal.begin(connection, migration, clock.instant())
+        connection.createStatement().use { statement -> statements.forEach { statement.execute(it) } }
+        journal.finish(connection, migration.id, clock.instant(), statements.size)
     }
 
     private fun refuseDrift(status: MigrationStatus) {
@@ -100,16 +135,11 @@ public class Migrator(
      * have made them.
      */
     private fun run(connection: Connection, migration: MigrationFile) {
-        val statements = split(migration.sql)
         val restore = connection.autoCommit
         connection.autoCommit = false
         var committed = false
         try {
-            journal.begin(connection, migration, clock.instant())
-            connection.createStatement().use { statement ->
-                statements.forEach { statement.execute(it) }
-            }
-            journal.finish(connection, migration.id, clock.instant(), statements.size)
+            execute(connection, migration)
             connection.commit()
             committed = true
         } catch (failure: SQLException) {
@@ -137,8 +167,15 @@ public class Migrator(
 
     /** Records [migration] as applied without running it, for a database already in that shape. */
     public fun markApplied(connection: Connection, migration: MigrationFile): Unit = withMigrationLock(connection) {
-        journal.ensure(connection)
-        journal.markApplied(connection, migration, clock.instant())
+        if (connection.isSqlite()) {
+            sqliteMigrationTransaction(connection) {
+                journal.ensure(connection)
+                journal.markApplied(connection, migration, clock.instant())
+            }
+        } else {
+            journal.ensure(connection)
+            journal.markApplied(connection, migration, clock.instant())
+        }
     }
 
     /** The moment this migrator would stamp a migration with, for a caller that names its own files. */

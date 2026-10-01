@@ -207,6 +207,22 @@ public sealed interface ColumnChange {
  */
 @NullMarked
 public sealed interface DdlStatement {
+    /** Creates a complete table on databases that require constraints in the CREATE statement. */
+    @NullMarked
+    public data class CreateConstrainedTable @JvmOverloads constructor(
+        public val definition: CreateTable,
+        public val uniques: List<UniqueDefinition> = emptyList(),
+        public val foreignKeys: List<ForeignKeyDefinition> = emptyList(),
+    ) : DdlStatement
+
+    /** Replaces a table, retaining the named columns and recreating its indexes. Requires a transaction. */
+    @NullMarked
+    public data class RebuildTable(
+        public val definition: CreateConstrainedTable,
+        public val copiedColumns: List<String>,
+        public val indexes: List<IndexDefinition>,
+    ) : DdlStatement
+
     /** Creates a table with its columns and primary key; constraints and indexes follow separately. */
     @NullMarked
     public data class CreateTable @JvmOverloads constructor(

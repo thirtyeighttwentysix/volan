@@ -11,6 +11,8 @@ dependencies {
     implementation(libs.slf4j.api)
 
     testImplementation(project(":volan-dialect-postgres"))
+    testImplementation(project(":volan-dialect-sqlite"))
+    testRuntimeOnly(libs.jdbc.sqlite)
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.postgres)
     testRuntimeOnly(libs.jdbc.postgres)

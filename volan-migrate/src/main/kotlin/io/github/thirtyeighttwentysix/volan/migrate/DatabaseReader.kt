@@ -22,6 +22,7 @@ public interface DatabaseReader {
         @JvmStatic
         public fun forProvider(provider: Provider): DatabaseReader = when (provider) {
             Provider.POSTGRESQL -> PostgresReader()
+            Provider.SQLITE -> SqliteReader()
             else -> throw VolanMigrationException(
                 "Volan cannot yet read a ${provider.id} database back, so it cannot tell what one holds.\n" +
                     "  The other dialects, and the introspection that comes with them, arrive in M8.",

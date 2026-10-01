@@ -17,7 +17,7 @@
 > **Status: in development, pre-1.0.**
 > [0.1.0-alpha.1](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.1) is available
 > on Maven Central with PostgreSQL CRUD, relations, summaries, Java API and migration tooling.
-> Development toward alpha.2 adds SQLite runtime support; it is not in alpha.1.
+> Development toward alpha.2 adds SQLite runtime and migration support; it is not in alpha.1.
 > See [database support](docs/dialects.md), [publishing](docs/publishing.md) and [ROADMAP.md](ROADMAP.md), and
 > [ARCHITECTURE.md](ARCHITECTURE.md) for how it is put together.
 
@@ -90,7 +90,7 @@ CompletableFuture<List<User>> pending = db.getUser().findManyAsync(q -> q.setTak
 | Row mapping | Generated code | Managed entities | Result rows / DAO entities | Records / explicit mappers |
 | Relations | Explicit, batched `include` | Entity associations and fetch plans | DSL joins / DAO references | SQL joins and nested records |
 | Nested writes | Generated relation operations | Entity cascades | Application / DAO operations | SQL operations |
-| Current Volan scope | PostgreSQL; SQLite runtime in development; Kotlin and Java | — | — | — |
+| Current Volan scope | PostgreSQL; SQLite runtime and migrations on main; Kotlin and Java | — | — | — |
 
 These tools offer different abstractions. See the primary references for
 [Hibernate](https://docs.hibernate.org/orm/7.4/introduction/),
@@ -141,15 +141,15 @@ volan db push --schema schema.volan
 volan db pull --stdout
 ```
 
-PostgreSQL push runs in a transaction and verifies the resulting schema before commit. Repeating it makes no
+PostgreSQL and SQLite push run in a transaction and verify the resulting schema before commit. Repeating push makes no
 changes. Reviewed SQL files can instead be deployed through `Migrator`, which records checksums and
 refuses inconsistent history. [Setup, library API and limitations →](docs/migrations.md)
 
 ## Supported databases
 
-**Released:** PostgreSQL. **On main:** SQLite runtime with generated queries, relations and
-transactions; manage SQLite tables with SQL for now. **Planned for M8:** SQLite migrations,
-MySQL, MariaDB and H2. [Feature matrix and SQLite setup →](docs/dialects.md)
+**Released:** PostgreSQL. **On main:** SQLite with generated queries, relations, transactions,
+DDL, pull/push and versioned migrations. **Planned for M8:** MySQL, MariaDB and H2.
+[Feature matrix and SQLite setup →](docs/dialects.md)
 
 ## Maven Central
 

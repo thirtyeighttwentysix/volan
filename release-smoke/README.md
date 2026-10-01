@@ -5,7 +5,8 @@ It loads a schema with the published generator, compiles the generated Kotlin cl
 Java tests for migrations, nullable fields, asynchronous queries and transaction rollback on a
 real PostgreSQL container. Docker is mandatory; missing Docker fails instead of skipping the test.
 From alpha.2, a second Java test discovers SQLite from its published JAR and exercises CRUD,
-constraints, pooling and rollback without Docker. Alpha.1 verification omits that dialect.
+DDL, pull/push, constraints, pooling and rollback without Docker. It creates tables from the schema
+through published migration APIs. Alpha.1 verification omits that dialect.
 
 From the repository root:
 
