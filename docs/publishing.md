@@ -1,14 +1,14 @@
 # Publishing Volan
 
-`0.1.0-alpha.1` is published on Maven Central under `io.github.thirtyeighttwentysix`.
-The [release workflow](https://github.com/thirtyeighttwentysix/volan/actions/runs/34426221968)
-verified downloaded artifacts, signatures and an independent PostgreSQL consumer before creating
-the [GitHub prerelease](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.1).
-Current development is `0.1.0-alpha.2-SNAPSHOT`; it has not been released.
+The current release version is `0.1.0-alpha.2`, under `io.github.thirtyeighttwentysix`.
+The [release workflow](https://github.com/thirtyeighttwentysix/volan/actions/workflows/release.yml)
+verifies downloaded artifacts, signatures and independent PostgreSQL and SQLite consumers before
+creating the [GitHub prerelease](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.2).
+Alpha.1 remains available as the first PostgreSQL-only release.
 
 ## Published artifacts
 
-Alpha.1 contains eight library modules and `volan-bom`. The next release adds `volan-dialect-sqlite`
+Alpha.2 contains nine library modules and `volan-bom`, including `volan-dialect-sqlite`
 and its BOM constraint. Libraries contain JVM classes,
 sources and Dokka HTML documentation. POMs contain license, SCM and developer metadata. The BOM
 constrains only modules that are actually published. Placeholder modules, tests and benchmarks
@@ -62,7 +62,7 @@ plugin; verification then adds `--public-key docs/release-signing-key.asc`.
 
 1. Set `version` in `gradle.properties` and add `docs/releases/<version>.md`.
 2. Commit and push. Wait for both CI and the manual Release rehearsal to succeed.
-3. Push an annotated tag matching the version, for example `v0.1.0-alpha.1`.
+3. Push an annotated tag matching the version, for example `v0.1.0-alpha.2`.
 
 A tag starts the signed release workflow. It builds and tests, validates all staged artifacts and
 signatures, and runs the independent consumer before calling `publishAndReleaseToMavenCentral`.

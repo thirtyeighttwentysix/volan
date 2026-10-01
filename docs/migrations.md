@@ -1,7 +1,7 @@
 # Migrations
 
 M6 provides SQL plans, migration files, a checksum journal, database introspection and schema
-synchronization. Alpha.1 supports PostgreSQL; SQLite support is on main for the next alpha.
+synchronization. Alpha.2 supports PostgreSQL and SQLite; alpha.1 supports PostgreSQL only.
 The PostgreSQL examples below address the connection's current schema. SQLite addresses main.
 Multi-schema models and MySQL/MariaDB/H2 remain scheduled separately.
 
@@ -100,7 +100,7 @@ an explicit `ALTER TABLE ... RENAME COLUMN ...` migration to preserve the data. 
 enum values, inserting values in the middle, and changing auto-increment sequences also require
 explicit migration SQL.
 
-## SQLite migrations on main
+## SQLite migrations
 
 Use `provider = "sqlite"` and a `jdbc:sqlite:` datasource URL. The CLI selects the database from the URL;
 the library uses `DatabaseSync(SqliteReader(), SqliteDialect)`. Add `volan-migrate` and

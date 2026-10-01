@@ -7,12 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-alpha.2] - 2026-10-02
+
 ### Added
 
 - M8: SQLite runtime dialect with provider discovery, generated CRUD, relations, nested writes,
   summaries, paging, asynchronous operations, transaction savepoints and portable constraint errors.
 - SQLite schema diagnostics for unsupported storage shapes and a database feature matrix.
-- SQLite Maven publication and BOM constraint for the next release, with an independent Java consumer.
+- SQLite Maven publication and BOM constraint, with an independent Java consumer.
 - SQLite DDL, introspection, pull/push, structural drift detection and versioned migrations.
   Transactional table rebuilds retain rows, indexes and AUTOINCREMENT history, check foreign keys
   before commit and serialize concurrent writers. The CLI supports SQLite JDBC URLs.
@@ -159,4 +161,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Diagnostic codes are now an interface with one enum per layer (`SyntaxCode`, `SemanticCode`) instead
   of a single enum, so no module has to enumerate the failures of a module above it.
 
-[Unreleased]: https://github.com/thirtyeighttwentysix/volan/commits/main
+[Unreleased]: https://github.com/thirtyeighttwentysix/volan/compare/v0.1.0-alpha.2...HEAD
+[0.1.0-alpha.2]: https://github.com/thirtyeighttwentysix/volan/compare/v0.1.0-alpha.1...v0.1.0-alpha.2
+[0.1.0-alpha.1]: https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.1

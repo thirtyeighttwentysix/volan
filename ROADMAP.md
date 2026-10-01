@@ -42,7 +42,7 @@ the JVM without giving up something the brief also asks for.
 - SQLite runtime: provider discovery, CRUD, heterogeneous bulk writes with atomic batching, relations,
   nested writes, summaries, composite cursors, async operations and savepoint transactions are tested
   against real SQLite on every CI OS. [Feature matrix and limitations](docs/dialects.md).
-- SQLite publication and its BOM entry are configured for the next alpha; alpha.1 remains PostgreSQL-only.
+- SQLite publication and its BOM entry are included in alpha.2; alpha.1 remains PostgreSQL-only.
 - SQLite schema management: DDL, strict introspection, pull/push, drift detection and migration journals
   are tested. Table rebuilds retain rows, indexes and AUTOINCREMENT history; concurrent writers serialize.
 - Remaining: MySQL, MariaDB and H2 implementations and their integration suites. M8 is not complete.

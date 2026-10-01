@@ -1,9 +1,9 @@
 # Database support
 
-The released `0.1.0-alpha.1` supports PostgreSQL. SQLite runtime and migration support are on `main`, targeting
-the next alpha. MySQL, MariaDB and H2 modules are placeholders, not usable dialects.
+`0.1.0-alpha.2` supports PostgreSQL and SQLite, including runtime operations and migrations.
+MySQL, MariaDB and H2 modules are placeholders, not usable dialects.
 
-| Capability | PostgreSQL | SQLite on main | MySQL / MariaDB / H2 |
+| Capability | PostgreSQL | SQLite | MySQL / MariaDB / H2 |
 |---|---|---|---|
 | Generated Kotlin and Java clients | Yes | Yes | Planned |
 | CRUD, upsert, bulk writes, raw SQL | Yes | Yes | Planned |
@@ -25,15 +25,11 @@ Use `provider = "sqlite"` in the datasource and a JDBC URL such as `jdbc:sqlite:
 `volan-dialect-sqlite` and the Xerial SQLite JDBC driver in the application's runtime classpath.
 The dialect is discovered through `ServiceLoader`.
 
-SQLite is not available in alpha.1. To consume the next candidate locally, stage it from this checkout:
-
-```shell
-./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=0.1.0-alpha.2 -PvolanUnsignedLocalPublication --no-configuration-cache
-```
-
-Then point the consumer at `build/release-repository` and use:
+SQLite is available from alpha.2. Use Maven Central:
 
 ```kotlin
+repositories { mavenCentral() }
+
 dependencies {
     implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.2"))
     implementation("io.github.thirtyeighttwentysix:volan-runtime")
@@ -63,7 +59,7 @@ volan db pull --url jdbc:sqlite:./data.db --stdout
 The library entry point is `DatabaseSync(SqliteReader(), SqliteDialect)`, using a dedicated JDBC
 connection with auto-commit enabled. Review `sync.plan(connection, schema).toSql(SqliteDialect)` before
 applying it with `sync.push`, or write that SQL to a `MigrationDirectory` and deploy it with `Migrator`.
-[Migration setup and guarantees →](migrations.md#sqlite-migrations-on-main)
+[Migration setup and guarantees →](migrations.md#sqlite-migrations)
 
 ## SQLite storage and behavior
 
