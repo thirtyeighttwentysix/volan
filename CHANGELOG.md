@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   key, and matches UUID keys returned as strings.
 - Release rehearsal accepts development SNAPSHOT versions while tag publication still requires an
   immutable release version.
+- Gradle distribution downloads retry transient failures instead of failing CI on the first HTTP 500.
 
 ### Changed
 
