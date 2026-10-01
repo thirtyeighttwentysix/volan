@@ -14,7 +14,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M5** | Relations, nested writes and summaries: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M, nested writes from `create` and `update`, `aggregate`, `groupBy`/`having`, `distinct` | Statement-count assertions prove the absence of N+1 | ✅ |
 | **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ✅ |
 | **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; Java-visible generated signatures and runtime ABI checked (compiler enum accessors excluded) | ✅ |
-| **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The same integration suite passes on every dialect | ⬜ |
+| **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The same integration suite passes on every dialect | 🚧 |
 | **M9** | CLI and build plugins: Clikt CLI, Gradle plugin, Maven plugin | An example project builds through the plugin alone, with no manual steps | ⬜ |
 | **M10** | Coroutines, interceptors, Micrometer metrics | `suspend` API covered by tests; cancellation cancels the in-flight statement | ⬜ |
 | **M11** | Examples and documentation site: `kotlin-basic`, `java-basic`, `spring-boot`, `ktor`; Getting Started (Kotlin/Java), references, migration guides | Every example runs from its own README and has a CI smoke test | ⬜ |
@@ -22,8 +22,9 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 
 ## Deliberately different from the original specification
 
-The initial PostgreSQL JMH read suite was brought forward from M12 alongside M6. Publication and
-the remaining benchmark workloads stay in M12. The initial CLI was also brought forward from M9
+The initial PostgreSQL JMH read suite was brought forward from M12 alongside M6. Maven Central
+publication followed M7 with `0.1.0-alpha.1`; the 1.0 release and remaining benchmark workloads stay
+in M12. The initial CLI was also brought forward from M9
 for `db pull` and `db push`.
 
 Three names and one shape differ from the brief, each because the brief's version cannot be built on
@@ -35,6 +36,15 @@ the JVM without giving up something the brief also asks for.
 | `include`d relations typed into the result | relation properties throw `VolanRelationNotLoadedException` naming the query to change | Same reason, made worse by nesting: the type of an included `Post` depends on `Post`'s own includes, so the set of types is not merely exponential but unbounded. The alternative, generic slots, produces `User<List<Post<NotLoaded, NotLoaded>>, NotLoaded>` in Java signatures, which contradicts ADR-0006 |
 | `in`, `notIn` | `oneOf`, `notOneOf` | `in` is a hard keyword in Kotlin; `` `in` `` at every call site is worse than a different word |
 | `is`, `isNot` on to-one relation filters | `matches`, `notMatches` | Same reason |
+
+## M8 progress
+
+- SQLite runtime: provider discovery, CRUD, heterogeneous bulk writes with atomic batching, relations,
+  nested writes, summaries, composite cursors, async operations and savepoint transactions are tested
+  against real SQLite on every CI OS. [Feature matrix and limitations](docs/dialects.md).
+- SQLite publication and its BOM entry are configured for the next alpha; alpha.1 remains PostgreSQL-only.
+- Remaining: SQLite DDL/introspection and migration table rebuilds; MySQL, MariaDB and H2 implementations
+  and their integration suites. M8 is not complete.
 
 ## Deliberately deferred
 
@@ -64,6 +74,8 @@ main branch.
   so a model with a scalar field of that name generates two properties with one name and the generated
   code does not compile. The generator should reject the schema with a diagnostic instead; until it
   does, the failure is loud but points at generated code rather than at the schema.
+- **Kotlin keyword field names.** Some generated expression fragments do not escape names such as
+  `when`. Use a different field name with `@map("when")` until the generator handles these consistently.
 - **Writing a grandchild that needs its grandparent's key.** A nested write supplies the foreign key of
   the row it is nested under, so a shape reaching two levels down works whenever the deeper row's other
   required columns are already known. A composite key that needs a key from two levels up — a comment
@@ -72,17 +84,14 @@ main branch.
 - **Cursors combined with an explicit `orderBy`.** Resuming after a row requires knowing that row's
   position in that order, which the key alone does not give. A cursor on its own pages by primary key;
   combining the two is refused with an explanation until keyset paging over arbitrary orderings lands.
-- **Reading a written row back without `RETURNING`.** PostgreSQL has it, so `create`, `update` and
+- **Reading a written row back without `RETURNING`.** PostgreSQL and SQLite 3.35+ have it, so `create`, `update` and
   `delete` read the row back in one statement. The follow-up-select fallback the other databases need
   arrives with them in M8.
 - **Filters and ordering on list columns.** A `String[]` column is read and written, but has no filter
   handle: what `contains` means for an array is a dialect question, answered in M8.
-- **The Java-facing layer.** Generated entities are already Java-shaped — getters, builders, no Kotlin-only
-  types — but the `*Async` methods and the `Function`-based builders are M7.
-- **Publishing configuration.** Signing, POM metadata and the Central Portal release job land in M12.
-- **Remaining CLI commands, `volan-gradle-plugin`, `volan-maven-plugin`, `java-compat-tests`.**
+- **Remaining CLI commands, `volan-gradle-plugin`, `volan-maven-plugin`.**
   The initial CLI ships `db pull` / `db push` in M6. The remaining CLI and build plugins arrive in M9;
-  the Java suite arrives in M7.
+  the Java suite is already implemented in M7.
 - **The `volan format` and `volan validate` commands.** Both capabilities exist as library API from
   M1 (`SchemaFormatter` and `SchemaParser`, which reports every syntax problem); wrapping them in a
   command line is part of M9, where the CLI is built. `validate` gains semantic checks in M2.

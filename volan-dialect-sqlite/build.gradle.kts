@@ -1,6 +1,8 @@
 plugins {
-    id("volan.kotlin-library")
+    id("volan.published-library")
 }
+
+description = "SQLite runtime dialect for Volan."
 
 description = "SQLite dialect for Volan."
 

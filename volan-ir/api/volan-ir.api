@@ -586,6 +586,7 @@ public final class io/github/thirtyeighttwentysix/volan/ir/SemanticCode : java/l
 	public static final field UNKNOWN_PROVIDER Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
 	public static final field UNKNOWN_TYPE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
 	public static final field UNSATISFIABLE_REQUIRED_RELATION Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field UNSUPPORTED_PROVIDER_FEATURE Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public fun getId ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;

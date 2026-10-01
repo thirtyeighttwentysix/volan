@@ -119,6 +119,7 @@ internal class SemanticAnalyzer(private val sink: DiagnosticSink) {
 
         val relations = RelationAnalyzer(sink, draftsByName).analyze()
         IntegrityAnalyzer(sink).analyze(drafts, enums, relations)
+        if (datasource?.provider == Provider.SQLITE) SqliteSchemaAnalyzer(sink).analyze(drafts)
 
         if (sink.hasErrors || datasource == null) return null
         return Schema(

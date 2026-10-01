@@ -1,5 +1,6 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import io.github.thirtyeighttwentysix.volan.dialect.Dialect
 import org.jspecify.annotations.NullMarked
 import org.jspecify.annotations.Nullable
 import java.sql.Connection
@@ -67,7 +68,7 @@ public data class RetryPolicy @JvmOverloads constructor(
  * Inside one it is the transaction's own connection, which is what makes several statements part of
  * the same unit of work — and what makes a transaction confined to the thread that opened it.
  */
-internal class ConnectionSource(private val dataSource: DataSource) {
+internal class ConnectionSource(private val dataSource: DataSource, private val dialect: @Nullable Dialect? = null) {
     private val active = ThreadLocal<@Nullable Transaction?>()
 
     /** Whether the calling thread is inside a transaction. */
@@ -142,23 +143,36 @@ internal class ConnectionSource(private val dataSource: DataSource) {
         }
     }
 
-    private fun borrow(): Connection = try {
-        dataSource.connection
-    } catch (failure: SQLException) {
-        throw SqlErrors.translate(failure, "checking out a connection")
+    @Suppress("TooGenericExceptionCaught") // Every initialization failure must return the borrowed connection to its owner.
+    private fun borrow(): Connection {
+        val connection = try {
+            dataSource.connection
+        } catch (failure: SQLException) {
+            throw translate(failure, "checking out a connection")
+        }
+        try {
+            dialect?.initialize(connection)
+            return connection
+        } catch (failure: Throwable) {
+            runCatching { connection.close() }.onFailure { failure.addSuppressed(it) }
+            throw if (failure is SQLException) translate(failure, "initializing a connection") else failure
+        }
     }
 
     private fun commit(connection: Connection) {
         try {
             connection.commit()
         } catch (failure: SQLException) {
-            throw SqlErrors.translate(failure, "committing the transaction")
+            throw translate(failure, "committing the transaction")
         }
     }
 
     private fun rollback(connection: Connection, cause: Throwable) {
         runCatching { connection.rollback() }.onFailure { cause.addSuppressed(it) }
     }
+
+    private fun translate(failure: SQLException, context: String) =
+        SqlErrors.translate(failure, context, dialect?.sqlState(failure) ?: failure.sqlState.orEmpty())
 
     private fun restore(connection: Connection, autoCommit: Boolean, isolation: Int) {
         runCatching { connection.autoCommit = autoCommit }

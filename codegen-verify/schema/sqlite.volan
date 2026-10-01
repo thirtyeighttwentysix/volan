@@ -1,0 +1,68 @@
+datasource db {
+  provider = "sqlite"
+  url = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "volan-kotlin"
+  package = "com.example.sqlite"
+  javaFriendly = true
+}
+
+enum Role {
+  USER
+  ADMIN @map("administrator")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  name String?
+  role Role @default(USER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  posts Post[]
+  comments Comment[]
+
+  @@map("users")
+}
+
+model Post {
+  id Long @id @default(autoincrement())
+  title String
+  views Int @default(0)
+  draft Boolean @default(true)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId Int
+  tags Tag[] @relation("PostTags")
+  comments Comment[]
+}
+
+model Tag {
+  id Int @id @default(autoincrement())
+  name String @unique
+  posts Post[] @relation("PostTags")
+}
+
+model Comment {
+  postId Long
+  authorId Int
+  body String
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@id([postId, authorId])
+}
+
+model Scalars {
+  id Int @id @default(autoincrement())
+  ratio Float
+  precise Double
+  enabled Boolean
+  moment DateTime? @map("when")
+  date Date?
+  time Time?
+  token Uuid?
+  data Bytes?
+  document Json?
+}

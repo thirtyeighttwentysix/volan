@@ -115,6 +115,9 @@ public enum class SemanticCode(override val id: String) : DiagnosticCode {
 
     /** A connection URL is written into the schema rather than read from the environment. Reported as a warning. */
     CONNECTION_URL_IN_SCHEMA("E0234"),
+
+    /** A field or index uses a feature unavailable on the selected database. */
+    UNSUPPORTED_PROVIDER_FEATURE("E0235"),
     ;
 
     override fun toString(): String = id

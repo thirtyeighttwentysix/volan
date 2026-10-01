@@ -57,6 +57,7 @@ internal class JdbcRow(private val result: ResultSet) : Row {
         is java.time.OffsetDateTime -> value.toInstant()
         is java.time.LocalDateTime -> value.toInstant(java.time.ZoneOffset.UTC)
         is Instant -> value
+        is String -> Instant.parse(value)
         else -> throw VolanMappingException(
             "`$column` holds ${value.javaClass.name}, which Volan cannot read as a moment in time.",
         )
@@ -64,11 +65,23 @@ internal class JdbcRow(private val result: ResultSet) : Row {
 
     override fun getLocalDate(column: String): LocalDate = required(column, getLocalDateOrNull(column))
 
-    override fun getLocalDateOrNull(column: String): LocalDate? = result.getObject(column, LocalDate::class.java)
+    override fun getLocalDateOrNull(column: String): LocalDate? = when (val value = result.getObject(column)) {
+        null -> null
+        is LocalDate -> value
+        is java.sql.Date -> value.toLocalDate()
+        is String -> LocalDate.parse(value)
+        else -> throw VolanMappingException("`$column` holds ${value.javaClass.name}, which Volan cannot read as a date.")
+    }
 
     override fun getLocalTime(column: String): LocalTime = required(column, getLocalTimeOrNull(column))
 
-    override fun getLocalTimeOrNull(column: String): LocalTime? = result.getObject(column, LocalTime::class.java)
+    override fun getLocalTimeOrNull(column: String): LocalTime? = when (val value = result.getObject(column)) {
+        null -> null
+        is LocalTime -> value
+        is java.sql.Time -> result.getObject(column, LocalTime::class.java)
+        is String -> LocalTime.parse(value)
+        else -> throw VolanMappingException("`$column` holds ${value.javaClass.name}, which Volan cannot read as a time of day.")
+    }
 
     override fun getUuid(column: String): UUID = required(column, getUuidOrNull(column))
 

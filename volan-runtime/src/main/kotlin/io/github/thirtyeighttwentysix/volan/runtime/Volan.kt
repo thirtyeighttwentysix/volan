@@ -192,7 +192,7 @@ public class Volan internal constructor(
                     "a data source was given but no dialect could be chosen.\n" +
                         "  Set `url(…)` so the dialect can be inferred, or name it with `dialect(…)`.",
                 )
-                return Volan(null, ConnectionSource(supplied), TableRegistry(tables), resolved, readers, clock, asyncExecutor)
+                return Volan(null, ConnectionSource(supplied, resolved), TableRegistry(tables), resolved, readers, clock, asyncExecutor)
             }
             val jdbcUrl = url ?: throw VolanConfigurationException(
                 "no database URL was given.\n  Set one with `url(…)`, reading it from the environment as the schema does.",
@@ -202,12 +202,12 @@ public class Volan internal constructor(
                 this.jdbcUrl = jdbcUrl
                 this.username = this@Builder.username
                 this.password = this@Builder.password
-                this.maximumPoolSize = maxPoolSize
+                this.maximumPoolSize = resolved.poolSize(jdbcUrl, maxPoolSize)
                 this.connectionTimeout = this@Builder.connectionTimeout
                 this.poolName = this@Builder.poolName
             }
             val pool = HikariDataSource(configuration)
-            return Volan(pool, ConnectionSource(pool), TableRegistry(tables), resolved, readers, clock, asyncExecutor)
+            return Volan(pool, ConnectionSource(pool, resolved), TableRegistry(tables), resolved, readers, clock, asyncExecutor)
         }
 
         /**

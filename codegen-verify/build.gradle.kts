@@ -30,8 +30,21 @@ val generateClient by tasks.registering(JavaExec::class) {
     args(schemaFile.asFile.absolutePath, generatedSources.get().asFile.absolutePath)
 }
 
+val sqliteSources = layout.buildDirectory.dir("generated/sqlite")
+val generateSqliteClient = tasks.register<JavaExec>("generateSqliteClient") {
+    group = "build"
+    description = "Generates a client from a SQLite-targeted schema."
+    classpath = generator.runtimeClasspath
+    mainClass.set("verify.GenerateClientKt")
+    val sqliteSchema = layout.projectDirectory.file("schema/sqlite.volan")
+    inputs.file(sqliteSchema).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(sqliteSources)
+    args(sqliteSchema.asFile.absolutePath, sqliteSources.get().asFile.absolutePath)
+}
+
 sourceSets.main {
     kotlin.srcDir(generatedSources)
+    kotlin.srcDir(sqliteSources)
 }
 
 dependencies {
@@ -45,6 +58,8 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
 
     testImplementation(project(":volan-dialect-postgres"))
+    testImplementation(project(":volan-dialect-sqlite"))
+    testImplementation(libs.jdbc.sqlite)
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.postgres)
     testRuntimeOnly(libs.jdbc.postgres)
@@ -68,7 +83,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 tasks.named<KotlinCompile>("compileKotlin") {
-    dependsOn(generateClient)
+    dependsOn(generateClient, generateSqliteClient)
 }
 
 tasks.withType<Test>().configureEach {

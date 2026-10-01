@@ -1,5 +1,7 @@
 package io.github.thirtyeighttwentysix.volan.runtime
 
+import java.util.UUID
+
 /** Where the relation loader gets its rows. The executor supplies both, so nested loads reuse it. */
 internal interface RelationSource {
     /** Reads rows of another model, relations of its own included. */
@@ -53,7 +55,7 @@ internal class RelationLoader(
             throughJoinTable(relation, request, keys, childReader, source)
         }
         return parents.map { parent ->
-            val share = shares[reader.key(parent, parentColumns)].orEmpty()
+            val share = shares[matchingKey(reader.key(parent, parentColumns))].orEmpty()
             reader.withRelation(parent, request.relation, take(relation, share))
         }
     }
@@ -106,14 +108,14 @@ internal class RelationLoader(
         // Walking the children rather than the pairs is what keeps the `orderBy` of the include: the
         // pairs come back in whatever order the join table felt like, and the children in the asked-for one.
         val keyed = keyEach(children, childReader, relation.foreignKeyColumns)
-        val wantedByParent = pairs.groupBy({ it.first }, { it.second }).mapValues { it.value.toSet() }
+        val wantedByParent = pairs.groupBy({ matchingKey(it.first) }, { matchingKey(it.second) }).mapValues { it.value.toSet() }
         return wantedByParent.mapValues { (_, wanted) -> keyed.filter { it.first in wanted }.map { it.second } }
     }
 
     @Suppress("UNCHECKED_CAST")
     private fun keyEach(children: List<Any?>, reader: EntityReader<*>, columns: List<String>): List<Pair<List<Any?>, Any?>> {
         val typed = reader as EntityReader<Any?>
-        return children.map { typed.key(it, columns) to it }
+        return children.map { matchingKey(typed.key(it, columns)) to it }
     }
 
     /**
@@ -138,7 +140,17 @@ internal class RelationLoader(
     @Suppress("UNCHECKED_CAST")
     private fun group(children: List<Any?>, reader: EntityReader<*>, columns: List<String>): Map<List<Any?>, List<Any?>> {
         val typed = reader as EntityReader<Any?>
-        return children.groupBy { typed.key(it, columns) }
+        return children.groupBy { matchingKey(typed.key(it, columns)) }
+    }
+
+    // SQLite's getObject returns small INTEGER values as Int even for a Long schema key. Join-table
+    // UUIDs can likewise arrive as text. Normalize only map keys; query parameters retain their types.
+    private fun matchingKey(values: List<Any?>): List<Any?> = values.map { value ->
+        when (value) {
+            is Byte, is Short, is Int -> (value as Number).toLong()
+            is UUID -> value.toString()
+            else -> value
+        }
     }
 
     /** A to-one relation takes the single row it found; a to-many takes all of them. */

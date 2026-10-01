@@ -1,11 +1,15 @@
 # Publishing Volan
 
-The first release candidate is `0.1.0-alpha.1`, under `io.github.thirtyeighttwentysix`.
-Until its tag workflow succeeds, it is a prepared release rather than an available Central version.
+`0.1.0-alpha.1` is published on Maven Central under `io.github.thirtyeighttwentysix`.
+The [release workflow](https://github.com/thirtyeighttwentysix/volan/actions/runs/34426221968)
+verified downloaded artifacts, signatures and an independent PostgreSQL consumer before creating
+the [GitHub prerelease](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.1).
+Current development is `0.1.0-alpha.2-SNAPSHOT`; it has not been released.
 
 ## Published artifacts
 
-Eight implemented library modules and `volan-bom` are published. Libraries contain JVM classes,
+Alpha.1 contains eight library modules and `volan-bom`. The next release adds `volan-dialect-sqlite`
+and its BOM constraint. Libraries contain JVM classes,
 sources and Dokka HTML documentation. POMs contain license, SCM and developer metadata. The BOM
 constrains only modules that are actually published. Placeholder modules, tests and benchmarks
 are excluded; the CLI is currently built from source.
@@ -38,14 +42,16 @@ and [Gradle publishing plugin documentation](https://vanniktech.github.io/gradle
 
 Run the **Release** workflow manually on `main`. A branch run performs the full build, ABI and
 migration coverage checks, stages unsigned artifacts and runs an independent PostgreSQL consumer.
+From alpha.2, the consumer also checks SQLite. For a development SNAPSHOT, rehearsal removes the
+`-SNAPSHOT` suffix only in staged artifacts; it never uploads them.
 It does not need release secrets and does not upload to Central.
 
 For a local rehearsal (Docker required):
 
 ```shell
-./gradlew publishAllPublicationsToReleaseTestRepository -PvolanUnsignedLocalPublication --no-configuration-cache
-python scripts/verify-release.py --version 0.1.0-alpha.1
-./gradlew -p release-smoke clean test "-PvolanVersion=0.1.0-alpha.1" "-PvolanRepository=/absolute/path/to/volan/build/release-repository"
+./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=0.1.0-alpha.2 -PvolanUnsignedLocalPublication --no-configuration-cache
+python scripts/verify-release.py --version 0.1.0-alpha.2
+./gradlew -p release-smoke clean test "-PvolanVersion=0.1.0-alpha.2" "-PvolanRepository=/absolute/path/to/volan/build/release-repository"
 ```
 
 `volanUnsignedLocalPublication` also disables registration of the Central publishing tasks.

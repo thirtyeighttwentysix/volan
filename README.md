@@ -15,9 +15,10 @@
 ---
 
 > **Status: in development, pre-1.0.**
-> PostgreSQL CRUD, relations, summaries and migration tooling are implemented. Nothing is published
-> to Maven Central yet; `0.1.0-alpha.1` is being prepared with a verified Maven consumer and release
-> workflow. See [publishing](docs/publishing.md), [ROADMAP.md](ROADMAP.md) for what works today and what comes next, and
+> [0.1.0-alpha.1](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.1) is available
+> on Maven Central with PostgreSQL CRUD, relations, summaries, Java API and migration tooling.
+> Development toward alpha.2 adds SQLite runtime support; it is not in alpha.1.
+> See [database support](docs/dialects.md), [publishing](docs/publishing.md) and [ROADMAP.md](ROADMAP.md), and
 > [ARCHITECTURE.md](ARCHITECTURE.md) for how it is put together.
 
 ## The idea
@@ -89,7 +90,7 @@ CompletableFuture<List<User>> pending = db.getUser().findManyAsync(q -> q.setTak
 | Row mapping | Generated code | Managed entities | Result rows / DAO entities | Records / explicit mappers |
 | Relations | Explicit, batched `include` | Entity associations and fetch plans | DSL joins / DAO references | SQL joins and nested records |
 | Nested writes | Generated relation operations | Entity cascades | Application / DAO operations | SQL operations |
-| Current Volan scope | PostgreSQL; Kotlin and Java | — | — | — |
+| Current Volan scope | PostgreSQL; SQLite runtime in development; Kotlin and Java | — | — | — |
 
 These tools offer different abstractions. See the primary references for
 [Hibernate](https://docs.hibernate.org/orm/7.4/introduction/),
@@ -140,19 +141,37 @@ volan db push --schema schema.volan
 volan db pull --stdout
 ```
 
-Push runs in a transaction and verifies the resulting schema before commit. Repeating it makes no
+PostgreSQL push runs in a transaction and verifies the resulting schema before commit. Repeating it makes no
 changes. Reviewed SQL files can instead be deployed through `Migrator`, which records checksums and
 refuses inconsistent history. [Setup, library API and limitations →](docs/migrations.md)
 
 ## Supported databases
 
-**Available:** PostgreSQL. **Planned for M8:** MySQL, MariaDB, SQLite and H2.
+**Released:** PostgreSQL. **On main:** SQLite runtime with generated queries, relations and
+transactions; manage SQLite tables with SQL for now. **Planned for M8:** SQLite migrations,
+MySQL, MariaDB and H2. [Feature matrix and SQLite setup →](docs/dialects.md)
+
+## Maven Central
+
+```kotlin
+repositories { mavenCentral() }
+dependencies {
+    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.1"))
+    implementation("io.github.thirtyeighttwentysix:volan-runtime")
+    implementation("io.github.thirtyeighttwentysix:volan-dialect-postgres")
+    runtimeOnly("org.postgresql:postgresql:42.7.13")
+}
+```
+
+Generate the client at build time with `volan-codegen`; the Gradle/Maven generation plugins are
+planned for M9. The [independent consumer](release-smoke/) shows generation and Java usage.
 
 ## Documentation
 
 - [docs/schema-language.md](docs/schema-language.md) — the `schema.volan` syntax reference
 - [docs/java-api.md](docs/java-api.md) — Java queries, async operations and transaction semantics
 - [docs/migrations.md](docs/migrations.md) — pull, push, versioned migrations and drift detection
+- [docs/dialects.md](docs/dialects.md) — database feature matrix and SQLite storage conventions
 - [benchmarks/README.md](benchmarks/README.md) — performance methodology and reproduction
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how Volan is built
 - [ROADMAP.md](ROADMAP.md) — milestones and what is deferred

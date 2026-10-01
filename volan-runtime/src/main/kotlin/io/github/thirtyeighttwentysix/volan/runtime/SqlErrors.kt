@@ -34,8 +34,7 @@ internal object SqlErrors {
      *
      * @param context a short description of what was being done, used to make the message specific.
      */
-    fun translate(exception: SQLException, context: String): VolanException {
-        val state = exception.sqlState.orEmpty()
+    fun translate(exception: SQLException, context: String, state: String = exception.sqlState.orEmpty()): VolanException {
         val constraint = CONSTRAINT_NAME.find(exception.message.orEmpty())?.groupValues?.get(1)
         return when {
             state == UNIQUE_VIOLATION || (state == INTEGRITY_VIOLATION && mentionsDuplicate(exception)) ->

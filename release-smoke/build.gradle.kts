@@ -5,6 +5,7 @@ plugins {
 }
 
 val volanVersion = providers.gradleProperty("volanVersion").get()
+val includesSqlite = volanVersion != "0.1.0-alpha.1"
 val generator = sourceSets.create("generator")
 val generatedSources = layout.buildDirectory.dir("generated/volan")
 
@@ -19,6 +20,10 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
     testRuntimeOnly("org.postgresql:postgresql:42.7.13")
+    if (includesSqlite) {
+        testImplementation("io.github.thirtyeighttwentysix:volan-dialect-sqlite")
+        testRuntimeOnly("org.xerial:sqlite-jdbc:3.53.2.1")
+    }
 }
 
 val generateClient = tasks.register<JavaExec>("generateClient") {
@@ -41,6 +46,7 @@ kotlin {
 tasks.named("compileKotlin") { dependsOn(generateClient) }
 tasks.withType<JavaCompile>().configureEach { options.release.set(17) }
 tasks.test {
+    systemProperty("volan.sqlite", includesSqlite.toString())
     useJUnitPlatform()
     testLogging { events("passed", "failed", "skipped") }
 }

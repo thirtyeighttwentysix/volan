@@ -395,11 +395,22 @@ public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$Dro
 public abstract interface class io/github/thirtyeighttwentysix/volan/dialect/Dialect {
 	public abstract fun getCapabilities ()Lio/github/thirtyeighttwentysix/volan/dialect/DialectCapabilities;
 	public abstract fun getId ()Ljava/lang/String;
+	public fun initialize (Ljava/sql/Connection;)V
+	public fun jdbcValue (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun poolSize (Ljava/lang/String;I)I
 	public abstract fun quote (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlDelete;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public abstract fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlInsert;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public abstract fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public abstract fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlUpdate;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
+	public fun sqlState (Ljava/sql/SQLException;)Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/dialect/Dialect$DefaultImpls {
+	public static fun initialize (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/sql/Connection;)V
+	public static fun jdbcValue (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/lang/Object;)Ljava/lang/Object;
+	public static fun poolSize (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/lang/String;I)I
+	public static fun sqlState (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/sql/SQLException;)Ljava/lang/String;
 }
 
 public final class io/github/thirtyeighttwentysix/volan/dialect/DialectCapabilities {
@@ -819,6 +830,10 @@ public abstract class io/github/thirtyeighttwentysix/volan/dialect/SqlRenderer :
 	protected fun appendOrderBy (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Ljava/util/List;)V
 	protected fun appendReturning (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Ljava/util/List;)V
 	protected fun appendSelect (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)V
+	protected final fun appendStandardDistinct (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)V
+	protected final fun appendStandardInsert (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Lio/github/thirtyeighttwentysix/volan/dialect/SqlInsert;)V
+	protected final fun appendStandardLimit (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	protected final fun appendStandardTextMatch (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Lio/github/thirtyeighttwentysix/volan/dialect/SqlCondition$TextMatch;)V
 	protected fun appendTextMatch (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Lio/github/thirtyeighttwentysix/volan/dialect/SqlCondition$TextMatch;)V
 	protected fun appendTuple (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Lio/github/thirtyeighttwentysix/volan/dialect/SqlCondition$CompareTuple;)V
 	protected fun appendUpdate (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Lio/github/thirtyeighttwentysix/volan/dialect/SqlUpdate;)V
@@ -826,13 +841,17 @@ public abstract class io/github/thirtyeighttwentysix/volan/dialect/SqlRenderer :
 	protected fun getCaseInsensitiveLikeKeyword ()Ljava/lang/String;
 	protected fun getDefaultValuesClause ()Ljava/lang/String;
 	protected fun getLikeEscape ()C
+	public fun initialize (Ljava/sql/Connection;)V
+	public fun jdbcValue (Ljava/lang/Object;)Ljava/lang/Object;
 	protected final fun pattern (Lio/github/thirtyeighttwentysix/volan/dialect/SqlTextMatch;Ljava/lang/String;)Ljava/lang/String;
+	public fun poolSize (Ljava/lang/String;I)I
 	protected final fun qualified (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public fun quote (Ljava/lang/String;)Ljava/lang/String;
 	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlDelete;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlInsert;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlUpdate;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
+	public fun sqlState (Ljava/sql/SQLException;)Ljava/lang/String;
 }
 
 protected final class io/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder {

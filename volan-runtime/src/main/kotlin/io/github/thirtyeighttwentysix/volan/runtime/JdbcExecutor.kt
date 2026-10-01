@@ -212,8 +212,36 @@ internal class JdbcExecutor(
 
     override fun createMany(specs: List<CreateSpec>): Long {
         if (specs.isEmpty()) return 0
-        val statement = dialect.render(planner.insert(specs, clock.instant()).copy(returning = emptyList()))
-        return update(statement, "creating ${specs.size} ${specs.first().model} rows").toLong()
+        // Omitting a column lets its database default run. DEFAULT inside VALUES is not portable.
+        // Separate shapes and parameter-limited batches still form one atomic operation.
+        return connections.transaction(Isolation.DEFAULT, RetryPolicy.NONE) {
+            val now = clock.instant()
+            insertShapes(specs).sumOf { group ->
+                val first = planner.insert(listOf(group.first()), now)
+                val batchSize = if (first.columns.isEmpty()) {
+                    1
+                } else {
+                    maxOf(1, dialect.capabilities.maximumParameters / first.columns.size)
+                }
+                group.chunked(batchSize).sumOf { batch ->
+                    val statement = dialect.render(planner.insert(batch, now).copy(returning = emptyList()))
+                    update(statement, "creating ${batch.size} ${batch.first().model} rows").toLong()
+                }
+            }
+        }
+    }
+
+    private fun insertShapes(specs: List<CreateSpec>): List<List<CreateSpec>> {
+        val shapes = ArrayList<MutableList<CreateSpec>>()
+        specs.forEach { spec ->
+            val previous = shapes.lastOrNull()
+            if (previous == null || previous.first().model != spec.model || previous.first().values.keys != spec.values.keys) {
+                shapes.add(arrayListOf(spec))
+            } else {
+                previous.add(spec)
+            }
+        }
+        return shapes
     }
 
     /**
@@ -301,7 +329,7 @@ internal class JdbcExecutor(
             try {
                 prepared.executeQuery().use(read)
             } catch (failure: SQLException) {
-                throw SqlErrors.translate(failure, context)
+                throw translate(failure, context)
             }
         }
     }
@@ -311,7 +339,7 @@ internal class JdbcExecutor(
             try {
                 prepared.executeUpdate()
             } catch (failure: SQLException) {
-                throw SqlErrors.translate(failure, context)
+                throw translate(failure, context)
             }
         }
     }
@@ -319,7 +347,7 @@ internal class JdbcExecutor(
     private fun prepare(connection: Connection, statement: SqlStatement, context: String): PreparedStatement = try {
         connection.prepareStatement(statement.sql).also { bind(it, statement.parameters) }
     } catch (failure: SQLException) {
-        throw SqlErrors.translate(failure, context)
+        throw translate(failure, context)
     }
 
     /**
@@ -329,7 +357,8 @@ internal class JdbcExecutor(
      * accept, so the conversions Volan needs happen here rather than in every dialect.
      */
     private fun bind(statement: PreparedStatement, parameters: List<Any?>) {
-        parameters.forEachIndexed { index, value ->
+        parameters.forEachIndexed { index, parameter ->
+            val value = dialect.jdbcValue(parameter)
             val position = index + 1
             when (value) {
                 null -> statement.setObject(position, null)
@@ -342,6 +371,9 @@ internal class JdbcExecutor(
             }
         }
     }
+
+    private fun translate(failure: SQLException, context: String) =
+        SqlErrors.translate(failure, context, dialect.sqlState(failure).orEmpty())
 
     private fun requireReturning(model: String, operation: String) {
         if (dialect.capabilities.returningClause) return

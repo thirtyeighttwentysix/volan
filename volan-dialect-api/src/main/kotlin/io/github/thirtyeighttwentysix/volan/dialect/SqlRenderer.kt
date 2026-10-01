@@ -56,7 +56,10 @@ public abstract class SqlRenderer(
         appendLimit(select.limit, select.offset)
     }
 
-    protected open fun Builder.appendDistinct(select: SqlSelect) {
+    protected open fun Builder.appendDistinct(select: SqlSelect): Unit = appendStandardDistinct(select)
+
+    /** Standard DISTINCT rendering, callable by dialect overrides of the member extension. */
+    protected fun Builder.appendStandardDistinct(select: SqlSelect) {
         if (!capabilities.distinctOn) {
             append("DISTINCT ")
             return
@@ -108,7 +111,10 @@ public abstract class SqlRenderer(
         append(if (term.nulls == SqlNulls.FIRST) " NULLS FIRST" else " NULLS LAST")
     }
 
-    protected open fun Builder.appendLimit(limit: @Nullable Int?, offset: @Nullable Int?) {
+    protected open fun Builder.appendLimit(limit: @Nullable Int?, offset: @Nullable Int?): Unit = appendStandardLimit(limit, offset)
+
+    /** Standard LIMIT/OFFSET rendering, callable by dialect overrides. */
+    protected fun Builder.appendStandardLimit(limit: @Nullable Int?, offset: @Nullable Int?) {
         limit?.let {
             append(" LIMIT ")
             bind(it)
@@ -119,7 +125,10 @@ public abstract class SqlRenderer(
         }
     }
 
-    protected open fun Builder.appendInsert(insert: SqlInsert) {
+    protected open fun Builder.appendInsert(insert: SqlInsert): Unit = appendStandardInsert(insert)
+
+    /** Standard INSERT rendering, callable by dialect overrides. */
+    protected fun Builder.appendStandardInsert(insert: SqlInsert) {
         append("INSERT INTO ").append(quote(insert.table))
         if (insert.columns.isEmpty()) {
             append(' ').append(defaultValuesClause)
@@ -225,7 +234,10 @@ public abstract class SqlRenderer(
         appendExpression(condition.right)
     }
 
-    protected open fun Builder.appendTextMatch(condition: SqlCondition.TextMatch) {
+    protected open fun Builder.appendTextMatch(condition: SqlCondition.TextMatch): Unit = appendStandardTextMatch(condition)
+
+    /** Standard LIKE rendering, callable by dialect overrides. */
+    protected fun Builder.appendStandardTextMatch(condition: SqlCondition.TextMatch) {
         val pattern = pattern(condition.match, condition.value)
         if (condition.caseInsensitive && capabilities.caseInsensitiveLike) {
             appendExpression(condition.column)

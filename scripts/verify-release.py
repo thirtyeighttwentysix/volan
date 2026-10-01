@@ -19,8 +19,12 @@ LIBRARIES = {
     "volan-core", "volan-schema", "volan-ir", "volan-codegen", "volan-dialect-api",
     "volan-dialect-postgres", "volan-runtime", "volan-migrate",
 }
-ARTIFACTS = LIBRARIES | {"volan-bom"}
 NS = {"m": "http://maven.apache.org/POM/4.0.0"}
+
+
+def libraries_for(version):
+    # The first immutable release predates SQLite; all subsequent releases include it.
+    return LIBRARIES if version == "0.1.0-alpha.1" else LIBRARIES | {"volan-dialect-sqlite"}
 
 
 def require(condition, message):
@@ -31,14 +35,14 @@ def require(condition, message):
 def files_for(artifact, version):
     prefix = f"{artifact}-{version}"
     suffixes = [".pom", ".module"]
-    if artifact in LIBRARIES:
+    if artifact in libraries_for(version):
         suffixes += [".jar", "-sources.jar", "-javadoc.jar"]
     return [prefix + suffix for suffix in suffixes]
 
 
 def download(repository, version, signatures, wait):
     pending = []
-    for artifact in sorted(ARTIFACTS):
+    for artifact in sorted(libraries_for(version) | {"volan-bom"}):
         folder = Path(GROUP.replace(".", "/")) / artifact / version
         for name in files_for(artifact, version):
             pending += [folder / name, folder / (name + ".sha1"), folder / (name + ".md5")]
@@ -67,9 +71,11 @@ def download(repository, version, signatures, wait):
 
 
 def verify(repository, version, public_key):
+    libraries = libraries_for(version)
+    artifacts = libraries | {"volan-bom"}
     base = repository / GROUP.replace(".", "/")
     present = {p.name for p in base.iterdir() if (p / version).is_dir()}
-    require(present == ARTIFACTS, f"Unexpected artifact set: {present ^ ARTIFACTS}")
+    require(present == artifacts, f"Unexpected artifact set: {present ^ artifacts}")
     with tempfile.TemporaryDirectory(prefix="volan-public-key-") as keyring:
         gpg = shutil.which("gpg")
         if public_key:
@@ -79,7 +85,7 @@ def verify(repository, version, public_key):
             shutil.copyfile(public_key, Path(keyring, "public-key.asc"))
             subprocess.run([gpg, "--homedir", ".", "--batch", "--import", "public-key.asc"],
                            cwd=keyring, check=True, capture_output=True)
-        for artifact in sorted(ARTIFACTS):
+        for artifact in sorted(artifacts):
             folder = base / artifact / version
             pom = ET.parse(folder / f"{artifact}-{version}.pom").getroot()
             value = lambda path: pom.findtext(path, namespaces=NS)
@@ -96,10 +102,10 @@ def verify(repository, version, public_key):
                 dependency_version = dependency.findtext("m:version", namespaces=NS)
                 require(dependency_version and "SNAPSHOT" not in dependency_version, f"Unreleased dependency: {name}")
                 if group == GROUP:
-                    require(name in LIBRARIES and dependency_version == version, f"Invalid Volan dependency: {name}")
+                    require(name in libraries and dependency_version == version, f"Invalid Volan dependency: {name}")
             if artifact == "volan-bom":
                 require(value("m:packaging") == "pom", "BOM must have pom packaging")
-                require({d.findtext("m:artifactId", namespaces=NS) for d in dependencies} == LIBRARIES,
+                require({d.findtext("m:artifactId", namespaces=NS) for d in dependencies} == libraries,
                         "BOM must constrain exactly the published libraries")
             metadata = json.loads((folder / f"{artifact}-{version}.module").read_text())
             require(metadata["component"]["version"] == version, f"Wrong module metadata: {artifact}")

@@ -9,7 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Prepared `0.1.0-alpha.1` Maven Central publications for eight library modules and their BOM,
+- M8: SQLite runtime dialect with provider discovery, generated CRUD, relations, nested writes,
+  summaries, paging, asynchronous operations, transaction savepoints and portable constraint errors.
+- SQLite schema diagnostics for unsupported storage shapes and a database feature matrix.
+- SQLite Maven publication and BOM constraint for the next release, with an independent Java consumer.
+
+### Fixed
+
+- `createMany` preserves input order and per-row database defaults across heterogeneous insert shapes,
+  batches below the dialect's parameter limit and rolls back all batches on failure.
+- Relation loading matches integral JDBC keys consistently when a driver returns an `Int` for a `Long`
+  key, and matches UUID keys returned as strings.
+- Release rehearsal accepts development SNAPSHOT versions while tag publication still requires an
+  immutable release version.
+
+## [0.1.0-alpha.1] - 2026-09-10
+
+### Added
+
+- Published `0.1.0-alpha.1` to Maven Central for eight library modules and their BOM,
   including sources, Dokka documentation, signing configuration and a tag-driven release workflow.
 - Release artifact verification and an independent Maven consumer covering generated Java API,
   PostgreSQL migrations, asynchronous queries and transaction rollback.

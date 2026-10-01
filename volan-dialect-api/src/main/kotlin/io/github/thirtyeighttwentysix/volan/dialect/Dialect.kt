@@ -1,6 +1,9 @@
 package io.github.thirtyeighttwentysix.volan.dialect
 
 import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
+import java.sql.Connection
+import java.sql.SQLException
 
 /**
  * What a database can and cannot do.
@@ -43,6 +46,18 @@ public interface Dialect {
 
     /** What this database can do. */
     public val capabilities: DialectCapabilities
+
+    /** Prepares a borrowed connection before any transaction begins. */
+    public fun initialize(connection: Connection): Unit = Unit
+
+    /** Limits pooling where separate connections would describe separate databases. */
+    public fun poolSize(jdbcUrl: String, requested: Int): Int = requested
+
+    /** Converts a parameter to the storage representation expected by this database. */
+    public fun jdbcValue(value: @Nullable Any?): @Nullable Any? = value
+
+    /** Classifies vendor errors using standard SQL states understood by the runtime. */
+    public fun sqlState(exception: SQLException): @Nullable String? = exception.sqlState
 
     /** Renders a read. */
     public fun render(select: SqlSelect): SqlStatement

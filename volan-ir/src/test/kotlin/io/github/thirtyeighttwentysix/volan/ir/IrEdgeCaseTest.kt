@@ -31,8 +31,8 @@ class IrEdgeCaseTest {
 
     @Test
     fun `a url written into the schema is still resolved`() {
-        schema.datasource.url shouldBe ConnectionUrl.Literal("file:./dev.db")
-        schema.datasource.provider shouldBe Provider.SQLITE
+        schema.datasource.url shouldBe ConnectionUrl.Literal("jdbc:postgresql://localhost/edge")
+        schema.datasource.provider shouldBe Provider.POSTGRESQL
     }
 
     @Test
