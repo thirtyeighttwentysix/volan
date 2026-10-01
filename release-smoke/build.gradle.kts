@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.4.10"
+    kotlin("jvm") version "2.4.20"
 }
 
 val volanVersion = providers.gradleProperty("volanVersion").get()
@@ -15,14 +15,14 @@ dependencies {
     implementation("io.github.thirtyeighttwentysix:volan-runtime")
     implementation("io.github.thirtyeighttwentysix:volan-dialect-postgres")
     testImplementation("io.github.thirtyeighttwentysix:volan-migrate")
-    testImplementation(platform("org.junit:junit-bom:6.1.2"))
+    testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
     testRuntimeOnly("org.postgresql:postgresql:42.7.13")
     if (includesSqlite) {
         testImplementation("io.github.thirtyeighttwentysix:volan-dialect-sqlite")
-        testRuntimeOnly("org.xerial:sqlite-jdbc:3.53.2.1")
+        testRuntimeOnly("org.xerial:sqlite-jdbc:3.53.4.0")
     }
 }
 

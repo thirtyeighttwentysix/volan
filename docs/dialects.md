@@ -38,7 +38,7 @@ dependencies {
     implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.2"))
     implementation("io.github.thirtyeighttwentysix:volan-runtime")
     implementation("io.github.thirtyeighttwentysix:volan-dialect-sqlite")
-    runtimeOnly("org.xerial:sqlite-jdbc:3.53.2.1")
+    runtimeOnly("org.xerial:sqlite-jdbc:3.53.4.0")
 }
 ```
 

@@ -10,6 +10,10 @@ updates:
     commit-message:
       prefix: "build"
       include: scope
+    ignore:
+      # The open-source jOOQ 3.20+ artifacts require Java 21; the benchmark build targets Java 17.
+      - dependency-name: "org.jooq:jooq"
+        versions: [">=3.20"]
     groups:
       kotlin:
         patterns:
