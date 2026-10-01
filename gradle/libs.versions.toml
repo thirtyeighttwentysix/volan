@@ -19,7 +19,7 @@ junit = "6.1.2"
 kotest = "6.2.3"
 testcontainers = "2.0.5"
 
-detekt = "2.0.0-alpha.5"
+detekt = "2.0.0-alpha.6"
 ktlintPlugin = "14.2.0"
 ktlint = "1.7.1"
 kover = "0.9.9"
