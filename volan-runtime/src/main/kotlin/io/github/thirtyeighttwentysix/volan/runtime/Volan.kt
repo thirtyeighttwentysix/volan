@@ -203,6 +203,7 @@ public class Volan internal constructor(
                 this.username = this@Builder.username
                 this.password = this@Builder.password
                 this.maximumPoolSize = resolved.poolSize(jdbcUrl, maxPoolSize)
+                resolved.connectionMaxLifetime(jdbcUrl)?.let { this.maxLifetime = it }
                 this.connectionTimeout = this@Builder.connectionTimeout
                 this.poolName = this@Builder.poolName
             }

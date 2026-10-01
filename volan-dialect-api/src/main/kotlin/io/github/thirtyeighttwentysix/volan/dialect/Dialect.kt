@@ -53,6 +53,9 @@ public interface Dialect {
     /** Limits pooling where separate connections would describe separate databases. */
     public fun poolSize(jdbcUrl: String, requested: Int): Int = requested
 
+    /** Overrides pooled connection retirement in milliseconds; zero disables it, null keeps the pool default. */
+    public fun connectionMaxLifetime(jdbcUrl: String): @Nullable Long? = null
+
     /** Converts a parameter to the storage representation expected by this database. */
     public fun jdbcValue(value: @Nullable Any?): @Nullable Any? = value
 

@@ -393,6 +393,7 @@ public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$Dro
 }
 
 public abstract interface class io/github/thirtyeighttwentysix/volan/dialect/Dialect {
+	public fun connectionMaxLifetime (Ljava/lang/String;)Ljava/lang/Long;
 	public abstract fun getCapabilities ()Lio/github/thirtyeighttwentysix/volan/dialect/DialectCapabilities;
 	public abstract fun getId ()Ljava/lang/String;
 	public fun initialize (Ljava/sql/Connection;)V
@@ -407,6 +408,7 @@ public abstract interface class io/github/thirtyeighttwentysix/volan/dialect/Dia
 }
 
 public final class io/github/thirtyeighttwentysix/volan/dialect/Dialect$DefaultImpls {
+	public static fun connectionMaxLifetime (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/lang/String;)Ljava/lang/Long;
 	public static fun initialize (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/sql/Connection;)V
 	public static fun jdbcValue (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/lang/Object;)Ljava/lang/Object;
 	public static fun poolSize (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/lang/String;I)I
@@ -837,6 +839,7 @@ public abstract class io/github/thirtyeighttwentysix/volan/dialect/SqlRenderer :
 	protected fun appendTextMatch (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Lio/github/thirtyeighttwentysix/volan/dialect/SqlCondition$TextMatch;)V
 	protected fun appendTuple (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Lio/github/thirtyeighttwentysix/volan/dialect/SqlCondition$CompareTuple;)V
 	protected fun appendUpdate (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Lio/github/thirtyeighttwentysix/volan/dialect/SqlUpdate;)V
+	public fun connectionMaxLifetime (Ljava/lang/String;)Ljava/lang/Long;
 	public fun getCapabilities ()Lio/github/thirtyeighttwentysix/volan/dialect/DialectCapabilities;
 	protected fun getCaseInsensitiveLikeKeyword ()Ljava/lang/String;
 	protected fun getDefaultValuesClause ()Ljava/lang/String;

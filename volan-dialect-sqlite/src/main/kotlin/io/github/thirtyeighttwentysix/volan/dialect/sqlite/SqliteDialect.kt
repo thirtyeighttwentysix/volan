@@ -53,6 +53,9 @@ public object SqliteDialect : SqlRenderer(
         return 1
     }
 
+    // Retiring the sole connection would destroy a private memory or temporary database.
+    override fun connectionMaxLifetime(jdbcUrl: String): Long = 0L
+
     override fun jdbcValue(value: Any?): Any? = when (value) {
         is Instant -> instantFormat.format(value)
         is LocalDate, is LocalTime, is UUID -> value.toString()

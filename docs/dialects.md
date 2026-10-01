@@ -67,7 +67,8 @@ supplied columns are batched with at most 999 parameters, and every batch belong
 
 Volan's SQLite pool uses one connection, even if a larger `maxPoolSize` is requested. This keeps a
 private in-memory database alive and serializes work within that pool. Separate clients can still
-contend for the same file. An externally supplied `DataSource` owns its connection count and lifetime;
+contend for the same file. Automatic connection retirement is disabled so it cannot destroy a private
+memory database during the client's lifetime. An externally supplied `DataSource` owns its connection count and lifetime;
 use a single persistent connection for private in-memory databases.
 
 Foreign keys are enabled and checked on every borrowed connection. Supply connections outside an

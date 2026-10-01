@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SQLite pools retain their physical connection until close, preserving private in-memory databases
+  beyond Hikari's default connection retirement interval.
 - `createMany` preserves input order and per-row database defaults across heterogeneous insert shapes,
   batches below the dialect's parameter limit and rolls back all batches on failure.
 - Relation loading matches integral JDBC keys consistently when a driver returns an `Int` for a `Long`
