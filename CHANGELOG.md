@@ -28,8 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Reviewed Dependabot updates: Gradle 9.7.1, Kotlin 2.4.20, detekt alpha.6, JDBC drivers,
-  test libraries, SLF4J, JSpecify, Jackson and Micrometer. Release consumer dependencies are aligned.
+- Reviewed Dependabot updates: Gradle 9.8.0, Kotlin 2.4.20, KotlinPoet 2.4.0, detekt alpha.6,
+  JDBC drivers, test libraries, SLF4J, JSpecify, Jackson, Micrometer, Hibernate, jOOQ 3.19.39
+  and the plugin publishing tool. Release consumer dependencies are aligned.
 - CI and release actions are upgraded together; Gradle Actions uses its MIT-licensed basic cache.
 - Keep open-source jOOQ on 3.19 for Java 17 compatibility and exclude incompatible newer releases
   from Dependabot updates.
