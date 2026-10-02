@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import io.github.thirtyeighttwentysix.volan.dialect.DdlRenderer
+import io.github.thirtyeighttwentysix.volan.dialect.h2.H2Dialect
 import io.github.thirtyeighttwentysix.volan.dialect.postgres.PostgresDialect
 import io.github.thirtyeighttwentysix.volan.dialect.sqlite.SqliteDialect
 import io.github.thirtyeighttwentysix.volan.ir.ConnectionUrl
@@ -24,8 +25,10 @@ import kotlin.io.path.readText
 
 /** Runs Volan's database synchronization commands. */
 public fun main(args: Array<String>) {
-    Root().subcommands(Database().subcommands(Pull(), Push())).main(args)
+    command().main(args)
 }
+
+internal fun command(): CliktCommand = Root().subcommands(Database().subcommands(Pull(), Push()))
 
 private class Root : CliktCommand(name = "volan") {
     override fun run(): Unit = Unit
@@ -37,15 +40,27 @@ private class Database : CliktCommand(name = "db") {
 
 private abstract class DatabaseCommand(name: String) : CliktCommand(name = name) {
     protected val schemaPath: String by option("--schema", help = "Schema file.").default("schema.volan")
-    private val url: String? by option("--url", help = "PostgreSQL or SQLite JDBC URL; defaults to DATABASE_URL or the schema datasource.")
+    private val url: String? by option(
+        "--url",
+        help = "PostgreSQL, SQLite or H2 JDBC URL; defaults to DATABASE_URL or the schema datasource.",
+    )
 
-    protected fun dialect(connection: java.sql.Connection): DdlRenderer =
-        if (connection.metaData.databaseProductName == "SQLite") SqliteDialect else PostgresDialect
-
-    protected fun sync(connection: java.sql.Connection): DatabaseSync {
-        val provider = if (connection.metaData.databaseProductName == "SQLite") Provider.SQLITE else Provider.POSTGRESQL
-        return DatabaseSync(DatabaseReader.forProvider(provider), dialect(connection))
+    protected fun dialect(connection: java.sql.Connection): DdlRenderer = when (provider(connection)) {
+        Provider.POSTGRESQL -> PostgresDialect
+        Provider.SQLITE -> SqliteDialect
+        Provider.H2 -> H2Dialect
+        else -> error("Unsupported database provider")
     }
+
+    private fun provider(connection: java.sql.Connection): Provider = when (connection.metaData.databaseProductName) {
+        "PostgreSQL" -> Provider.POSTGRESQL
+        "SQLite" -> Provider.SQLITE
+        "H2" -> Provider.H2
+        else -> error("Unsupported database: ${connection.metaData.databaseProductName}")
+    }
+
+    protected fun sync(connection: java.sql.Connection): DatabaseSync =
+        DatabaseSync(DatabaseReader.forProvider(provider(connection)), dialect(connection))
 
     protected fun schema(): Schema = SchemaLoader.load(schemaPath, Path.of(schemaPath).readText()).schemaOrThrow()
 
@@ -57,8 +72,8 @@ private abstract class DatabaseCommand(name: String) : CliktCommand(name = name)
             null -> null
         }
         val address = url ?: schemaUrl ?: System.getenv("DATABASE_URL")
-        require(address?.startsWith("jdbc:postgresql:") == true || address?.startsWith("jdbc:sqlite:") == true) {
-            "Set DATABASE_URL to a PostgreSQL or SQLite JDBC URL."
+        require(listOf("jdbc:postgresql:", "jdbc:sqlite:", "jdbc:h2:").any { address?.startsWith(it) == true }) {
+            "Set DATABASE_URL to a PostgreSQL, SQLite or H2 JDBC URL."
         }
         val properties = Properties()
         System.getenv("DATABASE_USER")?.let { properties.setProperty("user", it) }

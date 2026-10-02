@@ -18,7 +18,7 @@
 > [0.1.0-alpha.2](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.2) supports
 > PostgreSQL and SQLite with CRUD, relations, summaries, Java API and migration tooling.
 > Install it from Maven Central using the BOM below. APIs may change during the alpha series.
-> Development toward alpha.3 adds H2 runtime support; it is not included in alpha.2.
+> Development toward alpha.3 adds H2 runtime support, introspection and SQL migration plans; these are not included in alpha.2.
 > See [database support](docs/dialects.md), [publishing](docs/publishing.md) and [ROADMAP.md](ROADMAP.md), and
 > [ARCHITECTURE.md](ARCHITECTURE.md) for how it is put together.
 

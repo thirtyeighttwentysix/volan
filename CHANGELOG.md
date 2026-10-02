@@ -15,9 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   storage and private/named memory pool handling. A shared embedded integration suite covers SQLite
   and H2; H2 schema introspection and versioned migrations remain scheduled separately.
 - H2 Maven publication and BOM constraint for the next alpha, with an independent Java consumer.
+- Strict H2 current-schema introspection, schema export, drift detection and executable SQL change
+  plans. The CLI supports H2 `db pull` and `db push --dry-run`; automatic deployment remains deferred.
 
 ### Fixed
 
+- H2 type changes render `SET DATA TYPE`; NO ACTION foreign keys normalize to H2's reported RESTRICT.
 - JDBC dates and time summaries retain their date across session time zones and preserve nanosecond time precision.
 - Generated entities with Bytes[] compile and compare, hash and display their elements by content.
 - JDBC scalar-array mapping converts dates, nanosecond times, instants, JSON and UUID elements into

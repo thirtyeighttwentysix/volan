@@ -192,10 +192,14 @@ public object SchemaMapper {
             columns = columns,
             targetTable = target.dbName,
             targetColumns = relation.referencedFields.map { columnOf(target, it) },
-            onDelete = action(relation.onDelete) ?: defaultOnDelete(relation, model),
-            onUpdate = action(relation.onUpdate) ?: ForeignKeyAction.CASCADE,
+            onDelete = normalizedAction(schema, action(relation.onDelete) ?: defaultOnDelete(relation, model)),
+            onUpdate = normalizedAction(schema, action(relation.onUpdate) ?: ForeignKeyAction.CASCADE),
         )
     }
+
+    // H2 reports NO ACTION as RESTRICT; both are immediate checks in H2.
+    private fun normalizedAction(schema: Schema, action: ForeignKeyAction): ForeignKeyAction =
+        if (schema.datasource.provider == Provider.H2 && action == ForeignKeyAction.NO_ACTION) ForeignKeyAction.RESTRICT else action
 
     /**
      * What happens to a row whose parent is deleted, when the schema does not say.

@@ -15,8 +15,9 @@ H2 runtime support is on main for alpha.3. MySQL and MariaDB remain placeholders
 | Scalar arrays | Yes | Rejected during schema analysis | Yes | Planned |
 | Decimal | Yes | Rejected during schema analysis | NUMERIC(65, 30) | Planned |
 | Provider-specific @db types | Yes | Rejected during schema analysis | Rejected during schema analysis | Planned |
-| Initial DDL generation | Yes | Yes | Yes | Planned |
-| Pull, push, migration journal, drift detection | Yes | Yes, ordinary main tables | Planned | Planned |
+| Initial DDL and SQL change plans | Yes | Yes | Yes | Planned |
+| Pull and structural drift detection | Yes | Yes, ordinary main tables | Yes, ordinary current-schema tables | Planned |
+| Automatic push and migration journal | Yes | Yes | Planned | Planned |
 | Typed full-text search | Planned | Planned; @@fulltext rejected | Planned; @@fulltext rejected | Planned |
 
 ## H2 setup on main
@@ -34,6 +35,7 @@ dependencies {
     implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.3"))
     implementation("io.github.thirtyeighttwentysix:volan-runtime")
     implementation("io.github.thirtyeighttwentysix:volan-dialect-h2")
+    implementation("io.github.thirtyeighttwentysix:volan-migrate") // Schema inspection and SQL plans.
     runtimeOnly("com.h2database:h2:2.5.252")
 }
 ```
@@ -47,9 +49,33 @@ closes. External data sources keep their own connection lifecycle.
 
 Create tables with reviewed SQL before using repositories. Initial DDL can be generated with
 `SchemaDiffer.diff(DatabaseSchema(), SchemaMapper.map(schema)).render(H2Dialect)` from `volan-migrate`.
-H2 introspection, pull/push, drift detection and migration journals are not yet supported; the CLI
-does not accept H2 URLs. H2 DDL can commit an existing transaction, so avoid running schema commands
-inside application transactions.
+`DatabaseSync(H2Reader(), H2Dialect)` reads the connection's current schema, exports it with `pull`,
+detects structural drift and generates SQL with `plan`. The CLI bundles the H2 driver:
+
+```shell
+volan db pull --url jdbc:h2:file:./data --stdout
+volan db push --schema schema.volan --url jdbc:h2:file:./data --dry-run
+```
+
+An H2 plan is a preview. Automatic `db push` and `Migrator` are refused before DDL or journal writes,
+including with `--accept-data-loss`. H2 DDL can commit an existing transaction; applying reviewed SQL
+manually can leave earlier statements applied if a later statement fails. Use a dedicated connection
+and handle recovery explicitly. Pull, drift and planning execute only catalogue queries and do not
+commit a caller's transaction.
+
+Introspection preserves standard scalar types, arrays, defaults, normal BY DEFAULT identities,
+ordered keys, constraints and ascending indexes. It rejects definitions the schema cannot preserve:
+custom type sizes/precision, bounded or nested arrays, custom identity options, generated/invisible
+columns, domains used as column types, CHECK constraints, views, triggers, standalone sequences,
+synonyms, linked/temporary tables, cross-schema foreign keys and custom index ordering or methods.
+Only regular mode with default collation/null ordering is supported. The default migration journal
+table is excluded; `H2Reader(journalTable)` selects a custom journal name, using its exact database case.
+
+H2 reports NO ACTION foreign keys as RESTRICT; schema mapping normalizes this equivalent immediate
+check to avoid repeated changes. Enum columns export as String, and implicit join tables export as
+explicit ignored models. A standalone unique index is read accurately but cannot be exported as a
+unique constraint. Arbitrary database-generated expressions use H2's reported SQL spelling; when
+planning against handwritten expressions, match that spelling to avoid textual default differences.
 
 The implementation is tested with H2 2.5.252 in regular mode. Compatibility modes are not covered.
 Writes return rows through [H2 data change delta tables](https://h2database.com/html/grammar.html#data_change_delta_table):
@@ -67,7 +93,7 @@ deferred as described in the roadmap. `@db` and `@@fulltext` are rejected during
 The shared embedded suite checks H2 and SQLite CRUD, bulk writes, queries, relations, nested writes,
 summaries, cursors, constraints, asynchronous reads, file reopening and savepoint rollback. An H2
 schema separately generates and compiles a client covering Decimal, UUID defaults and every scalar
-array. The independent release consumer verifies H2 from staged Maven artifacts.
+array. The independent release consumer verifies H2 CRUD and schema round trips from staged Maven artifacts.
 
 ## SQLite setup
 

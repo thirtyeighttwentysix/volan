@@ -90,6 +90,6 @@ class H2TypesTest {
         database.enums shouldBe emptyList()
         database.tables.single().columns[1].type shouldBe ColumnType.Scalar(SqlType.TEXT)
         database.tables.single().columns[2].type shouldBe ColumnType.Array(ColumnType.Scalar(SqlType.TEXT))
-        assertThrows<VolanMigrationException> { DatabaseReader.forProvider(Provider.H2) }
+        (DatabaseReader.forProvider(Provider.H2) is H2Reader) shouldBe true
     }
 }

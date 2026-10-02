@@ -6,7 +6,7 @@ import io.github.thirtyeighttwentysix.volan.ir.NativeType
 import io.github.thirtyeighttwentysix.volan.ir.ScalarType
 import java.util.Locale
 
-/** H2 scalar declarations used for initial DDL; native overrides and schema introspection are not yet supported. */
+/** H2 scalar declarations used for DDL and introspection; native overrides are not yet supported. */
 public object H2Types : NativeTypeTable {
     override fun canonical(scalar: ScalarType, native: NativeType): ColumnType =
         throw VolanMigrationException("H2 does not yet support @db type overrides.")

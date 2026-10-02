@@ -7,6 +7,9 @@ import io.github.thirtyeighttwentysix.volan.dialect.DdlRenderer;
 import io.github.thirtyeighttwentysix.volan.migrate.DatabaseSchema;
 import io.github.thirtyeighttwentysix.volan.migrate.SchemaDiffer;
 import io.github.thirtyeighttwentysix.volan.migrate.SchemaMapper;
+import io.github.thirtyeighttwentysix.volan.migrate.DatabaseReader;
+import io.github.thirtyeighttwentysix.volan.migrate.DatabaseSync;
+import io.github.thirtyeighttwentysix.volan.ir.Provider;
 import io.github.thirtyeighttwentysix.volan.runtime.VolanUniqueConstraintException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -15,6 +18,7 @@ import java.nio.file.Path;
 import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.sql.DriverManager;
 import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfSystemProperty(named = "volan.h2", matches = "true")
@@ -30,6 +34,12 @@ class PublishedH2Test {
         var statements = SchemaDiffer.diff(new DatabaseSchema(), SchemaMapper.map(model)).render(dialect);
         try (var client = VolanClient.builder().url(url).maxPoolSize(4).build()) {
             for (var statement : statements) client.rawExecute(statement);
+            try (var connection = DriverManager.getConnection(url)) {
+                var sync = new DatabaseSync(DatabaseReader.forProvider(Provider.H2), dialect);
+                assertTrue(sync.plan(connection, model).isEmpty());
+                var pulled = SchemaLoader.load("pulled.volan", sync.pull(connection)).schemaOrThrow();
+                assertEquals(SchemaMapper.map(model), SchemaMapper.map(pulled));
+            }
             var user = client.getUser().create(d -> d.setEmail("h2@example.org"));
             assertNull(user.getName());
             assertEquals(user, client.getUser().findFirstAsync().get(10, TimeUnit.SECONDS));

@@ -48,7 +48,10 @@ the JVM without giving up something the brief also asks for.
 - H2 runtime and initial DDL: generated clients, scalar arrays, Decimal, relations, nested writes,
   summaries, DISTINCT ON, cursors, async operations and transactions run against real H2 on every CI OS.
   Its Maven module and BOM entry are configured for the next alpha; alpha.2 does not include H2.
-- Remaining: H2 introspection and migration journals; MySQL and MariaDB implementations and their
+- H2 schema inspection: strict current-schema introspection, `db pull`, structural drift and SQL plans
+  (`db push --dry-run`) are tested, including scalar arrays, composite foreign keys and identity columns.
+  Automatic push and migration journals remain blocked until nontransactional DDL recovery is implemented.
+- Remaining: H2 automatic push and migration journals; MySQL and MariaDB implementations and their
   integration suites. M8 is not complete.
 
 ## Deliberately deferred

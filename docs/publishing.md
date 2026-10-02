@@ -5,7 +5,7 @@ The [release workflow](https://github.com/thirtyeighttwentysix/volan/actions/wor
 verifies downloaded artifacts, signatures and independent PostgreSQL and SQLite consumers before
 creating the [GitHub prerelease](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.2).
 Alpha.1 remains available as the first PostgreSQL-only release.
-Current development is `0.1.0-alpha.3-SNAPSHOT`, adding H2 runtime support.
+Current development is `0.1.0-alpha.3-SNAPSHOT`, adding H2 runtime support, introspection and SQL plans.
 
 ## Published artifacts
 

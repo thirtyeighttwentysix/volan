@@ -1,9 +1,11 @@
 package io.github.thirtyeighttwentysix.volan.dialect.h2
 
 import io.github.thirtyeighttwentysix.volan.Json
+import io.github.thirtyeighttwentysix.volan.dialect.ColumnChange
 import io.github.thirtyeighttwentysix.volan.dialect.ColumnDefault
 import io.github.thirtyeighttwentysix.volan.dialect.ColumnType
 import io.github.thirtyeighttwentysix.volan.dialect.DdlRenderer
+import io.github.thirtyeighttwentysix.volan.dialect.DdlStatement
 import io.github.thirtyeighttwentysix.volan.dialect.DialectCapabilities
 import io.github.thirtyeighttwentysix.volan.dialect.IndexDefinition
 import io.github.thirtyeighttwentysix.volan.dialect.SqlDelete
@@ -86,6 +88,17 @@ public object H2Dialect : DdlRenderer(
     override fun createIndex(table: String, index: IndexDefinition): String {
         if (index.fullText) throw VolanDialectException("H2 full-text indexes require separately managed full-text tables.")
         return super.createIndex(table, index)
+    }
+
+    override fun alterColumn(alter: DdlStatement.AlterColumn): List<SqlStatement> = when (val change = alter.change) {
+        is ColumnChange.Type -> listOf(
+            SqlStatement(
+                "ALTER TABLE ${quote(alter.table)} ALTER COLUMN ${quote(alter.column)} SET DATA TYPE ${render(change.type)}" +
+                    change.using?.let { " USING $it" }.orEmpty(),
+                emptyList(),
+            ),
+        )
+        else -> super.alterColumn(alter)
     }
 
     override fun jdbcValue(value: Any?): Any? = when (value) {
