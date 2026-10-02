@@ -53,6 +53,25 @@ jobs:
           path: '**/build/reports/tests/**'
           retention-days: 7
 
+  cli-launcher:
+    name: CLI launcher (${{ matrix.os }}, JDK 25)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      - name: Test packaged CLI with native access enforcement
+        run: ./gradlew :volan-cli:test --stacktrace
+
   static-analysis:
     name: detekt + ktlint
     runs-on: ubuntu-latest

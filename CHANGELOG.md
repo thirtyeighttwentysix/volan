@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- CLI launchers declare the native access required by terminal and SQLite drivers, preventing JDK 24+ startup warnings.
 - H2 type changes render `SET DATA TYPE`; NO ACTION foreign keys normalize to H2's reported RESTRICT.
 - JDBC dates and time summaries retain their date across session time zones and preserve nanosecond time precision.
 - Generated entities with Bytes[] compile and compare, hash and display their elements by content.

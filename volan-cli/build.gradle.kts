@@ -19,4 +19,12 @@ dependencies {
 application {
     mainClass.set("io.github.thirtyeighttwentysix.volan.cli.MainKt")
     applicationName = "volan"
+    // The terminal and SQLite drivers use JNI. Declare that access in both generated launchers.
+    applicationDefaultJvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
+}
+
+tasks.test {
+    dependsOn(tasks.installDist)
+    jvmArgs(application.applicationDefaultJvmArgs)
+    systemProperty("volan.cli.installDir", layout.buildDirectory.dir("install/volan").get().asFile.absolutePath)
 }
