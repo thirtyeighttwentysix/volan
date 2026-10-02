@@ -48,6 +48,7 @@ clikt = { module = "com.github.ajalt.clikt:clikt-jvm", version.ref = "clikt" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+slf4j-nop = { module = "org.slf4j:slf4j-nop", version.ref = "slf4j" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }

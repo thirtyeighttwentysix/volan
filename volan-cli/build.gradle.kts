@@ -17,6 +17,7 @@ dependencies {
     runtimeOnly(libs.jdbc.h2)
     runtimeOnly(libs.jdbc.mysql)
     runtimeOnly(libs.jdbc.mariadb)
+    runtimeOnly(libs.slf4j.nop)
 }
 
 application {
