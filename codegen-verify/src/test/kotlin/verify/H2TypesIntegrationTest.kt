@@ -86,6 +86,29 @@ class H2TypesIntegrationTest {
     }
 
     @Test
+    fun `date and nanosecond time summaries are independent of the session time zone`() {
+        client.rawExecute("SET TIME ZONE 'Asia/Novosibirsk'")
+        val date = LocalDate.of(2026, 10, 1)
+        val time = LocalTime.of(0, 1, 2, 123456789)
+        val created = client.scalars.create {
+            amount = BigDecimal.ONE
+            this.date = date
+            this.time = time
+        }
+        created.date shouldBe date
+        created.time shouldBe time
+        val summary = client.scalars.aggregate { minimum { this.date; this.time }; maximum { this.date; this.time } }
+        summary.minimumOfDate shouldBe date
+        summary.maximumOfDate shouldBe date
+        summary.minimumOfTime shouldBe time
+        summary.maximumOfTime shouldBe time
+        val group = client.scalars.groupBy { by { this.date }; minimum { this.time }; maximum { this.time } }.single()
+        group.date shouldBe date
+        group.minimumOfTime shouldBe time
+        group.maximumOfTime shouldBe time
+    }
+
+    @Test
     fun `empty arrays defaults and uuid defaults are returned after the write`() {
         val row = client.scalars.create { amount = BigDecimal.ZERO }
         row.words shouldBe emptyList()

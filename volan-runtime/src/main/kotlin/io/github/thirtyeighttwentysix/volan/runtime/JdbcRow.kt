@@ -69,7 +69,7 @@ internal class JdbcRow(private val result: ResultSet) : Row {
     override fun getLocalDateOrNull(column: String): LocalDate? = when (val value = result.getObject(column)) {
         null -> null
         is LocalDate -> value
-        is java.sql.Date -> value.toLocalDate()
+        is java.sql.Date -> result.getObject(column, LocalDate::class.java)
         is String -> LocalDate.parse(value)
         else -> throw VolanMappingException("`$column` holds ${value.javaClass.name}, which Volan cannot read as a date.")
     }
@@ -102,6 +102,13 @@ internal class JdbcRow(private val result: ResultSet) : Row {
     override fun getJsonOrNull(column: String): Json? = result.getString(column)?.let { Json.of(it) }
 
     override fun getScalarList(column: String): List<Any?> = required(column, getScalarListOrNull(column))
+
+    /** JDBC's legacy date/time objects can shift dates or discard fractional seconds. */
+    internal fun aggregateValue(column: String): Any? = when (val value = result.getObject(column)) {
+        is java.sql.Date -> result.getObject(column, LocalDate::class.java)
+        is java.sql.Time -> result.getObject(column, LocalTime::class.java)
+        else -> value
+    }
 
     override fun getScalarListOrNull(column: String): List<Any?>? {
         val array = result.getArray(column) ?: return null

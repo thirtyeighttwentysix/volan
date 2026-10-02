@@ -17,6 +17,8 @@ enum Role {
 model Scalars {
   id Uuid @id @default(uuid())
   amount Decimal
+  date Date?
+  time Time?
   words String[] @default([])
   integers Int[] @default([])
   bigNumbers Long[] @default([])

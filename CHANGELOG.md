@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- JDBC dates and time summaries retain their date across session time zones and preserve nanosecond time precision.
 - Generated entities with Bytes[] compile and compare, hash and display their elements by content.
 - JDBC scalar-array mapping converts dates, nanosecond times, instants, JSON and UUID elements into
   their declared Kotlin types instead of exposing driver storage values.

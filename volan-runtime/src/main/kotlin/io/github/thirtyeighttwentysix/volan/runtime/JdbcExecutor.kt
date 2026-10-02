@@ -105,7 +105,8 @@ internal class JdbcExecutor(
         val statement = dialect.render(planner.aggregate(spec))
         return query(statement, "summarising ${spec.model}") { result ->
             val values = LinkedHashMap<String, Any?>()
-            if (result.next()) spec.aggregations.forEach { values[it.alias] = result.getObject(it.alias) }
+            val row = JdbcRow(result)
+            if (result.next()) spec.aggregations.forEach { values[it.alias] = row.aggregateValue(it.alias) }
             values
         }
     }
@@ -123,7 +124,7 @@ internal class JdbcExecutor(
             val row = JdbcRow(result)
             while (result.next()) {
                 val values = LinkedHashMap<String, Any?>()
-                spec.aggregations.forEach { values[it.alias] = result.getObject(it.alias) }
+                spec.aggregations.forEach { values[it.alias] = row.aggregateValue(it.alias) }
                 groups.add(GroupRow(mapper.map(row), values))
             }
             groups

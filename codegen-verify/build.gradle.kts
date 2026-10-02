@@ -104,6 +104,8 @@ tasks.named<KotlinCompile>("compileKotlin") {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    // H2 tests also use a different session zone, independently of the developer's machine.
+    systemProperty("user.timezone", "UTC")
     testLogging {
         events("passed", "skipped", "failed")
         exceptionFormat = TestExceptionFormat.FULL
