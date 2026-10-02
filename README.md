@@ -18,6 +18,7 @@
 > [0.1.0-alpha.2](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.2) supports
 > PostgreSQL and SQLite with CRUD, relations, summaries, Java API and migration tooling.
 > Install it from Maven Central using the BOM below. APIs may change during the alpha series.
+> Development toward alpha.3 adds H2 runtime support; it is not included in alpha.2.
 > See [database support](docs/dialects.md), [publishing](docs/publishing.md) and [ROADMAP.md](ROADMAP.md), and
 > [ARCHITECTURE.md](ARCHITECTURE.md) for how it is put together.
 
@@ -90,7 +91,7 @@ CompletableFuture<List<User>> pending = db.getUser().findManyAsync(q -> q.setTak
 | Row mapping | Generated code | Managed entities | Result rows / DAO entities | Records / explicit mappers |
 | Relations | Explicit, batched `include` | Entity associations and fetch plans | DSL joins / DAO references | SQL joins and nested records |
 | Nested writes | Generated relation operations | Entity cascades | Application / DAO operations | SQL operations |
-| Current Volan scope | PostgreSQL and SQLite; Kotlin and Java | — | — | — |
+| Current Volan scope | PostgreSQL and SQLite; H2 runtime on main; Kotlin and Java | — | — | — |
 
 These tools offer different abstractions. See the primary references for
 [Hibernate](https://docs.hibernate.org/orm/7.4/introduction/),
@@ -148,7 +149,8 @@ refuses inconsistent history. [Setup, library API and limitations →](docs/migr
 ## Supported databases
 
 **Available in alpha.2:** PostgreSQL and SQLite with generated queries, relations, transactions,
-DDL, pull/push and versioned migrations. **Planned for M8:** MySQL, MariaDB and H2.
+DDL, pull/push and versioned migrations. **On main:** H2 runtime and initial DDL.
+**Planned for M8:** H2 introspection and versioned migrations, MySQL and MariaDB.
 [Feature matrix and SQLite setup →](docs/dialects.md)
 
 ## Maven Central

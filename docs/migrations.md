@@ -2,6 +2,8 @@
 
 M6 provides SQL plans, migration files, a checksum journal, database introspection and schema
 synchronization. Alpha.2 supports PostgreSQL and SQLite; alpha.1 supports PostgreSQL only.
+H2 on main supports initial DDL generation; introspection, push and migration journals are not yet
+supported. See [H2 setup](dialects.md#h2-setup-on-main).
 The PostgreSQL examples below address the connection's current schema. SQLite addresses main.
 Multi-schema models and MySQL/MariaDB/H2 remain scheduled separately.
 

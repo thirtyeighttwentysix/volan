@@ -77,6 +77,7 @@ public class DatabaseSync(private val reader: DatabaseReader, private val dialec
 
 /** Serializes PostgreSQL migration writers in this schema, including concurrent processes. */
 internal fun <T> withMigrationLock(connection: Connection, block: () -> T): T {
+    requireMigrationProvider(connection)
     if (!connection.autoCommit) throw VolanMigrationException("Migrations require a connection with auto-commit enabled.")
     val postgres = connection.metaData.databaseProductName == "PostgreSQL"
     if (postgres) migrationLock(connection, "pg_advisory_lock")
@@ -84,6 +85,13 @@ internal fun <T> withMigrationLock(connection: Connection, block: () -> T): T {
         return block()
     } finally {
         if (postgres) migrationLock(connection, "pg_advisory_unlock")
+    }
+}
+
+internal fun requireMigrationProvider(connection: Connection) {
+    val provider = connection.metaData.databaseProductName
+    if (provider != "PostgreSQL" && provider != "SQLite") {
+        throw VolanMigrationException("Versioned migrations and database push are not yet supported for $provider.")
     }
 }
 

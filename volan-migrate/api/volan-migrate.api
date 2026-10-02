@@ -68,6 +68,12 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/EnumDefinition {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/migrate/H2Types : io/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/migrate/H2Types;
+	public fun canonical (Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;Lio/github/thirtyeighttwentysix/volan/ir/NativeType;)Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;
+	public fun read (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/migrate/MigrationDirectory {
 	public fun <init> (Ljava/nio/file/Path;)V
 	public final fun read ()Ljava/util/List;

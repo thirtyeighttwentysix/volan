@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- M8: H2 runtime dialect with provider discovery, CRUD returning rows through data change delta
+  tables, bulk writes, relations, nested writes, summaries, DISTINCT ON, cursors and transactions.
+- Initial H2 DDL generation, Decimal and native scalar arrays, JSON binding, nanosecond temporal
+  storage and private/named memory pool handling. A shared embedded integration suite covers SQLite
+  and H2; H2 schema introspection and versioned migrations remain scheduled separately.
+- H2 Maven publication and BOM constraint for the next alpha, with an independent Java consumer.
+
+### Fixed
+
+- Generated entities with Bytes[] compile and compare, hash and display their elements by content.
+- JDBC scalar-array mapping converts dates, nanosecond times, instants, JSON and UUID elements into
+  their declared Kotlin types instead of exposing driver storage values.
+
 ## [0.1.0-alpha.2] - 2026-10-02
 
 ### Added

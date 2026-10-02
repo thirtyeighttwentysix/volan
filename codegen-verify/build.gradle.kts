@@ -42,9 +42,22 @@ val generateSqliteClient = tasks.register<JavaExec>("generateSqliteClient") {
     args(sqliteSchema.asFile.absolutePath, sqliteSources.get().asFile.absolutePath)
 }
 
+val h2Sources = layout.buildDirectory.dir("generated/h2")
+val generateH2Client = tasks.register<JavaExec>("generateH2Client") {
+    group = "build"
+    description = "Generates a client from an H2-targeted schema."
+    classpath = generator.runtimeClasspath
+    mainClass.set("verify.GenerateClientKt")
+    val h2Schema = layout.projectDirectory.file("schema/h2.volan")
+    inputs.file(h2Schema).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(h2Sources)
+    args(h2Schema.asFile.absolutePath, h2Sources.get().asFile.absolutePath)
+}
+
 sourceSets.main {
     kotlin.srcDir(generatedSources)
     kotlin.srcDir(sqliteSources)
+    kotlin.srcDir(h2Sources)
 }
 
 dependencies {
@@ -59,8 +72,10 @@ dependencies {
 
     testImplementation(project(":volan-dialect-postgres"))
     testImplementation(project(":volan-dialect-sqlite"))
+    testImplementation(project(":volan-dialect-h2"))
     testImplementation(project(":volan-migrate"))
     testImplementation(libs.jdbc.sqlite)
+    testImplementation(libs.jdbc.h2)
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.postgres)
     testRuntimeOnly(libs.jdbc.postgres)
@@ -84,7 +99,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 tasks.named<KotlinCompile>("compileKotlin") {
-    dependsOn(generateClient, generateSqliteClient)
+    dependsOn(generateClient, generateSqliteClient, generateH2Client)
 }
 
 tasks.withType<Test>().configureEach {

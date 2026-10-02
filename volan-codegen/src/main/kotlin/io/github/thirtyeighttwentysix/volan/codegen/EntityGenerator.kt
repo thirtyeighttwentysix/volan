@@ -200,7 +200,13 @@ internal class EntityGenerator(private val types: TypeResolver) {
 
     private fun equals(model: Model, entityName: ClassName): FunSpec {
         val comparisons = model.fields.joinToString(" &&\n    ") { field ->
-            if (isByteArray(field)) "${field.name}.contentEquals(other.${field.name})" else "${field.name} == other.${field.name}"
+            when {
+                isByteArray(field) -> "${field.name}.contentEquals(other.${field.name})"
+                isByteArrayList(field) ->
+                    "${field.name}.size == other.${field.name}.size && " +
+                        "${field.name}.indices.all { index -> ${field.name}[index].contentEquals(other.${field.name}[index]) }"
+                else -> "${field.name} == other.${field.name}"
+            }
         }
         return FunSpec.builder("equals")
             .addModifiers(KModifier.OVERRIDE)
@@ -224,6 +230,7 @@ internal class EntityGenerator(private val types: TypeResolver) {
     }
 
     private fun hashExpression(field: ScalarField): String {
+        if (isByteArrayList(field)) return "${field.name}.fold(1) { hash, value -> 31 * hash + value.contentHashCode() }"
         val nullable = field.cardinality == Cardinality.OPTIONAL
         val call = if (isByteArray(field)) "contentHashCode()" else "hashCode()"
         return if (nullable) "(${field.name}?.$call ?: 0)" else "${field.name}.$call"
@@ -231,7 +238,11 @@ internal class EntityGenerator(private val types: TypeResolver) {
 
     private fun toString(model: Model): FunSpec {
         val parts = model.fields.joinToString(", ") { field ->
-            if (isByteArray(field)) "${field.name}=\${${field.name}.contentToString()}" else "${field.name}=\$${field.name}"
+            when {
+                isByteArray(field) -> "${field.name}=\${${field.name}.contentToString()}"
+                isByteArrayList(field) -> "${field.name}=\${${field.name}.map { it.contentToString() }}"
+                else -> "${field.name}=\$${field.name}"
+            }
         }
         return FunSpec.builder("toString")
             .addModifiers(KModifier.OVERRIDE)
@@ -240,7 +251,11 @@ internal class EntityGenerator(private val types: TypeResolver) {
             .build()
     }
 
-    private fun isByteArray(field: ScalarField): Boolean = types.fieldType(field.type, Cardinality.REQUIRED) == BYTE_ARRAY
+    private fun isByteArray(field: ScalarField): Boolean =
+        field.cardinality != Cardinality.LIST && types.fieldType(field.type, Cardinality.REQUIRED) == BYTE_ARRAY
+
+    private fun isByteArrayList(field: ScalarField): Boolean =
+        field.cardinality == Cardinality.LIST && types.fieldType(field.type, Cardinality.REQUIRED) == BYTE_ARRAY
 
     /** A fluent builder, which is how Java constructs an entity and how Kotlin copies one with changes. */
     private fun entityBuilder(model: Model): TypeSpec {

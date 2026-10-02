@@ -43,6 +43,7 @@ public class Migrator(
 ) {
     /** Where [connection]'s database stands against the migrations on disk. */
     public fun status(connection: Connection): MigrationStatus {
+        requireMigrationProvider(connection)
         val files = directory.read()
         val applied = journal.read(connection)
         val byId = files.associateBy { it.id }

@@ -6,6 +6,7 @@ plugins {
 
 val volanVersion = providers.gradleProperty("volanVersion").get()
 val includesSqlite = volanVersion != "0.1.0-alpha.1"
+val includesH2 = volanVersion !in setOf("0.1.0-alpha.1", "0.1.0-alpha.2")
 val generator = sourceSets.create("generator")
 val generatedSources = layout.buildDirectory.dir("generated/volan")
 
@@ -23,6 +24,10 @@ dependencies {
     if (includesSqlite) {
         testImplementation("io.github.thirtyeighttwentysix:volan-dialect-sqlite")
         testRuntimeOnly("org.xerial:sqlite-jdbc:3.53.4.0")
+    }
+    if (includesH2) {
+        testImplementation("io.github.thirtyeighttwentysix:volan-dialect-h2")
+        testRuntimeOnly("com.h2database:h2:2.5.252")
     }
 }
 
@@ -47,6 +52,7 @@ tasks.named("compileKotlin") { dependsOn(generateClient) }
 tasks.withType<JavaCompile>().configureEach { options.release.set(17) }
 tasks.test {
     systemProperty("volan.sqlite", includesSqlite.toString())
+    systemProperty("volan.h2", includesH2.toString())
     useJUnitPlatform()
     testLogging { events("passed", "failed", "skipped") }
 }

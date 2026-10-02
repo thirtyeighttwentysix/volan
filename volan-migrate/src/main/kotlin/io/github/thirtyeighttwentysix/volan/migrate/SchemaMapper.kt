@@ -41,7 +41,7 @@ public object SchemaMapper {
     /** The database [schema] describes, with [types] deciding what its `@db.…` types mean. */
     @JvmStatic
     public fun map(schema: Schema, types: NativeTypeTable): DatabaseSchema {
-        val enums = if (schema.datasource.provider == Provider.SQLITE) {
+        val enums = if (schema.datasource.provider in TEXT_ENUM_PROVIDERS) {
             emptyList()
         } else {
             schema.enums.map { EnumDefinition(it.dbName, it.values.map { value -> value.dbName }) }
@@ -79,7 +79,7 @@ public object SchemaMapper {
     private fun columnType(schema: Schema, types: NativeTypeTable, field: ScalarField): ColumnType {
         val element = when (val type = field.type) {
             is FieldType.Scalar -> field.nativeType?.let { types.canonical(type.type, it) } ?: ColumnType.Scalar(sqlType(type.type))
-            is FieldType.EnumRef -> if (schema.datasource.provider == Provider.SQLITE) {
+            is FieldType.EnumRef -> if (schema.datasource.provider in TEXT_ENUM_PROVIDERS) {
                 ColumnType.Scalar(SqlType.TEXT)
             } else {
                 ColumnType.Enumeration(enumTable(schema, type.enumName))
@@ -285,6 +285,7 @@ public object SchemaMapper {
         (listOf(table) + columns + suffix).joinToString("_")
 
     private const val JOIN_FIRST = "A"
+    private val TEXT_ENUM_PROVIDERS = setOf(Provider.SQLITE, Provider.H2)
     private const val JOIN_SECOND = "B"
     private val JOIN_COLUMNS = listOf(JOIN_FIRST, JOIN_SECOND)
 }

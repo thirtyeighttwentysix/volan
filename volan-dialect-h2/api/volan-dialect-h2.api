@@ -1,0 +1,18 @@
+public final class io/github/thirtyeighttwentysix/volan/dialect/h2/H2Dialect : io/github/thirtyeighttwentysix/volan/dialect/DdlRenderer {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/dialect/h2/H2Dialect;
+	public fun connectionMaxLifetime (Ljava/lang/String;)Ljava/lang/Long;
+	public fun getId ()Ljava/lang/String;
+	public fun jdbcValue (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun poolSize (Ljava/lang/String;I)I
+	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlDelete;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
+	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlInsert;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
+	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlUpdate;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
+	public fun sqlState (Ljava/sql/SQLException;)Ljava/lang/String;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/dialect/h2/H2DialectProvider : io/github/thirtyeighttwentysix/volan/dialect/DialectProvider {
+	public fun <init> ()V
+	public fun dialect ()Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;
+	public fun supports (Ljava/lang/String;)Z
+}
+

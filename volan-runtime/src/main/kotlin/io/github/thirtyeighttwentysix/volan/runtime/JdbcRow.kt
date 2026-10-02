@@ -4,6 +4,7 @@ import io.github.thirtyeighttwentysix.volan.Json
 import java.math.BigDecimal
 import java.sql.ResultSet
 import java.sql.Timestamp
+import java.sql.Types
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -105,9 +106,27 @@ internal class JdbcRow(private val result: ResultSet) : Row {
     override fun getScalarListOrNull(column: String): List<Any?>? {
         val array = result.getArray(column) ?: return null
         return try {
-            (array.array as Array<*>).toList()
+            array.resultSet.use { values ->
+                val elements = ArrayList<Any?>()
+                val name = values.metaData.getColumnLabel(2)
+                val row = JdbcRow(values)
+                while (values.next()) elements.add(arrayElement(row, values, name, array.baseType, array.baseTypeName))
+                elements
+            }
         } finally {
             array.free()
+        }
+    }
+
+    private fun arrayElement(row: JdbcRow, values: ResultSet, name: String, type: Int, typeName: String): Any? = when {
+        typeName.equals("JSON", ignoreCase = true) || typeName.equals("JSONB", ignoreCase = true) -> row.getJsonOrNull(name)
+        typeName.equals("UUID", ignoreCase = true) -> row.getUuidOrNull(name)
+        else -> when (type) {
+            Types.DATE -> row.getLocalDateOrNull(name)
+            Types.TIME -> row.getLocalTimeOrNull(name)
+            Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE -> row.getInstantOrNull(name)
+            Types.BINARY, Types.VARBINARY, Types.LONGVARBINARY -> row.getBytesOrNull(name)
+            else -> values.getObject(name)
         }
     }
 

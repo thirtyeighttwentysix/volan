@@ -1,0 +1,39 @@
+datasource db {
+  provider = "h2"
+  url = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "volan-kotlin"
+  package = "com.example.h2"
+  javaFriendly = true
+}
+
+enum Role {
+  USER
+  ADMIN @map("administrator")
+}
+
+model Scalars {
+  id Uuid @id @default(uuid())
+  amount Decimal
+  words String[] @default([])
+  integers Int[] @default([])
+  bigNumbers Long[] @default([])
+  ratios Float[] @default([])
+  doubles Double[] @default([])
+  decimals Decimal[] @default([])
+  flags Boolean[] @default([])
+  moments DateTime[] @default([])
+  dates Date[] @default([])
+  times Time[] @default([])
+  tokens Uuid[] @default([])
+  documents Json[] @default([])
+  blobs Bytes[] @default([])
+  roles Role[] @default([])
+}
+
+model Defaults {
+  id Long @id @default(autoincrement())
+  createdAt DateTime @default(now())
+}

@@ -1,22 +1,73 @@
 # Database support
 
 `0.1.0-alpha.2` supports PostgreSQL and SQLite, including runtime operations and migrations.
-MySQL, MariaDB and H2 modules are placeholders, not usable dialects.
+H2 runtime support is on main for alpha.3. MySQL and MariaDB remain placeholders.
 
-| Capability | PostgreSQL | SQLite | MySQL / MariaDB / H2 |
-|---|---|---|---|
-| Generated Kotlin and Java clients | Yes | Yes | Planned |
-| CRUD, upsert, bulk writes, raw SQL | Yes | Yes | Planned |
-| Relations, batched includes, nested writes | Yes | Yes | Planned |
-| Aggregate, groupBy, having | Yes | Yes, supported numeric types | Planned |
-| Composite keys and cursors | Yes | Yes | Planned |
-| Transactions, savepoints, async operations | Yes | Yes | Planned |
-| Distinct | DISTINCT ON | Selected distinct columns only | Planned |
-| Scalar arrays | Yes | Rejected during schema analysis | Planned |
-| Decimal | Yes | Rejected during schema analysis | Planned |
-| Provider-specific @db types | Yes | Rejected during schema analysis | Planned |
-| DDL, pull, push, migration journal, drift detection | Yes | Yes, ordinary main tables | Planned |
-| Typed full-text search | Planned | Planned; @@fulltext rejected | Planned |
+| Capability | PostgreSQL | SQLite | H2 on main | MySQL / MariaDB |
+|---|---|---|---|---|
+| Generated Kotlin and Java clients | Yes | Yes | Yes | Planned |
+| CRUD, upsert, bulk writes, raw SQL | Yes | Yes | Yes | Planned |
+| Relations, batched includes, nested writes | Yes | Yes | Yes | Planned |
+| Aggregate, groupBy, having | Yes | Yes, supported numeric types | Yes | Planned |
+| Composite keys and cursors | Yes | Yes | Yes | Planned |
+| Transactions, savepoints, async operations | Yes | Yes | Yes | Planned |
+| Distinct | DISTINCT ON | Selected distinct columns only | DISTINCT ON | Planned |
+| Scalar arrays | Yes | Rejected during schema analysis | Yes | Planned |
+| Decimal | Yes | Rejected during schema analysis | NUMERIC(65, 30) | Planned |
+| Provider-specific @db types | Yes | Rejected during schema analysis | Rejected during schema analysis | Planned |
+| Initial DDL generation | Yes | Yes | Yes | Planned |
+| Pull, push, migration journal, drift detection | Yes | Yes, ordinary main tables | Planned | Planned |
+| Typed full-text search | Planned | Planned; @@fulltext rejected | Planned; @@fulltext rejected | Planned |
+
+## H2 setup on main
+
+H2 is not included in alpha.2. To try the next candidate, stage the artifacts locally:
+
+```shell
+./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=0.1.0-alpha.3 -PvolanUnsignedLocalPublication --no-configuration-cache
+```
+
+Point your consumer's Maven repository at `build/release-repository` and use:
+
+```kotlin
+dependencies {
+    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.3"))
+    implementation("io.github.thirtyeighttwentysix:volan-runtime")
+    implementation("io.github.thirtyeighttwentysix:volan-dialect-h2")
+    runtimeOnly("com.h2database:h2:2.5.252")
+}
+```
+
+Use `provider = "h2"` in the schema and generate the client as in [codegen-verify](../codegen-verify/).
+Use `jdbc:h2:file:./data` for persistence, `jdbc:h2:mem:app` for a named in-memory database or
+`jdbc:h2:mem:` for a private one. Named databases can use multiple pooled connections; private
+memory pools use one connection because every connection otherwise holds a different database.
+Volan disables connection retirement for memory pools, retaining their contents until the client
+closes. External data sources keep their own connection lifecycle.
+
+Create tables with reviewed SQL before using repositories. Initial DDL can be generated with
+`SchemaDiffer.diff(DatabaseSchema(), SchemaMapper.map(schema)).render(H2Dialect)` from `volan-migrate`.
+H2 introspection, pull/push, drift detection and migration journals are not yet supported; the CLI
+does not accept H2 URLs. H2 DDL can commit an existing transaction, so avoid running schema commands
+inside application transactions.
+
+The implementation is tested with H2 2.5.252 in regular mode. Compatibility modes are not covered.
+Writes return rows through [H2 data change delta tables](https://h2database.com/html/grammar.html#data_change_delta_table):
+FINAL TABLE after insert/update, OLD TABLE for deleted rows. This preserves database-generated
+defaults without a second select. Writes without returned rows use ordinary DML.
+
+H2 stores DateTime as TIMESTAMP(9) WITH TIME ZONE, Time as TIME(9), Decimal as NUMERIC(65, 30),
+Bytes as BINARY VARYING and Json as native JSON. Decimal values are constrained to 65 digits total
+and 30 fractional digits. JSON is validated and normalized by H2, so whitespace can change.
+Enums use CHARACTER VARYING and their mapped database values; the generated client validates them.
+Native scalar arrays support every scalar type and enums, including empty defaults. Nullable array
+elements cannot be represented by a generated non-null element type. List-column filters remain
+deferred as described in the roadmap. `@db` and `@@fulltext` are rejected during schema analysis.
+
+The shared embedded suite checks H2 and SQLite CRUD, bulk writes, queries, relations, nested writes,
+summaries, cursors, constraints, asynchronous reads, file reopening and savepoint rollback. An H2
+schema separately generates and compiles a client covering Decimal, UUID defaults and every scalar
+array. The independent release consumer verifies H2 from staged Maven artifacts.
 
 ## SQLite setup
 

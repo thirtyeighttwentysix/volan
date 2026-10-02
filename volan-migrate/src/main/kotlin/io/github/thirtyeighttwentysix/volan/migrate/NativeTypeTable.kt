@@ -39,6 +39,7 @@ public interface NativeTypeTable {
         public fun forProvider(provider: Provider): NativeTypeTable = when (provider) {
             Provider.POSTGRESQL -> PostgresTypes
             Provider.SQLITE -> SqliteTypes
+            Provider.H2 -> H2Types
             else -> throw VolanMigrationException(
                 "Volan cannot yet map the column types of ${provider.id}, so it cannot migrate one.\n" +
                     "  The other dialects, and the types that come with them, arrive in M8.",

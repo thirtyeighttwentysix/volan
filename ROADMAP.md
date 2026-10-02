@@ -45,7 +45,11 @@ the JVM without giving up something the brief also asks for.
 - SQLite publication and its BOM entry are included in alpha.2; alpha.1 remains PostgreSQL-only.
 - SQLite schema management: DDL, strict introspection, pull/push, drift detection and migration journals
   are tested. Table rebuilds retain rows, indexes and AUTOINCREMENT history; concurrent writers serialize.
-- Remaining: MySQL, MariaDB and H2 implementations and their integration suites. M8 is not complete.
+- H2 runtime and initial DDL: generated clients, scalar arrays, Decimal, relations, nested writes,
+  summaries, DISTINCT ON, cursors, async operations and transactions run against real H2 on every CI OS.
+  Its Maven module and BOM entry are configured for the next alpha; alpha.2 does not include H2.
+- Remaining: H2 introspection and migration journals; MySQL and MariaDB implementations and their
+  integration suites. M8 is not complete.
 
 ## Deliberately deferred
 
