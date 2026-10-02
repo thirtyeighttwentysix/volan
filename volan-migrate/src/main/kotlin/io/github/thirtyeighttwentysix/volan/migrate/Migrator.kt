@@ -32,9 +32,9 @@ public data class MigrationStatus(
 /**
  * Runs the migrations a project has written, and says what it has run.
  *
- * Migrations are applied one at a time, each in its own transaction, in the order their names give.
- * A migration that fails leaves its own changes undone and the ones before it in place, and the record
- * of it rolls back with its statements. Externally recorded unfinished migrations still block apply.
+ * Migrations run in name order. PostgreSQL and SQLite roll back a failed migration with its journal
+ * entry. H2 commits statements individually and retains unfinished history; inspect and repair the
+ * database before calling [markApplied]. Unfinished migrations always block subsequent apply calls.
  */
 public class Migrator(
     private val directory: MigrationDirectory,
@@ -70,7 +70,7 @@ public class Migrator(
         val status = status(connection)
         refuseDrift(status)
         status.pending.map { migration ->
-            run(connection, migration)
+            if (connection.isH2()) H2Migration(journal, clock).run(connection, migration) else run(connection, migration)
             migration
         }
     }

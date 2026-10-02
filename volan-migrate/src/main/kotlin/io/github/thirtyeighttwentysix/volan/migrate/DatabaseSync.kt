@@ -32,8 +32,11 @@ public class DatabaseSync(private val reader: DatabaseReader, private val dialec
      * this operation never commits a caller's existing transaction.
      */
     @JvmOverloads
-    public fun push(connection: Connection, schema: Schema, acceptWarnings: Boolean = false): MigrationPlan =
-        withMigrationLock(connection) {
+    public fun push(connection: Connection, schema: Schema, acceptWarnings: Boolean = false): MigrationPlan {
+        if (connection.isH2()) {
+            throw VolanMigrationException("Automatic H2 database push is not yet supported; use reviewed versioned migrations.")
+        }
+        return withMigrationLock(connection) {
             if (connection.isSqlite()) {
                 return@withMigrationLock sqliteMigrationTransaction(connection) {
                     val plan = plan(connection, schema)
@@ -61,6 +64,7 @@ public class DatabaseSync(private val reader: DatabaseReader, private val dialec
             }
             plan
         }
+    }
 
     private fun review(plan: MigrationPlan, acceptWarnings: Boolean) {
         if (plan.isDestructive && !acceptWarnings) {
@@ -75,10 +79,11 @@ public class DatabaseSync(private val reader: DatabaseReader, private val dialec
     }
 }
 
-/** Serializes PostgreSQL migration writers in this schema, including concurrent processes. */
+/** Serializes migration writers, including concurrent processes. */
 internal fun <T> withMigrationLock(connection: Connection, block: () -> T): T {
     requireMigrationProvider(connection)
     if (!connection.autoCommit) throw VolanMigrationException("Migrations require a connection with auto-commit enabled.")
+    if (connection.isH2()) return withH2MigrationLock(connection, block)
     val postgres = connection.metaData.databaseProductName == "PostgreSQL"
     if (postgres) migrationLock(connection, "pg_advisory_lock")
     try {
@@ -90,7 +95,7 @@ internal fun <T> withMigrationLock(connection: Connection, block: () -> T): T {
 
 internal fun requireMigrationProvider(connection: Connection) {
     val provider = connection.metaData.databaseProductName
-    if (provider != "PostgreSQL" && provider != "SQLite") {
+    if (provider !in listOf("PostgreSQL", "SQLite", "H2")) {
         throw VolanMigrationException("Versioned migrations and database push are not yet supported for $provider.")
     }
 }

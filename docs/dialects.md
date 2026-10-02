@@ -17,7 +17,8 @@ H2 runtime support is on main for alpha.3. MySQL and MariaDB remain placeholders
 | Provider-specific @db types | Yes | Rejected during schema analysis | Rejected during schema analysis | Planned |
 | Initial DDL and SQL change plans | Yes | Yes | Yes | Planned |
 | Pull and structural drift detection | Yes | Yes, ordinary main tables | Yes, ordinary current-schema tables | Planned |
-| Automatic push and migration journal | Yes | Yes | Planned | Planned |
+| Automatic schema push | Yes | Yes | Planned | Planned |
+| Versioned migrations and journal | Yes, transactional | Yes, transactional | Yes, durable progress and manual repair | Planned |
 | Typed full-text search | Planned | Planned; @@fulltext rejected | Planned; @@fulltext rejected | Planned |
 
 ## H2 setup on main
@@ -35,7 +36,7 @@ dependencies {
     implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.3"))
     implementation("io.github.thirtyeighttwentysix:volan-runtime")
     implementation("io.github.thirtyeighttwentysix:volan-dialect-h2")
-    implementation("io.github.thirtyeighttwentysix:volan-migrate") // Schema inspection and SQL plans.
+    implementation("io.github.thirtyeighttwentysix:volan-migrate") // Schema inspection, plans and versioned migrations.
     runtimeOnly("com.h2database:h2:2.5.252")
 }
 ```
@@ -57,11 +58,12 @@ volan db pull --url jdbc:h2:file:./data --stdout
 volan db push --schema schema.volan --url jdbc:h2:file:./data --dry-run
 ```
 
-An H2 plan is a preview. Automatic `db push` and `Migrator` are refused before DDL or journal writes,
-including with `--accept-data-loss`. H2 DDL can commit an existing transaction; applying reviewed SQL
-manually can leave earlier statements applied if a later statement fails. Use a dedicated connection
-and handle recovery explicitly. Pull, drift and planning execute only catalogue queries and do not
-commit a caller's transaction.
+Automatic `db push` remains refused, including with `--accept-data-loss`. For deployments, save the
+reviewed SQL in a `MigrationDirectory` and call `Migrator.apply` using a dedicated administrator
+connection in auto-commit mode. H2 DDL commits immediately: failed migrations retain their completed
+statements and unfinished journal entry. Further apply calls stop until manual repair and `markApplied`
+with the original file. [H2 migration and recovery details](migrations.md#h2-versioned-migrations).
+Pull, drift and planning execute only catalogue queries and do not commit a caller's transaction.
 
 Introspection preserves standard scalar types, arrays, defaults, normal BY DEFAULT identities,
 ordered keys, constraints and ascending indexes. It rejects definitions the schema cannot preserve:

@@ -50,8 +50,11 @@ the JVM without giving up something the brief also asks for.
   Its Maven module and BOM entry are configured for the next alpha; alpha.2 does not include H2.
 - H2 schema inspection: strict current-schema introspection, `db pull`, structural drift and SQL plans
   (`db push --dry-run`) are tested, including scalar arrays, composite foreign keys and identity columns.
-  Automatic push and migration journals remain blocked until nontransactional DDL recovery is implemented.
-- Remaining: H2 automatic push and migration journals; MySQL and MariaDB implementations and their
+- H2 versioned migrations: administrator connections acquire exclusive access across DDL commits.
+  Durable start records and acknowledged statement counts survive failure; unfinished migrations block
+  replay until manually repaired and marked applied with the original checksum. File reopening,
+  concurrency and interrupted progress are tested. Automatic schema push remains deferred.
+- Remaining: H2 automatic push; MySQL and MariaDB implementations and their
   integration suites. M8 is not complete.
 
 ## Deliberately deferred

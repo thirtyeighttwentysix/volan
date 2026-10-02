@@ -12,8 +12,8 @@ import java.time.Instant
  *   no longer matches this is the whole reason the column exists.
  * @property startedAt when it began.
  * @property finishedAt when it finished, or `null` when it did not.
- * @property appliedSteps how many statements had run when it stopped, which is what a half-applied
- *   migration needs a person to know.
+ * @property appliedSteps how many completed statements were acknowledged in the journal. After an H2
+ *   crash the last executed statement may not have been acknowledged; inspect the database before repair.
  */
 public data class AppliedMigration(
     public val id: String,
@@ -113,13 +113,34 @@ public class MigrationJournal(private val table: String = DEFAULT_TABLE) {
         }
     }
 
+    /** A durable lower bound on completed statements when DDL cannot be rolled back. */
+    internal fun progress(connection: Connection, id: String, steps: Int) {
+        connection.prepareStatement("""UPDATE "$table" SET "applied_steps" = ? WHERE "id" = ? AND "finished_at" IS NULL""")
+            .use { statement ->
+                statement.setInt(1, steps)
+                statement.setString(2, id)
+                if (statement.executeUpdate() != 1) throw VolanMigrationException("The unfinished journal entry `$id` is missing.")
+            }
+    }
+
     /**
      * Marks a migration as finished without running it.
      *
      * The escape hatch for a database that was brought to the right shape some other way — restored
      * from a dump, changed by hand — where re-running the migration would fail rather than help.
+     * An unfinished entry is completed only when the original checksum matches, retaining its progress.
+     * This records the caller's manual verification; it does not inspect or repair the database.
      */
     public fun markApplied(connection: Connection, migration: MigrationFile, at: Instant) {
+        val previous = read(connection).firstOrNull { it.id == migration.id }
+        if (previous != null) {
+            if (previous.checksum != migration.checksum) {
+                throw VolanMigrationException("Restore the original migration `${migration.id}` before recording it as applied.")
+            }
+            if (previous.isFinished) throw VolanMigrationException("The migration `${migration.id}` is already applied.")
+            finish(connection, migration.id, at, previous.appliedSteps)
+            return
+        }
         begin(connection, migration, at)
         finish(connection, migration.id, at, 0)
     }

@@ -9,35 +9,10 @@ import io.github.thirtyeighttwentysix.volan.ir.SchemaLoader
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.io.TempDir
-import java.nio.file.Path
 import java.sql.DriverManager
-import java.time.Instant
 import java.util.UUID
 
 class H2TypesTest {
-    @TempDir
-    lateinit var directory: Path
-
-    @Test
-    fun `H2 migrations are refused before a journal or user table is created`() {
-        val migrations = MigrationDirectory(directory)
-        val migration = migrations.write(Instant.parse("2026-10-01T00:00:00Z"), "initial", "CREATE TABLE example (id INT);")
-        val migrator = Migrator(migrations)
-        DriverManager.getConnection("jdbc:h2:mem:${UUID.randomUUID()}").use { connection ->
-            assertThrows<VolanMigrationException> { migrator.status(connection) }
-            assertThrows<VolanMigrationException> { migrator.apply(connection) }
-            assertThrows<VolanMigrationException> { migrator.markApplied(connection, migration) }
-            connection.createStatement().use { statement ->
-                statement.executeQuery("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'PUBLIC'").use {
-                    it.next()
-                    it.getInt(1) shouldBe 0
-                }
-            }
-            connection.autoCommit shouldBe true
-        }
-    }
-
     @Test
     fun `standard H2 storage declarations preserve scalar distinctions`() {
         val declarations = listOf(

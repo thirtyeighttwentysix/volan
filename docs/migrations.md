@@ -2,8 +2,8 @@
 
 M6 provides SQL plans, migration files, a checksum journal, database introspection and schema
 synchronization. Alpha.2 supports PostgreSQL and SQLite; alpha.1 supports PostgreSQL only.
-H2 on main supports introspection, pull, drift detection and SQL plans. Automatic push and migration
-journals are not yet supported. See [H2 setup](dialects.md#h2-setup-on-main).
+H2 on main supports introspection, pull, drift detection, SQL plans and versioned migrations with
+durable progress and manual repair. Automatic H2 push is not yet supported. See [H2 setup](dialects.md#h2-setup-on-main).
 The PostgreSQL examples below address the connection's current schema. SQLite addresses main.
 Multi-schema models, MySQL/MariaDB and automatic H2 migration deployment remain scheduled separately.
 
@@ -58,7 +58,7 @@ dataSource.connection.use { connection ->
 
 Each directory is named `yyyyMMddHHmmss_description` and contains `migration.sql`. A duplicate name
 cannot overwrite a migration. SHA-256 checksums normalize CRLF to LF. Each migration and its journal
-entry commit together; a failed migration rolls back and can be fixed and retried. PostgreSQL advisory
+entry commit together on PostgreSQL and SQLite; a failed migration rolls back and can be fixed and retried. PostgreSQL advisory
 locks serialize Volan migration writers in the same database schema. Connections must start in
 auto-commit mode, so the migrator cannot commit unrelated work in a caller's transaction.
 
@@ -148,3 +148,62 @@ custom collations, STRICT/WITHOUT ROWID tables, partial/expression/descending in
 and attached databases. It does not silently discard them during a rebuild. Unique indexes can be read
 and compared, but pull cannot export them as different unique constraints. Use explicit SQL for shapes
 outside this supported subset, and column renames or changes to autoincrement.
+
+## H2 versioned migrations
+
+This support is on main for alpha.3; alpha.2 does not include H2. Generate a plan with
+`DatabaseSync(H2Reader(), H2Dialect)`, review the SQL, and save it with `MigrationDirectory.write`.
+Apply it using the same `Migrator` API as PostgreSQL:
+
+```kotlin
+val directory = MigrationDirectory(Path.of("migrations"))
+DriverManager.getConnection("jdbc:h2:file:./data", "sa", password).use { connection ->
+    Migrator(directory).apply(connection)
+}
+```
+
+Use a dedicated administrator connection starting in auto-commit mode, with no caller-owned exclusive
+mode. The migrator acquires [H2 exclusive mode](https://h2database.com/html/commands.html#set_exclusive)
+before reading history or creating the journal. Existing connections stay open, but their operations
+pause; new connections are rejected during migration. Concurrent migration writers may wait or report
+an exclusive-access conflict; retry the apply call after the other writer finishes. Use a maintenance
+window and avoid outstanding application transactions. Exclusive mode is released on success, failure
+or owner disconnect, including for H2 server connections in separate processes.
+
+[H2 DDL commits the current transaction](https://h2database.com/html/advanced.html#transaction_isolation),
+so H2 migrations cannot be rolled back as a unit. Volan commits a start record before the first
+statement, acknowledges each completed statement in `applied_steps`, and sets `finished_at` only after
+the whole script completes. A failed migration leaves earlier statements committed and the record
+unfinished. Later migrations stop, and the partial script is never automatically replayed.
+After a crash, the last statement may have committed before its progress update: the count is a lower
+bound, not proof that the next statement did not run. Inspect the actual database before any repair.
+
+To recover, retain the original migration file and checksum. Inspect `MigrationJournal.read` and
+`Migrator.status`, compare the database with the intended final state, and manually complete or repair
+the migration. Once the database is in that final state, explicitly finish the existing record:
+
+```kotlin
+val original = directory.read().single { it.id == failedMigrationId }
+DriverManager.getConnection("jdbc:h2:file:./data", "sa", password).use { connection ->
+    val migrator = Migrator(directory)
+    // After reviewing and repairing the database to the migration's intended final state:
+    migrator.markApplied(connection, original)
+    migrator.apply(connection) // runs subsequent migrations, without replaying the repaired script
+}
+```
+
+`markApplied` does not execute or verify SQL; it records the caller's reviewed repair, retaining the
+original checksum, start timestamp and acknowledged progress. It refuses changed scripts and already
+finished records. Restoring a consistent database backup is another recovery option. Do not edit the
+failed file to make it replayable or delete its record while partial changes remain.
+
+Scripts must not change transaction/session settings, schemas or exclusive mode, run nested scripts
+or shut down the database. Direct BEGIN/START/COMMIT/ROLLBACK/SAVEPOINT/RELEASE/PREPARE, SET, USE,
+RUNSCRIPT, EXECUTE and SHUTDOWN commands are refused before any statement from that file runs. SQL
+aliases, procedures and triggers must not perform these operations indirectly or modify the journal.
+Malformed quoted SQL is also refused before the start record; an unstarted script can be corrected.
+The journal resides in the connection's current schema; use the same custom table name in
+`MigrationJournal(name)` and `H2Reader(name)` when changing the default.
+
+`DatabaseSync.push` and CLI `db push` remain deferred for H2. Use versioned, reviewed SQL for writes;
+`db push --dry-run` remains available to preview changes.
