@@ -47,6 +47,16 @@ public interface Dialect {
     /** What this database can do. */
     public val capabilities: DialectCapabilities
 
+    /** Whether JDBC timestamps describe UTC wall-clock storage instead of a zoned SQL timestamp. */
+    public val timestampWithoutTimeZone: Boolean get() = false
+
+    /** JDBC text binding type; some drivers infer enum destinations only from unspecified text. */
+    public val textParameterType: Int get() = java.sql.Types.VARCHAR
+
+    /** Locks the selected rows until the surrounding transaction ends. */
+    public fun renderForUpdate(select: SqlSelect): SqlStatement =
+        throw VolanDialectException("$id does not support row-locking SELECT queries.")
+
     /** Prepares a borrowed connection before any transaction begins. */
     public fun initialize(connection: Connection): Unit = Unit
 

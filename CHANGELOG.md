@@ -16,10 +16,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and H2.
 - H2 Maven publication and BOM constraint for the next alpha, with an independent Java consumer.
 - Strict H2 current-schema introspection, schema export, drift detection and executable SQL change
-  plans. The CLI supports H2 `db pull` and `db push --dry-run`; automatic deployment remains deferred.
+  plans. The CLI supports H2 `db pull` and `db push`.
 - H2 versioned migrations with durable start records and per-statement progress, exclusive database
   access, checksum checks and manual recovery of unfinished migrations through `markApplied`.
   A failed H2 migration retains its completed statements and blocks automatic replay.
+
+- H2 automatic schema push with durable progress, final-schema verification and recovery through
+  `DatabaseSync.resolvePush` / `db push --resolve` after manual repair to the original target.
+- MySQL 8.4 and MariaDB 11.4 runtime dialects, JDBC discovery, follow-up row reads inside transactions,
+  locking single-row writes, composite keys, relations, nested writes, summaries and bulk operations.
+- Strict MySQL/MariaDB InnoDB introspection, DDL plans, pull/push, full-text index creation, versioned
+  migration journals and named session locks that survive implicit DDL commits.
+- MySQL/MariaDB Maven publication, BOM constraint and independent Java consumer verification.
+
+### Changed
+
+- The DDL API adds complete column modification and constraint kinds. Recompile alpha consumers
+  using `DropConstraint.copy`; its data-class signature changes while the two-argument constructor remains.
+- MySQL/MariaDB use VARCHAR(191), UTC DATETIME(6), TIME(6), DECIMAL(65,30) and utf8mb4_bin.
+  Arrays, native overrides, SetDefault and database-generated UUID primary keys are rejected before generation.
 
 ### Fixed
 
@@ -27,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `markApplied` can finish an existing unfinished journal entry after manual repair, preserving its
   original checksum and recorded progress; changed scripts and already finished entries are refused.
 - H2 type changes render `SET DATA TYPE`; NO ACTION foreign keys normalize to H2's reported RESTRICT.
+- PostgreSQL binds native enum literals and JSONB values with their appropriate driver types;
+  the shared integration suite now covers real enum/JSONB columns as well as provider-specific tests.
 - JDBC dates and time summaries retain their date across session time zones and preserve nanosecond time precision.
 - Generated entities with Bytes[] compile and compare, hash and display their elements by content.
 - JDBC scalar-array mapping converts dates, nanosecond times, instants, JSON and UUID elements into

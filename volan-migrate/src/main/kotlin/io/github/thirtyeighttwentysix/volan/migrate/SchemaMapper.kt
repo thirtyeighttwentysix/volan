@@ -46,8 +46,25 @@ public object SchemaMapper {
         } else {
             schema.enums.map { EnumDefinition(it.dbName, it.values.map { value -> value.dbName }) }
         }
-        val tables = schema.models.map { table(schema, types, it) } + joinTables(schema, types)
+        val mapped = schema.models.map { table(schema, types, it) } + joinTables(schema, types)
+        val tables = if (schema.datasource.provider in setOf(Provider.MYSQL, Provider.MARIADB)) {
+            mapped.map { mysqlStorage(it) }
+        } else {
+            mapped
+        }
         return DatabaseSchema(enums.sortedBy { it.name }, tables.sortedBy { it.name })
+    }
+
+    private fun mysqlStorage(table: TableDefinition): TableDefinition {
+        val indexes = table.indexes.toMutableList()
+        val keys = listOfNotNull(table.primaryKey?.columns) + table.uniques.map { it.columns }
+        table.foreignKeys.forEach { foreign ->
+            val supporting = keys + indexes.filterNot { it.fullText }.map { it.columns }
+            if (supporting.none { it.take(foreign.columns.size) == foreign.columns }) {
+                indexes += IndexDefinition(foreign.name, foreign.columns)
+            }
+        }
+        return table.copy(primaryKey = table.primaryKey?.copy(name = "PRIMARY"), indexes = indexes.sortedBy { it.name })
     }
 
     private fun table(schema: Schema, types: NativeTypeTable, model: Model): TableDefinition {
@@ -118,7 +135,13 @@ public object SchemaMapper {
     private fun columnDefault(schema: Schema, model: Model, field: ScalarField): ColumnDefault? = when (val default = field.default) {
         null, DefaultValue.AutoIncrement -> null
         is DefaultValue.StringValue -> ColumnDefault.Text(default.value)
-        is DefaultValue.NumberValue -> ColumnDefault.Number(default.value)
+        is DefaultValue.NumberValue -> ColumnDefault.Number(
+            if (schema.datasource.provider in setOf(Provider.MYSQL, Provider.MARIADB)) {
+                default.value.toBigDecimal().stripTrailingZeros().toPlainString()
+            } else {
+                default.value
+            },
+        )
         is DefaultValue.BooleanValue -> ColumnDefault.Boolean(default.value)
         is DefaultValue.EnumValueRef -> ColumnDefault.Text(enumValue(schema, default))
         DefaultValue.EmptyList -> ColumnDefault.EmptyArray
@@ -199,7 +222,11 @@ public object SchemaMapper {
 
     // H2 reports NO ACTION as RESTRICT; both are immediate checks in H2.
     private fun normalizedAction(schema: Schema, action: ForeignKeyAction): ForeignKeyAction =
-        if (schema.datasource.provider == Provider.H2 && action == ForeignKeyAction.NO_ACTION) ForeignKeyAction.RESTRICT else action
+        if (schema.datasource.provider in setOf(Provider.H2, Provider.MYSQL, Provider.MARIADB) && action == ForeignKeyAction.NO_ACTION) {
+            ForeignKeyAction.RESTRICT
+        } else {
+            action
+        }
 
     /**
      * What happens to a row whose parent is deleted, when the schema does not say.
@@ -289,7 +316,7 @@ public object SchemaMapper {
         (listOf(table) + columns + suffix).joinToString("_")
 
     private const val JOIN_FIRST = "A"
-    private val TEXT_ENUM_PROVIDERS = setOf(Provider.SQLITE, Provider.H2)
+    private val TEXT_ENUM_PROVIDERS = setOf(Provider.SQLITE, Provider.H2, Provider.MYSQL, Provider.MARIADB)
     private const val JOIN_SECOND = "B"
     private val JOIN_COLUMNS = listOf(JOIN_FIRST, JOIN_SECOND)
 }

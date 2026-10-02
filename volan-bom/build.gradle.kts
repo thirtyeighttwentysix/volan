@@ -19,6 +19,7 @@ dependencies {
         api(project(":volan-dialect-postgres"))
         api(project(":volan-dialect-sqlite"))
         api(project(":volan-dialect-h2"))
+        api(project(":volan-dialect-mysql"))
         api(project(":volan-runtime"))
         api(project(":volan-migrate"))
     }

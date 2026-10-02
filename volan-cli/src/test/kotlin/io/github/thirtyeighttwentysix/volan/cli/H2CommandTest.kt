@@ -2,7 +2,6 @@ package io.github.thirtyeighttwentysix.volan.cli
 
 import com.github.ajalt.clikt.core.parse
 import io.github.thirtyeighttwentysix.volan.ir.SchemaLoader
-import io.github.thirtyeighttwentysix.volan.migrate.VolanMigrationException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -25,9 +24,7 @@ class H2CommandTest {
         command().parse(listOf("db", "pull", "--url", url, "--schema", schema.toString()))
         SchemaLoader.load(schema.toString(), schema.readText()).schemaOrThrow().datasource.provider.id shouldBe "h2"
         command().parse(listOf("db", "push", "--dry-run", "--url", url, "--schema", schema.toString()))
-        shouldThrow<VolanMigrationException> {
-            command().parse(listOf("db", "push", "--url", url, "--schema", schema.toString(), "--accept-data-loss"))
-        }
+        command().parse(listOf("db", "push", "--url", url, "--schema", schema.toString()))
         DriverManager.getConnection(url).use { connection ->
             connection.createStatement().use { statement ->
                 statement.executeQuery("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='PUBLIC'").use {

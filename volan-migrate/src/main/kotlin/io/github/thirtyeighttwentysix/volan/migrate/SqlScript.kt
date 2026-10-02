@@ -1,7 +1,7 @@
 package io.github.thirtyeighttwentysix.volan.migrate
 
 /** PostgreSQL scripts may contain function bodies, nested comments and quoted semicolons. */
-internal class SqlScript(private val sql: String) {
+internal class SqlScript(private val sql: String, private val mysql: Boolean = false) {
     private var index = 0
     private val current = StringBuilder()
     private val statements = ArrayList<String>()
@@ -9,9 +9,9 @@ internal class SqlScript(private val sql: String) {
     fun split(): List<String> {
         while (index < sql.length) {
             when {
-                sql.startsWith("--", index) -> lineComment()
+                isLineComment() -> lineComment()
                 sql.startsWith("/*", index) -> blockComment()
-                sql[index] == '\'' || sql[index] == '"' -> quoted()
+                sql[index] in listOf('\'', '"', '`') -> quoted()
                 sql[index] == '$' && dollarTag() != null -> dollarQuoted(requireNotNull(dollarTag()))
                 sql[index] == ';' -> {
                     finish()
@@ -34,7 +34,16 @@ internal class SqlScript(private val sql: String) {
         current.append(' ')
     }
 
+    private fun isLineComment(): Boolean {
+        if (mysql && sql[index] == '#') return true
+        if (!sql.startsWith("--", index)) return false
+        return !mysql || index + 2 == sql.length || sql[index + 2].isWhitespace()
+    }
+
     private fun blockComment() {
+        if (mysql && (sql.startsWith("/*!", index) || sql.startsWith("/*M!", index))) {
+            throw VolanMigrationException("Executable MySQL/MariaDB comments require ordinary reviewed SQL instead.")
+        }
         var depth = 1
         index += 2
         while (index < sql.length && depth > 0) {
@@ -56,7 +65,7 @@ internal class SqlScript(private val sql: String) {
 
     private fun quoted() {
         val quote = sql[index]
-        val escaped = quote == '\'' && index > 0 && sql[index - 1].equals('e', ignoreCase = true) &&
+        val escaped = !mysql && quote == '\'' && index > 0 && sql[index - 1].equals('e', ignoreCase = true) &&
             (index < 2 || !sql[index - 2].isLetterOrDigit())
         current.append(sql[index++])
         while (index < sql.length) {

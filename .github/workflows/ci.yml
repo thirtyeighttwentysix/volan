@@ -137,7 +137,7 @@ jobs:
       - name: Generate coverage report
         run: ./gradlew koverXmlReport --stacktrace
 
-      - name: Verify migration coverage on PostgreSQL and SQLite
+      - name: Verify migration coverage across supported databases
         run: ./gradlew :volan-migrate:koverVerify --stacktrace
 
       - name: Upload to Codecov

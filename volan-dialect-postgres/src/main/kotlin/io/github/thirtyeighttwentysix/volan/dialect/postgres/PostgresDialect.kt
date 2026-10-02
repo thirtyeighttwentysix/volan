@@ -1,11 +1,13 @@
 package io.github.thirtyeighttwentysix.volan.dialect.postgres
 
+import io.github.thirtyeighttwentysix.volan.Json
 import io.github.thirtyeighttwentysix.volan.dialect.ColumnType
 import io.github.thirtyeighttwentysix.volan.dialect.DdlRenderer
 import io.github.thirtyeighttwentysix.volan.dialect.DialectCapabilities
 import io.github.thirtyeighttwentysix.volan.dialect.IndexDefinition
 import io.github.thirtyeighttwentysix.volan.dialect.SqlRenderer
 import io.github.thirtyeighttwentysix.volan.dialect.SqlType
+import org.postgresql.util.PGobject
 
 /**
  * PostgreSQL.
@@ -32,6 +34,16 @@ public object PostgresDialect : DdlRenderer(
     override val hasEnumTypes: Boolean get() = true
 
     override val generatedUuid: String get() = "gen_random_uuid()"
+    override val textParameterType: Int get() = java.sql.Types.OTHER
+
+    /** JSON must be bound as its native type, rather than as a VARCHAR. */
+    override fun jdbcValue(value: Any?): Any? = when (value) {
+        is Json -> PGobject().apply {
+            type = "jsonb"
+            this.value = value.raw
+        }
+        else -> value
+    }
 
     override fun typeName(type: SqlType): String = when (type) {
         SqlType.TEXT -> "text"

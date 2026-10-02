@@ -54,10 +54,23 @@ val generateH2Client = tasks.register<JavaExec>("generateH2Client") {
     args(h2Schema.asFile.absolutePath, h2Sources.get().asFile.absolutePath)
 }
 
+val mysqlSources = layout.buildDirectory.dir("generated/mysql")
+val generateMySqlClient = tasks.register<JavaExec>("generateMySqlClient") {
+    group = "build"
+    description = "Generates a client covering MySQL Decimal and explicit UUID keys."
+    classpath = generator.runtimeClasspath
+    mainClass.set("verify.GenerateClientKt")
+    val mysqlSchema = layout.projectDirectory.file("schema/mysql.volan")
+    inputs.file(mysqlSchema).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(mysqlSources)
+    args(mysqlSchema.asFile.absolutePath, mysqlSources.get().asFile.absolutePath)
+}
+
 sourceSets.main {
     kotlin.srcDir(generatedSources)
     kotlin.srcDir(sqliteSources)
     kotlin.srcDir(h2Sources)
+    kotlin.srcDir(mysqlSources)
 }
 
 dependencies {
@@ -73,11 +86,16 @@ dependencies {
     testImplementation(project(":volan-dialect-postgres"))
     testImplementation(project(":volan-dialect-sqlite"))
     testImplementation(project(":volan-dialect-h2"))
+    testImplementation(project(":volan-dialect-mysql"))
     testImplementation(project(":volan-migrate"))
     testImplementation(libs.jdbc.sqlite)
     testImplementation(libs.jdbc.h2)
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.postgres)
+    testImplementation(libs.testcontainers.mysql)
+    testImplementation(libs.testcontainers.mariadb)
+    testRuntimeOnly(libs.jdbc.mysql)
+    testRuntimeOnly(libs.jdbc.mariadb)
     testRuntimeOnly(libs.jdbc.postgres)
 }
 
@@ -99,7 +117,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 tasks.named<KotlinCompile>("compileKotlin") {
-    dependsOn(generateClient, generateSqliteClient, generateH2Client)
+    dependsOn(generateClient, generateSqliteClient, generateH2Client, generateMySqlClient)
 }
 
 tasks.withType<Test>().configureEach {

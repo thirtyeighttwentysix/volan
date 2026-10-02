@@ -1,0 +1,45 @@
+public final class io/github/thirtyeighttwentysix/volan/dialect/mysql/MariaDbDialect : io/github/thirtyeighttwentysix/volan/dialect/mysql/MySqlRenderer {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/dialect/mysql/MariaDbDialect;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/dialect/mysql/MariaDbDialectProvider : io/github/thirtyeighttwentysix/volan/dialect/DialectProvider {
+	public fun <init> ()V
+	public fun dialect ()Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;
+	public fun supports (Ljava/lang/String;)Z
+}
+
+public final class io/github/thirtyeighttwentysix/volan/dialect/mysql/MySqlDialect : io/github/thirtyeighttwentysix/volan/dialect/mysql/MySqlRenderer {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/dialect/mysql/MySqlDialect;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/dialect/mysql/MySqlDialectProvider : io/github/thirtyeighttwentysix/volan/dialect/DialectProvider {
+	public fun <init> ()V
+	public fun dialect ()Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;
+	public fun supports (Ljava/lang/String;)Z
+}
+
+public class io/github/thirtyeighttwentysix/volan/dialect/mysql/MySqlRenderer : io/github/thirtyeighttwentysix/volan/dialect/DdlRenderer {
+	public fun <init> (Ljava/lang/String;)V
+	protected fun alterColumn (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$AlterColumn;)Ljava/util/List;
+	protected fun appendLimit (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	protected fun appendOrderBy (Lio/github/thirtyeighttwentysix/volan/dialect/SqlRenderer$Builder;Ljava/util/List;)V
+	protected fun autoIncrementType (Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;)Ljava/lang/String;
+	protected fun createIndex (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/dialect/IndexDefinition;)Ljava/lang/String;
+	protected fun createTable (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateTable;)Ljava/lang/String;
+	protected fun getCurrentTimestamp ()Ljava/lang/String;
+	protected fun getDefaultValuesClause ()Ljava/lang/String;
+	protected fun getGeneratedUuid ()Ljava/lang/String;
+	public fun getId ()Ljava/lang/String;
+	protected fun getLikeEscape ()C
+	public fun getTimestampWithoutTimeZone ()Z
+	public fun initialize (Ljava/sql/Connection;)V
+	public fun jdbcValue (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun quote (Ljava/lang/String;)Ljava/lang/String;
+	protected fun render (Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;)Ljava/lang/String;
+	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement;)Ljava/util/List;
+	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
+	public fun renderForUpdate (Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
+	public fun sqlState (Ljava/sql/SQLException;)Ljava/lang/String;
+	protected fun typeName (Lio/github/thirtyeighttwentysix/volan/dialect/SqlType;)Ljava/lang/String;
+}
+

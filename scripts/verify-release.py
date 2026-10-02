@@ -25,7 +25,7 @@ NS = {"m": "http://maven.apache.org/POM/4.0.0"}
 def libraries_for(version):
     # Keep verification of immutable alphas aligned with the modules each release actually contains.
     libraries = LIBRARIES if version == "0.1.0-alpha.1" else LIBRARIES | {"volan-dialect-sqlite"}
-    return libraries if version in {"0.1.0-alpha.1", "0.1.0-alpha.2"} else libraries | {"volan-dialect-h2"}
+    return libraries if version in {"0.1.0-alpha.1", "0.1.0-alpha.2"} else libraries | {"volan-dialect-h2", "volan-dialect-mysql"}
 
 
 def require(condition, message):

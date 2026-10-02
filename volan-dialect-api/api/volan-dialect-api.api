@@ -179,6 +179,16 @@ public final class io/github/thirtyeighttwentysix/volan/dialect/ColumnType$Scala
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/dialect/ConstraintKind : java/lang/Enum {
+	public static final field FOREIGN_KEY Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;
+	public static final field PRIMARY_KEY Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;
+	public static final field UNIQUE Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;
+	public static final field UNKNOWN Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;
+	public static fun values ()[Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;
+}
+
 public abstract class io/github/thirtyeighttwentysix/volan/dialect/DdlRenderer : io/github/thirtyeighttwentysix/volan/dialect/SqlRenderer {
 	public fun <init> (Lio/github/thirtyeighttwentysix/volan/dialect/DialectCapabilities;)V
 	protected fun addEnumValue (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$AddEnumValue;)Ljava/util/List;
@@ -365,11 +375,15 @@ public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$Dro
 
 public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$DropConstraint : io/github/thirtyeighttwentysix/volan/dialect/DdlStatement {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$DropConstraint;
-	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$DropConstraint;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$DropConstraint;
+	public final fun component3 ()Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$DropConstraint;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$DropConstraint;Ljava/lang/String;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$DropConstraint;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKind ()Lio/github/thirtyeighttwentysix/volan/dialect/ConstraintKind;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getTable ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -411,6 +425,19 @@ public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$Dro
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$ModifyColumn : io/github/thirtyeighttwentysix/volan/dialect/DdlStatement {
+	public fun <init> (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/dialect/ColumnDefinition;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/github/thirtyeighttwentysix/volan/dialect/ColumnDefinition;
+	public final fun copy (Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/dialect/ColumnDefinition;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$ModifyColumn;
+	public static synthetic fun copy$default (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$ModifyColumn;Ljava/lang/String;Lio/github/thirtyeighttwentysix/volan/dialect/ColumnDefinition;ILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$ModifyColumn;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDefinition ()Lio/github/thirtyeighttwentysix/volan/dialect/ColumnDefinition;
+	public final fun getTable ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/dialect/DdlStatement$RebuildTable : io/github/thirtyeighttwentysix/volan/dialect/DdlStatement {
 	public fun <init> (Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;Ljava/util/List;Ljava/util/List;)V
 	public final fun component1 ()Lio/github/thirtyeighttwentysix/volan/dialect/DdlStatement$CreateConstrainedTable;
@@ -430,6 +457,8 @@ public abstract interface class io/github/thirtyeighttwentysix/volan/dialect/Dia
 	public fun connectionMaxLifetime (Ljava/lang/String;)Ljava/lang/Long;
 	public abstract fun getCapabilities ()Lio/github/thirtyeighttwentysix/volan/dialect/DialectCapabilities;
 	public abstract fun getId ()Ljava/lang/String;
+	public fun getTextParameterType ()I
+	public fun getTimestampWithoutTimeZone ()Z
 	public fun initialize (Ljava/sql/Connection;)V
 	public fun jdbcValue (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun poolSize (Ljava/lang/String;I)I
@@ -438,14 +467,18 @@ public abstract interface class io/github/thirtyeighttwentysix/volan/dialect/Dia
 	public abstract fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlInsert;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public abstract fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public abstract fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlUpdate;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
+	public fun renderForUpdate (Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public fun sqlState (Ljava/sql/SQLException;)Ljava/lang/String;
 }
 
 public final class io/github/thirtyeighttwentysix/volan/dialect/Dialect$DefaultImpls {
 	public static fun connectionMaxLifetime (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/lang/String;)Ljava/lang/Long;
+	public static fun getTextParameterType (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;)I
+	public static fun getTimestampWithoutTimeZone (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;)Z
 	public static fun initialize (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/sql/Connection;)V
 	public static fun jdbcValue (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/lang/Object;)Ljava/lang/Object;
 	public static fun poolSize (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/lang/String;I)I
+	public static fun renderForUpdate (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public static fun sqlState (Lio/github/thirtyeighttwentysix/volan/dialect/Dialect;Ljava/sql/SQLException;)Ljava/lang/String;
 }
 
@@ -878,6 +911,8 @@ public abstract class io/github/thirtyeighttwentysix/volan/dialect/SqlRenderer :
 	protected fun getCaseInsensitiveLikeKeyword ()Ljava/lang/String;
 	protected fun getDefaultValuesClause ()Ljava/lang/String;
 	protected fun getLikeEscape ()C
+	public fun getTextParameterType ()I
+	public fun getTimestampWithoutTimeZone ()Z
 	public fun initialize (Ljava/sql/Connection;)V
 	public fun jdbcValue (Ljava/lang/Object;)Ljava/lang/Object;
 	protected final fun pattern (Lio/github/thirtyeighttwentysix/volan/dialect/SqlTextMatch;Ljava/lang/String;)Ljava/lang/String;
@@ -888,6 +923,7 @@ public abstract class io/github/thirtyeighttwentysix/volan/dialect/SqlRenderer :
 	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlInsert;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public fun render (Lio/github/thirtyeighttwentysix/volan/dialect/SqlUpdate;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
+	public fun renderForUpdate (Lio/github/thirtyeighttwentysix/volan/dialect/SqlSelect;)Lio/github/thirtyeighttwentysix/volan/dialect/SqlStatement;
 	public fun sqlState (Ljava/sql/SQLException;)Ljava/lang/String;
 }
 

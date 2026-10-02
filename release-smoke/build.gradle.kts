@@ -20,6 +20,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-mysql:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-mariadb:2.0.5")
     testRuntimeOnly("org.postgresql:postgresql:42.7.13")
     if (includesSqlite) {
         testImplementation("io.github.thirtyeighttwentysix:volan-dialect-sqlite")
@@ -28,6 +30,9 @@ dependencies {
     if (includesH2) {
         testImplementation("io.github.thirtyeighttwentysix:volan-dialect-h2")
         testRuntimeOnly("com.h2database:h2:2.5.252")
+        testImplementation("io.github.thirtyeighttwentysix:volan-dialect-mysql")
+        testRuntimeOnly("com.mysql:mysql-connector-j:26.7.0")
+        testRuntimeOnly("org.mariadb.jdbc:mariadb-java-client:3.5.10")
     }
 }
 
@@ -53,6 +58,7 @@ tasks.withType<JavaCompile>().configureEach { options.release.set(17) }
 tasks.test {
     systemProperty("volan.sqlite", includesSqlite.toString())
     systemProperty("volan.h2", includesH2.toString())
+    systemProperty("volan.mysql", includesH2.toString())
     useJUnitPlatform()
     testLogging { events("passed", "failed", "skipped") }
 }

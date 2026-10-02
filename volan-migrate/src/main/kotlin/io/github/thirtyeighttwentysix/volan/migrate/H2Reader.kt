@@ -20,7 +20,7 @@ public class H2Reader(private val journalTable: String = MigrationJournal.DEFAUL
         val tables = ArrayList<TableDefinition>()
         query(connection, "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = CURRENT_SCHEMA() ORDER BY TABLE_NAME") { row ->
             val name = row.getString("TABLE_NAME")
-            if (name != journalTable) {
+            if (name != journalTable && name != DatabaseSync.PUSH_TABLE) {
                 if (row.getString("TABLE_TYPE") != "BASE TABLE" || row.getString("STORAGE_TYPE") !in setOf("CACHED", "MEMORY")) {
                     unsupported("view, temporary, linked or external table `$name`")
                 }

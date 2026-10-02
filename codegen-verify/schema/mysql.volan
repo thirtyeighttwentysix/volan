@@ -1,0 +1,19 @@
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "volan-kotlin"
+  package = "com.example.mysql"
+  javaFriendly = true
+}
+
+model Scalars {
+  id Uuid @id @map("scalar_id")
+  amount Decimal
+  label String @default("constant")
+  createdAt DateTime @default(now())
+  token Uuid @default(uuid())
+  @@map("mysql_scalars")
+}

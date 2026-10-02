@@ -5,12 +5,13 @@ The [release workflow](https://github.com/thirtyeighttwentysix/volan/actions/wor
 verifies downloaded artifacts, signatures and independent PostgreSQL and SQLite consumers before
 creating the [GitHub prerelease](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.2).
 Alpha.1 remains available as the first PostgreSQL-only release.
-Current development is `0.1.0-alpha.3-SNAPSHOT`, adding H2 runtime support, introspection and SQL plans.
+Current development is `0.1.0-alpha.3-SNAPSHOT`, adding H2, MySQL and MariaDB runtime, introspection and migrations.
 
 ## Published artifacts
 
 Alpha.2 contains nine library modules and `volan-bom`, including `volan-dialect-sqlite`
-and its BOM constraint. The next release adds `volan-dialect-h2` and its BOM constraint.
+and its BOM constraint. The next release adds `volan-dialect-h2` and `volan-dialect-mysql` (both MySQL and MariaDB),
+for eleven libraries plus the BOM: twelve Maven artifacts.
 Libraries contain JVM classes,
 sources and Dokka HTML documentation. POMs contain license, SCM and developer metadata. The BOM
 constrains only modules that are actually published. Placeholder modules, tests and benchmarks
@@ -44,7 +45,7 @@ and [Gradle publishing plugin documentation](https://vanniktech.github.io/gradle
 
 Run the **Release** workflow manually on `main`. A branch run performs the full build, ABI and
 migration coverage checks, stages unsigned artifacts and runs an independent PostgreSQL consumer.
-From alpha.2, the consumer also checks SQLite; from alpha.3 it also checks H2. For a development SNAPSHOT, rehearsal removes the
+From alpha.2, the consumer also checks SQLite; from alpha.3 it also checks H2, MySQL and MariaDB. For a development SNAPSHOT, rehearsal removes the
 `-SNAPSHOT` suffix only in staged artifacts; it never uploads them.
 It does not need release secrets and does not upload to Central.
 

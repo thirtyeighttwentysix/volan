@@ -121,6 +121,7 @@ internal class SemanticAnalyzer(private val sink: DiagnosticSink) {
         IntegrityAnalyzer(sink).analyze(drafts, enums, relations)
         if (datasource?.provider == Provider.SQLITE) SqliteSchemaAnalyzer(sink).analyze(drafts)
         if (datasource?.provider == Provider.H2) H2SchemaAnalyzer(sink).analyze(drafts)
+        if (datasource?.provider in setOf(Provider.MYSQL, Provider.MARIADB)) MySqlSchemaAnalyzer(sink).analyze(drafts)
 
         if (sink.hasErrors || datasource == null) return null
         return Schema(

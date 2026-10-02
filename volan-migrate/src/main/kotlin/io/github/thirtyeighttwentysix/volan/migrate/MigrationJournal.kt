@@ -12,7 +12,7 @@ import java.time.Instant
  *   no longer matches this is the whole reason the column exists.
  * @property startedAt when it began.
  * @property finishedAt when it finished, or `null` when it did not.
- * @property appliedSteps how many completed statements were acknowledged in the journal. After an H2
+ * @property appliedSteps how many completed statements were acknowledged in the journal. After a nontransactional DDL
  *   crash the last executed statement may not have been acknowledged; inspect the database before repair.
  */
 public data class AppliedMigration(
@@ -43,7 +43,9 @@ public class MigrationJournal(private val table: String = DEFAULT_TABLE) {
         if (exists(connection)) return
         connection.createStatement().use { statement ->
             statement.execute(
-                """
+                migrationSql(
+                    connection,
+                    """
                 CREATE TABLE "$table" (
                   "id" varchar(255) NOT NULL,
                   "checksum" varchar(64) NOT NULL,
@@ -52,7 +54,8 @@ public class MigrationJournal(private val table: String = DEFAULT_TABLE) {
                   "applied_steps" integer NOT NULL DEFAULT 0,
                   CONSTRAINT "${table}_pkey" PRIMARY KEY ("id")
                 )
-                """.trimIndent(),
+                    """.trimIndent(),
+                ),
             )
         }
     }
@@ -71,7 +74,7 @@ public class MigrationJournal(private val table: String = DEFAULT_TABLE) {
         val sql = "SELECT \"id\", \"checksum\", \"started_at\", \"finished_at\", \"applied_steps\" " +
             "FROM \"$table\" ORDER BY \"id\""
         return connection.createStatement().use { statement ->
-            statement.executeQuery(sql).use { result ->
+            statement.executeQuery(migrationSql(connection, sql)).use { result ->
                 val applied = ArrayList<AppliedMigration>()
                 while (result.next()) {
                     applied.add(
@@ -92,7 +95,7 @@ public class MigrationJournal(private val table: String = DEFAULT_TABLE) {
     /** Records that a migration has begun, before its first statement runs. */
     public fun begin(connection: Connection, migration: MigrationFile, at: Instant) {
         val sql = """INSERT INTO "$table" ("id", "checksum", "started_at", "applied_steps") VALUES (?, ?, ?, 0)"""
-        connection.prepareStatement(sql).use { statement ->
+        connection.prepareStatement(migrationSql(connection, sql)).use { statement ->
             var parameter = 0
             statement.setString(++parameter, migration.id)
             statement.setString(++parameter, migration.checksum)
@@ -104,7 +107,7 @@ public class MigrationJournal(private val table: String = DEFAULT_TABLE) {
     /** Records that a migration has finished, and how many statements it ran. */
     public fun finish(connection: Connection, id: String, at: Instant, steps: Int) {
         val sql = """UPDATE "$table" SET "finished_at" = ?, "applied_steps" = ? WHERE "id" = ?"""
-        connection.prepareStatement(sql).use { statement ->
+        connection.prepareStatement(migrationSql(connection, sql)).use { statement ->
             var parameter = 0
             statement.setTimestamp(++parameter, Timestamp.from(at))
             statement.setInt(++parameter, steps)
@@ -115,7 +118,9 @@ public class MigrationJournal(private val table: String = DEFAULT_TABLE) {
 
     /** A durable lower bound on completed statements when DDL cannot be rolled back. */
     internal fun progress(connection: Connection, id: String, steps: Int) {
-        connection.prepareStatement("""UPDATE "$table" SET "applied_steps" = ? WHERE "id" = ? AND "finished_at" IS NULL""")
+        connection.prepareStatement(
+            migrationSql(connection, """UPDATE "$table" SET "applied_steps" = ? WHERE "id" = ? AND "finished_at" IS NULL"""),
+        )
             .use { statement ->
                 statement.setInt(1, steps)
                 statement.setString(2, id)

@@ -37,7 +37,8 @@ class H2SyncTest {
                 statement.execute("ALTER TABLE \"Item\" ADD COLUMN \"external\" INTEGER")
             }
             sync.drift(connection, SchemaMapper.map(desired)).isEmpty shouldBe false
-            shouldThrow<VolanMigrationException> { sync.push(connection, desired, acceptWarnings = true) }
+            sync.push(connection, desired, acceptWarnings = true).steps.size shouldBe 1
+            sync.plan(connection, desired).isEmpty shouldBe true
             shouldThrow<VolanMigrationException> { sync.plan(connection, Fixtures.blog()) }
         }
     }

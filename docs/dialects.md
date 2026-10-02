@@ -1,25 +1,26 @@
 # Database support
 
 `0.1.0-alpha.2` supports PostgreSQL and SQLite, including runtime operations and migrations.
-H2 runtime support is on main for alpha.3. MySQL and MariaDB remain placeholders.
+H2, MySQL and MariaDB are implemented on main for alpha.3; they are not part of alpha.2.
 
-| Capability | PostgreSQL | SQLite | H2 on main | MySQL / MariaDB |
+| Capability | PostgreSQL | SQLite | H2 on main | MySQL / MariaDB on main |
 |---|---|---|---|---|
-| Generated Kotlin and Java clients | Yes | Yes | Yes | Planned |
-| CRUD, upsert, bulk writes, raw SQL | Yes | Yes | Yes | Planned |
-| Relations, batched includes, nested writes | Yes | Yes | Yes | Planned |
-| Aggregate, groupBy, having | Yes | Yes, supported numeric types | Yes | Planned |
-| Composite keys and cursors | Yes | Yes | Yes | Planned |
-| Transactions, savepoints, async operations | Yes | Yes | Yes | Planned |
-| Distinct | DISTINCT ON | Selected distinct columns only | DISTINCT ON | Planned |
-| Scalar arrays | Yes | Rejected during schema analysis | Yes | Planned |
-| Decimal | Yes | Rejected during schema analysis | NUMERIC(65, 30) | Planned |
-| Provider-specific @db types | Yes | Rejected during schema analysis | Rejected during schema analysis | Planned |
-| Initial DDL and SQL change plans | Yes | Yes | Yes | Planned |
-| Pull and structural drift detection | Yes | Yes, ordinary main tables | Yes, ordinary current-schema tables | Planned |
-| Automatic schema push | Yes | Yes | Planned | Planned |
-| Versioned migrations and journal | Yes, transactional | Yes, transactional | Yes, durable progress and manual repair | Planned |
-| Typed full-text search | Planned | Planned; @@fulltext rejected | Planned; @@fulltext rejected | Planned |
+| Generated Kotlin and Java clients | Yes | Yes | Yes | Yes |
+| CRUD, upsert, bulk writes, raw SQL | Yes | Yes | Yes | Yes; transactional row read-back |
+| Relations, batched includes, nested writes | Yes | Yes | Yes | Yes |
+| Aggregate, groupBy, having | Yes | Yes, supported numeric types | Yes | Yes |
+| Composite keys and cursors | Yes | Yes | Yes | Yes |
+| Transactions, savepoints, async operations | Yes | Yes | Yes | Yes, InnoDB |
+| Distinct | DISTINCT ON | Selected distinct columns only | DISTINCT ON | Selected distinct columns only |
+| Scalar arrays | Yes | Rejected during schema analysis | Yes | Rejected during schema analysis |
+| Decimal | Yes | Rejected during schema analysis | NUMERIC(65,30) | DECIMAL(65,30) |
+| Provider-specific @db types | Yes | Rejected during schema analysis | Rejected during schema analysis | Rejected during schema analysis |
+| Initial DDL and SQL change plans | Yes | Yes | Yes | Yes |
+| Pull and structural drift detection | Yes | Yes, ordinary main tables | Yes, ordinary current-schema tables | Yes, canonical current-database tables |
+| Automatic schema push | Yes, transactional | Yes, transactional | Yes, durable progress and manual repair | Yes, durable progress and manual repair |
+| Versioned migrations and journal | Yes, transactional | Yes, transactional | Yes, durable progress and manual repair | Yes, durable progress and manual repair |
+| Full-text index DDL | Yes | Rejected | Rejected | Yes |
+| Typed full-text search | Planned | Planned | Planned | Planned |
 
 ## H2 setup on main
 
@@ -48,7 +49,7 @@ memory pools use one connection because every connection otherwise holds a diffe
 Volan disables connection retirement for memory pools, retaining their contents until the client
 closes. External data sources keep their own connection lifecycle.
 
-Create tables with reviewed SQL before using repositories. Initial DDL can be generated with
+Create tables with reviewed SQL or `DatabaseSync.push` before using repositories. Initial DDL can be generated with
 `SchemaDiffer.diff(DatabaseSchema(), SchemaMapper.map(schema)).render(H2Dialect)` from `volan-migrate`.
 `DatabaseSync(H2Reader(), H2Dialect)` reads the connection's current schema, exports it with `pull`,
 detects structural drift and generates SQL with `plan`. The CLI bundles the H2 driver:
@@ -58,11 +59,12 @@ volan db pull --url jdbc:h2:file:./data --stdout
 volan db push --schema schema.volan --url jdbc:h2:file:./data --dry-run
 ```
 
-Automatic `db push` remains refused, including with `--accept-data-loss`. For deployments, save the
+Automatic `db push` applies changes with durable progress and final-schema verification. For deployments, save the
 reviewed SQL in a `MigrationDirectory` and call `Migrator.apply` using a dedicated administrator
 connection in auto-commit mode. H2 DDL commits immediately: failed migrations retain their completed
 statements and unfinished journal entry. Further apply calls stop until manual repair and `markApplied`
-with the original file. [H2 migration and recovery details](migrations.md#h2-versioned-migrations).
+with the original file. An interrupted push likewise blocks subsequent writes until manually repaired
+and resolved against the original schema. [Migration and recovery details](migrations.md#nontransactional-push-recovery).
 Pull, drift and planning execute only catalogue queries and do not commit a caller's transaction.
 
 Introspection preserves standard scalar types, arrays, defaults, normal BY DEFAULT identities,
@@ -71,7 +73,7 @@ custom type sizes/precision, bounded or nested arrays, custom identity options, 
 columns, domains used as column types, CHECK constraints, views, triggers, standalone sequences,
 synonyms, linked/temporary tables, cross-schema foreign keys and custom index ordering or methods.
 Only regular mode with default collation/null ordering is supported. The default migration journal
-table is excluded; `H2Reader(journalTable)` selects a custom journal name, using its exact database case.
+table and the private `_volan_push` journal are excluded; `H2Reader(journalTable)` selects a custom journal name, using its exact database case.
 
 H2 reports NO ACTION foreign keys as RESTRICT; schema mapping normalizes this equivalent immediate
 check to avoid repeated changes. Enum columns export as String, and implicit join tables export as
@@ -96,6 +98,67 @@ The shared embedded suite checks H2 and SQLite CRUD, bulk writes, queries, relat
 summaries, cursors, constraints, asynchronous reads, file reopening and savepoint rollback. An H2
 schema separately generates and compiles a client covering Decimal, UUID defaults and every scalar
 array. The independent release consumer verifies H2 CRUD and schema round trips from staged Maven artifacts.
+
+## MySQL and MariaDB setup on main
+
+The shared `volan-dialect-mysql` module discovers both providers through ServiceLoader.
+Stage the alpha.3 candidate locally using the command above, then select the matching JDBC driver:
+
+```kotlin
+dependencies {
+    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.3"))
+    implementation("io.github.thirtyeighttwentysix:volan-runtime")
+    implementation("io.github.thirtyeighttwentysix:volan-dialect-mysql")
+    implementation("io.github.thirtyeighttwentysix:volan-migrate")
+    runtimeOnly("com.mysql:mysql-connector-j:26.7.0") // MySQL
+    // runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.5.10") // MariaDB instead
+}
+```
+
+Use `provider = "mysql"` with `jdbc:mysql://host:3306/database`, or `provider = "mariadb"`
+with `jdbc:mariadb://host:3306/database`. Supply credentials through the client builder or
+`DATABASE_USER` / `DATABASE_PASSWORD` for the CLI; the CLI bundles both drivers.
+
+```shell
+volan db push --schema schema.volan --url jdbc:mysql://localhost:3306/app --dry-run
+volan db push --schema schema.volan --url jdbc:mysql://localhost:3306/app
+volan db pull --url jdbc:mysql://localhost:3306/app --stdout
+```
+
+The library entry point is `DatabaseSync(MySqlReader(), MySqlDialect)` or
+`DatabaseSync(MySqlReader(), MariaDbDialect)`. Use `DatabaseSync.plan` when generating migrations:
+MySQL column modifications require the full target definition, and constraint removal requires
+catalogue context. [Migration locking and recovery](migrations.md#mysql-and-mariadb-migrations).
+
+The tested versions are MySQL 8.4 and MariaDB 11.4. Tables use InnoDB, utf8mb4 and utf8mb4_bin.
+Each borrowed runtime connection uses UTC, ANSI_QUOTES, NO_BACKSLASH_ESCAPES and STRICT_TRANS_TABLES.
+Text and enum fields use **VARCHAR(191)**: longer values fail, and larger/custom declarations are
+currently refused by strict introspection. Uuid uses CHAR(36), Bytes LONGBLOB, Boolean TINYINT(1),
+Decimal DECIMAL(65,30), DateTime UTC DATETIME(6), Date DATE and Time TIME(6). Temporal precision is
+microseconds; finer input precision follows server rounding. Decimal is limited to 65 total digits
+and 30 fractional digits. MySQL stores native JSON; MariaDB uses its validated JSON alias.
+
+Create reads generated auto-increment keys through JDBC and selects the saved row inside the same
+transaction. Explicit composite keys are supported. Supply UUID primary keys from the application:
+`@default(uuid())` on a primary key is rejected because JDBC cannot return it reliably. Update and
+delete lock the matching row with FOR UPDATE and use its primary key; a single-row write matching
+multiple rows fails before changing any row. Transactions and nested writes retain rollback and
+savepoint behavior. Upsert uses the existing find/create-or-update API and is not an atomic server upsert.
+
+Case-sensitive comparisons follow utf8mb4_bin; insensitive searches use LOWER/LIKE. Search values
+escape wildcards with `!` and remain bound parameters. Distinct projections must select exactly the
+distinct columns. Arrays, `@db` overrides, SetDefault actions and unsupported auto-increment shapes
+are rejected during schema analysis. Full-text indexes can be created with `@@fulltext`; a typed
+full-text query API is deferred.
+
+Introspection preserves canonical scalars, defaults, keys, foreign keys, ordinary ascending indexes
+and full-text indexes. It refuses views, triggers, non-InnoDB tables, custom collations, unsigned or
+generated/invisible columns, custom sizes or precision, other CHECK constraints, cross-database
+foreign keys, expression/prefix/descending/invisible indexes and unsupported index methods.
+Foreign-key supporting indexes are modeled explicitly, including their removal when the relation is dropped.
+The migration and push journals are excluded. Enum columns export as String; generated client names,
+relations and enum declarations still require retaining the source schema. Custom SQL expressions
+may need their catalogue spelling to avoid textual default differences. Renames need reviewed SQL.
 
 ## SQLite setup
 
@@ -201,5 +264,5 @@ SQLite cannot choose an arbitrary representative entity for DISTINCT ON. Use
 `codegen-verify` generates and compiles a SQLite client, then exercises a file database, reopening,
 private memory databases, heterogeneous bulk inserts, relations, composite cursors, filters, summaries,
 supported scalars, asynchronous calls, savepoints, rollback and constraints. These tests run on Linux,
-macOS and Windows without Docker. PostgreSQL integration tests use Testcontainers on Docker-enabled
-runners. The release consumer separately verifies SQLite discovery from the published JAR and BOM.
+macOS and Windows without Docker. PostgreSQL, MySQL and MariaDB integration tests use Testcontainers on Docker-enabled
+runners. The same shared runtime suite runs on all five providers, alongside provider-specific tests. The release consumer separately verifies SQLite discovery from the published JAR and BOM.

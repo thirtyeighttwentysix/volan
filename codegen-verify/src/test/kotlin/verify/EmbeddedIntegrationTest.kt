@@ -26,7 +26,7 @@ import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-/** A common generated table layout exercised against each embedded engine, without Docker. */
+/** A common generated table layout exercised against all five providers. */
 abstract class EmbeddedIntegrationTest {
     @TempDir
     lateinit var temporary: Path
@@ -38,6 +38,8 @@ abstract class EmbeddedIntegrationTest {
     protected abstract val memoryUrl: String
 
     protected abstract val supportsDistinctOn: Boolean
+
+    protected open val temporalNanos: Int get() = 123456789
 
     protected abstract fun initialize(database: VolanClient)
 
@@ -174,10 +176,10 @@ abstract class EmbeddedIntegrationTest {
     }
 
     @Test
-    fun `supported scalar types round trip including nanosecond timestamp`() {
-        val moment = Instant.parse("2026-10-01T10:20:30.123456789Z")
+    fun `supported scalar types round trip at the declared temporal precision`() {
+        val moment = Instant.parse("2026-10-01T10:20:30Z").plusNanos(temporalNanos.toLong())
         val date = LocalDate.of(2026, 10, 1)
-        val time = LocalTime.of(10, 20, 30, 123456789)
+        val time = LocalTime.of(10, 20, 30, temporalNanos)
         val token = UUID.randomUUID()
         val row = client.scalars.create {
             ratio = 1.25f
@@ -198,7 +200,7 @@ abstract class EmbeddedIntegrationTest {
         row.time shouldBe time
         row.token shouldBe token
         row.data shouldBe byteArrayOf(0, 1, -1)
-        row.document?.raw shouldBe "{\"sqlite\":true}"
+        row.document?.raw?.replace(" ", "") shouldBe "{\"sqlite\":true}"
         client.scalars.findFirstOrThrow { where { this.moment eq moment } }.id shouldBe row.id
         val empty = client.scalars.create { ratio = 0f; precise = 0.0; enabled = false }
         empty.moment.shouldBeNull()

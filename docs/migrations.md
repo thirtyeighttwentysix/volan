@@ -2,10 +2,10 @@
 
 M6 provides SQL plans, migration files, a checksum journal, database introspection and schema
 synchronization. Alpha.2 supports PostgreSQL and SQLite; alpha.1 supports PostgreSQL only.
-H2 on main supports introspection, pull, drift detection, SQL plans and versioned migrations with
-durable progress and manual repair. Automatic H2 push is not yet supported. See [H2 setup](dialects.md#h2-setup-on-main).
-The PostgreSQL examples below address the connection's current schema. SQLite addresses main.
-Multi-schema models, MySQL/MariaDB and automatic H2 migration deployment remain scheduled separately.
+Main adds H2, MySQL and MariaDB runtime, introspection, pull/push and versioned migrations for alpha.3.
+Their DDL commits immediately, so interrupted changes require manual repair. See the
+[database matrix](dialects.md). PostgreSQL examples address the current schema; SQLite addresses main;
+MySQL and MariaDB address the selected database. Multi-schema models remain deferred.
 
 ## Pull and push
 
@@ -205,5 +205,50 @@ Malformed quoted SQL is also refused before the start record; an unstarted scrip
 The journal resides in the connection's current schema; use the same custom table name in
 `MigrationJournal(name)` and `H2Reader(name)` when changing the default.
 
-`DatabaseSync.push` and CLI `db push` remain deferred for H2. Use versioned, reviewed SQL for writes;
-`db push --dry-run` remains available to preview changes.
+## MySQL and MariaDB migrations
+
+Use `MySqlDialect` / `MariaDbDialect` and `MySqlReader`, both backed by the shared
+`volan-dialect-mysql` module. Generate plans with `DatabaseSync.plan`, review them, write them to a
+`MigrationDirectory` and apply with `Migrator` on a dedicated connection starting in auto-commit mode.
+No active application writes should run during schema changes. Connections must select a database.
+
+Writers acquire a database-specific named session lock before inspecting schema/history. The lock
+survives implicit DDL commits and is released on completion, failure or disconnect. It coordinates
+Volan writers on the same server; application SQL and other migration tools must be coordinated
+separately. Acquisition waits up to 60 seconds. See [MySQL named locks](https://dev.mysql.com/doc/refman/8.4/en/locking-functions.html)
+and [MariaDB implicit commits](https://mariadb.com/docs/server/reference/sql-statements/transactions/sql-statements-that-cause-an-implicit-commit).
+
+Versioned migrations use the same durable start/progress/finish protocol and `markApplied` recovery
+as H2 above. No partial script is automatically replayed. Scripts must not change session/transaction
+settings, databases or migration locks, including indirectly through routines or triggers. LOCK/UNLOCK
+and the direct control commands listed above are refused before any statement runs. Backtick identifiers
+and ordinary MySQL comments are parsed without splitting quoted semicolons. Executable version
+comments (`/*! ... */` / `/*M! ... */`) are refused; write ordinary reviewed SQL instead. These guarantees
+require keeping the dedicated connection open for the whole operation.
+
+## Nontransactional push recovery
+
+H2, MySQL and MariaDB `DatabaseSync.push` / CLI `db push` use a separate `_volan_push` journal. Review
+`--dry-run` first. Warning-bearing changes require `--accept-data-loss`, as on the other providers.
+MySQL/MariaDB additionally refuse a required column without a default on a populated table, preventing
+implicit empty-value backfills; use a reviewed migration to backfill explicitly. Push verifies the
+resulting schema before recording completion. Successful repeated pushes make no changes and never
+add entries to versioned migration history.
+
+Failure can leave earlier DDL committed. An unfinished push blocks both another push and versioned
+migration apply. An unfinished default versioned journal similarly blocks push. Inspect the database
+and the acknowledged statement count, retain the original target schema and manually complete the
+repair. The count is a lower bound: a crash can happen after DDL commits but before its progress is saved.
+Once the database exactly matches that original target, resolve it:
+
+```shell
+volan db push --schema schema.volan --url jdbc:h2:file:./data --resolve
+# The same command supports jdbc:mysql: and jdbc:mariadb: URLs.
+```
+
+The library equivalent is `sync.resolvePush(connection, originalSchema)`. Resolution compares the
+structural target fingerprint and actual database schema; a different target or incomplete repair
+is refused. It executes no repair DDL itself. Do not delete unfinished journal rows to force a retry.
+Reserve `_volan_push` and `_volan_migrations` for Volan. Readers can select a custom versioned journal
+name; automatic push interlocks with the default versioned journal, so deployments using a custom
+journal must coordinate its unfinished state themselves. Plan/pull/drift only read catalogue data.

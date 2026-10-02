@@ -26,9 +26,15 @@ internal fun <T> withH2MigrationLock(connection: Connection, block: () -> T): T 
 }
 
 /** A durable start record blocks replay even if a process dies between a statement and its progress update. */
-internal class H2Migration(private val journal: MigrationJournal, private val clock: Clock) {
-    fun run(connection: Connection, migration: MigrationFile) {
-        val statements = SqlScript(migration.sql).split()
+internal class CommittedMigration(private val journal: MigrationJournal, private val clock: Clock) {
+    fun run(
+        connection: Connection,
+        migration: MigrationFile,
+        recovery: String = "markApplied with the original migration",
+        verify: () -> Unit = {},
+    ) {
+        val provider = connection.metaData.databaseProductName
+        val statements = SqlScript(migration.sql, mysql = connection.isMySql()).split()
         validate(statements)
         var steps = 0
         try {
@@ -40,12 +46,13 @@ internal class H2Migration(private val journal: MigrationJournal, private val cl
                     journal.progress(connection, migration.id, steps)
                 }
             }
+            verify()
             journal.finish(connection, migration.id, clock.instant(), steps)
         } catch (failure: SQLException) {
             throw VolanMigrationException(
-                "H2 migration `${migration.id}` failed after $steps completed statements: ${failure.message}\n" +
+                "$provider migration `${migration.id}` failed after $steps completed statements: ${failure.message}\n" +
                     "  Earlier changes may already be committed. Inspect the database and unfinished journal entry, " +
-                    "repair it to the intended final state, then use markApplied with the original migration. " +
+                    "repair it to the intended final state, then use $recovery. " +
                     "Do not replay the script automatically.",
                 failure,
             )
@@ -55,7 +62,7 @@ internal class H2Migration(private val journal: MigrationJournal, private val cl
     private fun validate(statements: List<String>) {
         if (statements.any { COMMAND.find(it)?.value?.uppercase(Locale.ROOT) in FORBIDDEN }) {
             throw VolanMigrationException(
-                "H2 migration scripts must not contain transaction/session control, RUNSCRIPT, EXECUTE or SHUTDOWN; " +
+                "Migration scripts must not contain transaction/session control, RUNSCRIPT, EXECUTE or SHUTDOWN; " +
                     "Migrator owns auto-commit, the current schema and exclusive access.",
             )
         }
@@ -65,7 +72,7 @@ internal class H2Migration(private val journal: MigrationJournal, private val cl
         private val COMMAND = Regex("^[A-Za-z]+")
         private val FORBIDDEN = setOf(
             "BEGIN", "START", "COMMIT", "END", "ROLLBACK", "SAVEPOINT", "RELEASE", "PREPARE", "SET", "USE",
-            "RUNSCRIPT", "EXECUTE", "SHUTDOWN",
+            "RUNSCRIPT", "EXECUTE", "SHUTDOWN", "LOCK", "UNLOCK",
         )
     }
 }

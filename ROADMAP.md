@@ -14,7 +14,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M5** | Relations, nested writes and summaries: arbitrary `include`/`select` nesting, batched loading, implicit and explicit N:M, nested writes from `create` and `update`, `aggregate`, `groupBy`/`having`, `distinct` | Statement-count assertions prove the absence of N+1 | ✅ |
 | **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ✅ |
 | **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; Java-visible generated signatures and runtime ABI checked (compiler enum accessors excluded) | ✅ |
-| **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The same integration suite passes on every dialect | 🚧 |
+| **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The common integration suite passes on all five databases; supported differences documented | ✅ |
 | **M9** | CLI and build plugins: Clikt CLI, Gradle plugin, Maven plugin | An example project builds through the plugin alone, with no manual steps | ⬜ |
 | **M10** | Coroutines, interceptors, Micrometer metrics | `suspend` API covered by tests; cancellation cancels the in-flight statement | ⬜ |
 | **M11** | Examples and documentation site: `kotlin-basic`, `java-basic`, `spring-boot`, `ktor`; Getting Started (Kotlin/Java), references, migration guides | Every example runs from its own README and has a CI smoke test | ⬜ |
@@ -53,9 +53,15 @@ the JVM without giving up something the brief also asks for.
 - H2 versioned migrations: administrator connections acquire exclusive access across DDL commits.
   Durable start records and acknowledged statement counts survive failure; unfinished migrations block
   replay until manually repaired and marked applied with the original checksum. File reopening,
-  concurrency and interrupted progress are tested. Automatic schema push remains deferred.
-- Remaining: H2 automatic push; MySQL and MariaDB implementations and their
-  integration suites. M8 is not complete.
+  concurrency and interrupted progress are tested.
+- H2 automatic push verifies the resulting schema and journals partial DDL in `_volan_push`.
+  Manual repair must match the original target before `db push --resolve` clears the block.
+- MySQL 8.4 and MariaDB 11.4: provider discovery, generated CRUD, row read-back without RETURNING,
+  relations, nested writes, summaries, cursors, savepoints and async operations pass the shared suite.
+  Strict InnoDB introspection, pull/push, full-text index DDL, structural drift and versioned migrations
+  use named session locks and durable progress. Unsupported catalogue shapes are refused.
+- H2 and the shared MySQL/MariaDB dialect module are included in the next release BOM and tested
+  by an independent Java consumer of staged Maven artifacts. M8 is complete; M9 is next.
 
 ## Deliberately deferred
 
@@ -68,7 +74,7 @@ main branch.
   `volan-migrate` (M6, with PostgreSQL integration tests). The runtime coverage gate remains deferred.
 - **Provider-specific native types beyond PostgreSQL.** `@db.…` is checked against the types
   PostgreSQL actually has, and a name it does not have is refused with the ones it does listed. The
-  same table for the other databases arrives with their dialects in M8.
+  other dialects deliberately reject native overrides for now; custom sizes need reviewed SQL.
 - **Reading back a database Volan did not create.** Introspection understands the shapes Volan writes.
   An index built from an expression Volan would not have written is reported as something it cannot
   describe, rather than being quietly dropped from the schema it reads — but that does mean a database
@@ -95,11 +101,8 @@ main branch.
 - **Cursors combined with an explicit `orderBy`.** Resuming after a row requires knowing that row's
   position in that order, which the key alone does not give. A cursor on its own pages by primary key;
   combining the two is refused with an explanation until keyset paging over arbitrary orderings lands.
-- **Reading a written row back without `RETURNING`.** PostgreSQL and SQLite 3.35+ have it, so `create`, `update` and
-  `delete` read the row back in one statement. The follow-up-select fallback the other databases need
-  arrives with them in M8.
 - **Filters and ordering on list columns.** A `String[]` column is read and written, but has no filter
-  handle: what `contains` means for an array is a dialect question, answered in M8.
+  handle. Array filter semantics remain deferred; PostgreSQL and H2 can store arrays.
 - **Remaining CLI commands, `volan-gradle-plugin`, `volan-maven-plugin`.**
   The initial CLI ships `db pull` / `db push` in M6. The remaining CLI and build plugins arrive in M9;
   the Java suite is already implemented in M7.

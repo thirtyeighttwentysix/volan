@@ -27,6 +27,7 @@ public abstract class DdlRenderer(capabilities: DialectCapabilities) : SqlRender
         is DdlStatement.AddColumn -> one("ALTER TABLE ${quote(ddl.table)} ADD COLUMN ${column(ddl.column)}")
         is DdlStatement.DropColumn -> one("ALTER TABLE ${quote(ddl.table)} DROP COLUMN ${quote(ddl.column)}")
         is DdlStatement.AlterColumn -> alterColumn(ddl)
+        is DdlStatement.ModifyColumn -> throw VolanDialectException("$id does not use complete column modifications.")
         is DdlStatement.AddPrimaryKey -> one(
             "ALTER TABLE ${quote(ddl.table)} ADD ${named(ddl.key.name)}PRIMARY KEY ${columns(ddl.key.columns)}",
         )

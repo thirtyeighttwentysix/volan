@@ -33,7 +33,7 @@ public data class MigrationStatus(
  * Runs the migrations a project has written, and says what it has run.
  *
  * Migrations run in name order. PostgreSQL and SQLite roll back a failed migration with its journal
- * entry. H2 commits statements individually and retains unfinished history; inspect and repair the
+ * entry. H2, MySQL and MariaDB commit statements individually and retain unfinished history; inspect and repair the
  * database before calling [markApplied]. Unfinished migrations always block subsequent apply calls.
  */
 public class Migrator(
@@ -66,11 +66,14 @@ public class Migrator(
      */
     public fun apply(connection: Connection): List<MigrationFile> = withMigrationLock(connection) {
         if (connection.isSqlite()) return@withMigrationLock sqliteApply(connection)
+        if (connection.hasCommittedDdl() && MigrationJournal(DatabaseSync.PUSH_TABLE).read(connection).any { !it.isFinished }) {
+            throw VolanMigrationException("An unfinished database push blocks migrations; repair it and use resolvePush first.")
+        }
         journal.ensure(connection)
         val status = status(connection)
         refuseDrift(status)
         status.pending.map { migration ->
-            if (connection.isH2()) H2Migration(journal, clock).run(connection, migration) else run(connection, migration)
+            if (connection.hasCommittedDdl()) CommittedMigration(journal, clock).run(connection, migration) else run(connection, migration)
             migration
         }
     }

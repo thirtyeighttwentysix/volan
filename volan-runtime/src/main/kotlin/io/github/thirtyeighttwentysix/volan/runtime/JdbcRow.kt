@@ -16,7 +16,7 @@ import java.util.UUID
  * Values are read by column name straight from the driver: no map is built, no boxing beyond what the
  * driver already did, and no reflection is involved anywhere.
  */
-internal class JdbcRow(private val result: ResultSet) : Row {
+internal class JdbcRow(private val result: ResultSet, private val timestampWithoutTimeZone: Boolean = false) : Row {
     override fun isNull(column: String): Boolean {
         result.getObject(column)
         return result.wasNull()
@@ -54,7 +54,7 @@ internal class JdbcRow(private val result: ResultSet) : Row {
 
     override fun getInstantOrNull(column: String): Instant? = when (val value = result.getObject(column)) {
         null -> null
-        is Timestamp -> value.toInstant()
+        is Timestamp -> if (timestampWithoutTimeZone) value.toLocalDateTime().toInstant(java.time.ZoneOffset.UTC) else value.toInstant()
         is java.time.OffsetDateTime -> value.toInstant()
         is java.time.LocalDateTime -> value.toInstant(java.time.ZoneOffset.UTC)
         is Instant -> value
@@ -105,6 +105,7 @@ internal class JdbcRow(private val result: ResultSet) : Row {
 
     /** JDBC's legacy date/time objects can shift dates or discard fractional seconds. */
     internal fun aggregateValue(column: String): Any? = when (val value = result.getObject(column)) {
+        is Timestamp -> if (timestampWithoutTimeZone) getInstantOrNull(column) else value
         is java.sql.Date -> result.getObject(column, LocalDate::class.java)
         is java.sql.Time -> result.getObject(column, LocalTime::class.java)
         else -> value

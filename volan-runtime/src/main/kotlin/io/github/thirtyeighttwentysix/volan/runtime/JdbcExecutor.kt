@@ -3,6 +3,11 @@ package io.github.thirtyeighttwentysix.volan.runtime
 import io.github.thirtyeighttwentysix.volan.Json
 import io.github.thirtyeighttwentysix.volan.VolanException
 import io.github.thirtyeighttwentysix.volan.dialect.Dialect
+import io.github.thirtyeighttwentysix.volan.dialect.SqlComparison
+import io.github.thirtyeighttwentysix.volan.dialect.SqlCondition
+import io.github.thirtyeighttwentysix.volan.dialect.SqlExpression
+import io.github.thirtyeighttwentysix.volan.dialect.SqlSelect
+import io.github.thirtyeighttwentysix.volan.dialect.SqlSelectItem
 import io.github.thirtyeighttwentysix.volan.dialect.SqlStatement
 import java.sql.Connection
 import java.sql.PreparedStatement
@@ -55,7 +60,7 @@ internal class JdbcExecutor(
     override fun <T> findMany(spec: QuerySpec, mapper: RowMapper<T>): List<T> {
         val rows = query(dialect.render(planner.select(spec)), "reading ${spec.model}") { result ->
             val read = ArrayList<T>()
-            val row = JdbcRow(result)
+            val row = JdbcRow(result, dialect.timestampWithoutTimeZone)
             while (result.next()) read.add(mapper.map(row))
             read
         }
@@ -65,7 +70,7 @@ internal class JdbcExecutor(
     override fun <T> findFirst(spec: QuerySpec, mapper: RowMapper<T>): T? {
         val limited = spec.copy(pagination = spec.pagination.copy(take = 1))
         val row = query(dialect.render(planner.select(limited)), "reading ${spec.model}") { result ->
-            if (result.next()) mapper.map(JdbcRow(result)) else null
+            if (result.next()) mapper.map(JdbcRow(result, dialect.timestampWithoutTimeZone)) else null
         }
         return row?.let { withRelations(spec, mapper, listOf(it)).single() }
     }
@@ -105,7 +110,7 @@ internal class JdbcExecutor(
         val statement = dialect.render(planner.aggregate(spec))
         return query(statement, "summarising ${spec.model}") { result ->
             val values = LinkedHashMap<String, Any?>()
-            val row = JdbcRow(result)
+            val row = JdbcRow(result, dialect.timestampWithoutTimeZone)
             if (result.next()) spec.aggregations.forEach { values[it.alias] = row.aggregateValue(it.alias) }
             values
         }
@@ -121,7 +126,7 @@ internal class JdbcExecutor(
         val statement = dialect.render(planner.group(spec))
         return query(statement, "grouping ${spec.model}") { result ->
             val groups = ArrayList<GroupRow<K>>()
-            val row = JdbcRow(result)
+            val row = JdbcRow(result, dialect.timestampWithoutTimeZone)
             while (result.next()) {
                 val values = LinkedHashMap<String, Any?>()
                 spec.aggregations.forEach { values[it.alias] = row.aggregateValue(it.alias) }
@@ -138,16 +143,16 @@ internal class JdbcExecutor(
      * one that was never written, and the caller cannot undo the half they got.
      */
     override fun <T> create(spec: CreateSpec, mapper: RowMapper<T>): T {
-        requireReturning(spec.model, "create")
         if (spec.nested.isEmpty()) return insertOne(spec, mapper)
         @Suppress("UNCHECKED_CAST")
         return connections.transaction(Isolation.DEFAULT, RetryPolicy.NONE) { nested.write(spec).row as T }
     }
 
     private fun <T> insertOne(spec: CreateSpec, mapper: RowMapper<T>): T {
+        if (!dialect.capabilities.returningClause) return insertAndRead(spec, mapper)
         val statement = dialect.render(planner.insert(listOf(spec), clock.instant()))
         return query(statement, "creating a ${spec.model}") { result ->
-            if (result.next()) mapper.map(JdbcRow(result)) else throw missingReturn(spec.model, "create")
+            if (result.next()) mapper.map(JdbcRow(result, dialect.timestampWithoutTimeZone)) else throw missingReturn(spec.model, "create")
         }
     }
 
@@ -252,7 +257,6 @@ internal class JdbcExecutor(
      * a shape that is half moved is worse than one that never moved, and the caller cannot put it back.
      */
     override fun <T> update(spec: UpdateSpec, mapper: RowMapper<T>): T {
-        requireReturning(spec.model, "update")
         if (spec.nested.isEmpty()) return updateOne(spec, mapper)
         @Suppress("UNCHECKED_CAST")
         return connections.transaction(Isolation.DEFAULT, RetryPolicy.NONE) { nested.change(spec).row as T }
@@ -266,12 +270,13 @@ internal class JdbcExecutor(
      * asked for and what the nested writes are applied against.
      */
     private fun <T> updateOne(spec: UpdateSpec, mapper: RowMapper<T>): T {
+        if (!dialect.capabilities.returningClause) return changeAndRead(spec, mapper)
         if (spec.values.isEmpty() && registry.require(spec.model).columns.none { it.isUpdatedAt }) {
             return findFirst(QuerySpec(spec.model, spec.filter), mapper) ?: throw notChanged(spec.model)
         }
         val statement = dialect.render(planner.update(spec, clock.instant(), returning = true))
         return query(statement, "updating a ${spec.model}") { result ->
-            if (result.next()) mapper.map(JdbcRow(result)) else throw notChanged(spec.model)
+            if (result.next()) mapper.map(JdbcRow(result, dialect.timestampWithoutTimeZone)) else throw notChanged(spec.model)
         }
     }
 
@@ -294,11 +299,11 @@ internal class JdbcExecutor(
     }
 
     override fun <T> delete(spec: DeleteSpec, mapper: RowMapper<T>): T {
-        requireReturning(spec.model, "delete")
+        if (!dialect.capabilities.returningClause) return deleteAndRead(spec, mapper)
         val statement = dialect.render(planner.delete(spec, returning = true))
         return query(statement, "deleting a ${spec.model}") { result ->
             if (result.next()) {
-                mapper.map(JdbcRow(result))
+                mapper.map(JdbcRow(result, dialect.timestampWithoutTimeZone))
             } else {
                 throw VolanNotFoundException(
                     spec.model,
@@ -317,7 +322,7 @@ internal class JdbcExecutor(
     fun <T> rawQuery(sql: String, parameters: List<Any?>, mapper: RowMapper<T>): List<T> =
         query(SqlStatement(sql, parameters), "running a raw query") { result ->
             val rows = ArrayList<T>()
-            val row = JdbcRow(result)
+            val row = JdbcRow(result, dialect.timestampWithoutTimeZone)
             while (result.next()) rows.add(mapper.map(row))
             rows
         }
@@ -367,7 +372,8 @@ internal class JdbcExecutor(
                 is LocalDate -> statement.setObject(position, value)
                 is LocalTime -> statement.setObject(position, value)
                 is Json -> statement.setString(position, value.raw)
-                is Enum<*> -> statement.setString(position, value.name)
+                is String -> statement.setObject(position, value, dialect.textParameterType)
+                is Enum<*> -> statement.setObject(position, value.name, dialect.textParameterType)
                 else -> statement.setObject(position, value)
             }
         }
@@ -376,13 +382,103 @@ internal class JdbcExecutor(
     private fun translate(failure: SQLException, context: String) =
         SqlErrors.translate(failure, context, dialect.sqlState(failure).orEmpty())
 
-    private fun requireReturning(model: String, operation: String) {
-        if (dialect.capabilities.returningClause) return
-        throw VolanUnsupportedException(
-            "`$operation` on `$model` reads the row back in the same statement, which ${dialect.id} cannot do.\n" +
-                "  Reading it back with a follow-up select arrives with the other dialects in M8.",
-        )
+    private fun <T> insertAndRead(spec: CreateSpec, mapper: RowMapper<T>): T =
+        connections.transaction(Isolation.DEFAULT, RetryPolicy.NONE) {
+            val table = registry.require(spec.model)
+            val missing = table.primaryKey.filterNot { spec.values.containsKey(it) }
+            if (table.primaryKey.isEmpty() || missing.size > 1) {
+                throw VolanUnsupportedException("${dialect.id} create requires an explicit primary key or one generated key column.")
+            }
+            val sql = dialect.render(planner.insert(listOf(spec), clock.instant()).copy(returning = emptyList()))
+            val generated = connections.use { connection ->
+                connection.prepareStatement(sql.sql, java.sql.Statement.RETURN_GENERATED_KEYS).use { statement ->
+                    bind(statement, sql.parameters)
+                    try {
+                        statement.executeUpdate()
+                        if (missing.isEmpty()) {
+                            null
+                        } else {
+                            statement.generatedKeys.use { keys ->
+                                if (keys.next()) keys.getObject(1) else null
+                            }
+                        }
+                    } catch (failure: SQLException) {
+                        throw translate(failure, "creating a ${spec.model}")
+                    }
+                }
+            }
+            val values = table.primaryKey.associateWith { spec.values[it] ?: generated }
+            if (values.values.any {
+                    it == null
+                }
+            ) {
+                throw VolanUnsupportedException("Supply the primary key for ${dialect.id} create; JDBC returned no generated key.")
+            }
+            readKey(table, values, mapper)
+        }
+
+    private fun <T> lockedRow(model: String, filter: Filter?, mapper: RowMapper<T>): Pair<T, Map<String, Any?>> {
+        val table = registry.require(model)
+        requireWriteKey(table)
+        val select = planner.select(QuerySpec(model, filter, pagination = Pagination(take = 2)))
+        return query(dialect.renderForUpdate(select), "locking a $model") { result ->
+            if (!result.next()) throw notChanged(model)
+            val row = mapper.map(JdbcRow(result, dialect.timestampWithoutTimeZone))
+            val key = table.primaryKey.associateWith { result.getObject(it) }
+            if (result.next()) {
+                throw VolanValidationException(
+                    "A single-row write on `$model` matched multiple rows; use updateMany or deleteMany.",
+                )
+            }
+            row to key
+        }
     }
+
+    private fun requireWriteKey(table: TableMetadata) {
+        if (table.primaryKey.isEmpty()) {
+            throw VolanUnsupportedException("${dialect.id} writes require a primary key for `${table.model}`.")
+        }
+    }
+
+    private fun keyCondition(key: Map<String, Any?>): SqlCondition = SqlCondition.And(
+        key.map { (column, value) ->
+            SqlCondition.Compare(SqlExpression.Column(null, column), SqlComparison.EQUAL, SqlExpression.Parameter(value))
+        },
+    )
+
+    private fun <T> readKey(table: TableMetadata, key: Map<String, Any?>, mapper: RowMapper<T>): T = query(
+        dialect.render(
+            SqlSelect(
+                table.table,
+                items = table.columns.map {
+                    SqlSelectItem.Column(SqlExpression.Column(null, it.column), null)
+                },
+                condition = keyCondition(key),
+            ),
+        ),
+        "reading the written ${table.model}",
+    ) { result ->
+        if (result.next()) mapper.map(JdbcRow(result, dialect.timestampWithoutTimeZone)) else throw missingReturn(table.model, "write")
+    }
+
+    private fun <T> changeAndRead(spec: UpdateSpec, mapper: RowMapper<T>): T =
+        connections.transaction(Isolation.DEFAULT, RetryPolicy.NONE) {
+            val (_, key) = lockedRow(spec.model, spec.filter, mapper)
+            val planned = planner.update(spec, clock.instant(), returning = false)
+            if (planned.assignments.isNotEmpty()) {
+                update(dialect.render(planned.copy(condition = keyCondition(key))), "updating a ${spec.model}")
+            }
+            val changedKey = key.mapValues { (column, value) -> if (spec.values.containsKey(column)) spec.values[column] else value }
+            readKey(registry.require(spec.model), changedKey, mapper)
+        }
+
+    private fun <T> deleteAndRead(spec: DeleteSpec, mapper: RowMapper<T>): T =
+        connections.transaction(Isolation.DEFAULT, RetryPolicy.NONE) {
+            val (row, key) = lockedRow(spec.model, spec.filter, mapper)
+            val planned = planner.delete(spec, returning = false).copy(condition = keyCondition(key))
+            update(dialect.render(planned), "deleting a ${spec.model}")
+            row
+        }
 
     private fun missingReturn(model: String, operation: String): VolanException = VolanQueryException(
         "`$operation` on `$model` wrote a row but the database returned nothing to map, " +

@@ -1,0 +1,2 @@
+io.github.thirtyeighttwentysix.volan.dialect.mysql.MySqlDialectProvider
+io.github.thirtyeighttwentysix.volan.dialect.mysql.MariaDbDialectProvider

@@ -52,6 +52,9 @@ public enum class SqlType {
     UUID,
 }
 
+/** Constraint kind needed by databases with distinct DROP syntaxes. */
+public enum class ConstraintKind { UNKNOWN, PRIMARY_KEY, UNIQUE, FOREIGN_KEY }
+
 /** What a column holds. */
 @NullMarked
 public sealed interface ColumnType {
@@ -251,6 +254,9 @@ public sealed interface DdlStatement {
         public val change: ColumnChange,
     ) : DdlStatement
 
+    /** Replaces a complete column declaration while retaining its name and position. */
+    public data class ModifyColumn(public val table: String, public val definition: ColumnDefinition) : DdlStatement
+
     /** Adds a primary key to a table that had none. */
     @NullMarked
     public data class AddPrimaryKey(public val table: String, public val key: PrimaryKeyDefinition) : DdlStatement
@@ -265,7 +271,11 @@ public sealed interface DdlStatement {
 
     /** Drops a named constraint: a primary key, a unique constraint or a foreign key. */
     @NullMarked
-    public data class DropConstraint(public val table: String, public val name: String) : DdlStatement
+    public data class DropConstraint @JvmOverloads constructor(
+        public val table: String,
+        public val name: String,
+        public val kind: ConstraintKind = ConstraintKind.UNKNOWN,
+    ) : DdlStatement
 
     /** Creates an index. */
     @NullMarked

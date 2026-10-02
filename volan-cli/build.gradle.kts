@@ -10,10 +10,13 @@ dependencies {
     implementation(project(":volan-dialect-postgres"))
     implementation(project(":volan-dialect-sqlite"))
     implementation(project(":volan-dialect-h2"))
+    implementation(project(":volan-dialect-mysql"))
     implementation(libs.clikt)
     runtimeOnly(libs.jdbc.postgres)
     runtimeOnly(libs.jdbc.sqlite)
     runtimeOnly(libs.jdbc.h2)
+    runtimeOnly(libs.jdbc.mysql)
+    runtimeOnly(libs.jdbc.mariadb)
 }
 
 application {

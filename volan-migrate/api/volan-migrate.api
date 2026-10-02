@@ -53,6 +53,7 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/DatabaseSync {
 	public final fun push (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/ir/Schema;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan;
 	public final fun push (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/ir/Schema;Z)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan;
 	public static synthetic fun push$default (Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSync;Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/ir/Schema;ZILjava/lang/Object;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationPlan;
+	public final fun resolvePush (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/ir/Schema;)V
 }
 
 public final class io/github/thirtyeighttwentysix/volan/migrate/EnumDefinition {
@@ -188,6 +189,19 @@ public final class io/github/thirtyeighttwentysix/volan/migrate/Migrator {
 	public final fun markApplied (Ljava/sql/Connection;Lio/github/thirtyeighttwentysix/volan/migrate/MigrationFile;)V
 	public final fun now ()Ljava/time/Instant;
 	public final fun status (Ljava/sql/Connection;)Lio/github/thirtyeighttwentysix/volan/migrate/MigrationStatus;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/MySqlReader : io/github/thirtyeighttwentysix/volan/migrate/DatabaseReader {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun read (Ljava/sql/Connection;)Lio/github/thirtyeighttwentysix/volan/migrate/DatabaseSchema;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/migrate/MySqlTypes : io/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/migrate/MySqlTypes;
+	public fun canonical (Lio/github/thirtyeighttwentysix/volan/ir/ScalarType;Lio/github/thirtyeighttwentysix/volan/ir/NativeType;)Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;
+	public fun read (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)Lio/github/thirtyeighttwentysix/volan/dialect/ColumnType;
 }
 
 public abstract interface class io/github/thirtyeighttwentysix/volan/migrate/NativeTypeTable {

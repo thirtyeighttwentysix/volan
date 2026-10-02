@@ -24,10 +24,7 @@ public interface DatabaseReader {
             Provider.POSTGRESQL -> PostgresReader()
             Provider.SQLITE -> SqliteReader()
             Provider.H2 -> H2Reader()
-            else -> throw VolanMigrationException(
-                "Volan cannot yet read a ${provider.id} database back, so it cannot tell what one holds.\n" +
-                    "  The other dialects, and the introspection that comes with them, arrive in M8.",
-            )
+            Provider.MYSQL, Provider.MARIADB -> MySqlReader()
         }
     }
 }
