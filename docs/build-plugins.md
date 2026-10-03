@@ -38,7 +38,8 @@ be formatted. `--check` and `--stdout` cannot be combined.
 current project directory. `--output directory` overrides that location. Generated files are build
 outputs. The `.volan-generated-files` manifest lets regeneration remove sources of deleted models
 or renamed packages without recursively clearing a directory. Do not edit generated files or their
-manifest. Collisions with unrelated files and paths through symbolic links are refused.
+manifest. Collisions with unrelated files and symbolic links inside the output directory are refused.
+The output root resolves ordinary filesystem aliases, including macOS system-directory links.
 
 Database operations remain explicit: `volan db pull` and `volan db push` are described in
 [Migrations](migrations.md). Compiling a project never modifies its database.

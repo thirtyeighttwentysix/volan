@@ -11,12 +11,13 @@ import kotlin.io.path.readText
 public object GeneratedSources {
     /**
      * Generates everything before modifying [directory]. Only files owned by a previous manifest are
-     * removed or replaced; unrelated files and symbolic links are never overwritten.
+     * removed or replaced; unrelated files and symbolic links inside the output are never overwritten.
+     * The output root is canonicalized, allowing system-directory aliases such as macOS `/var`.
      */
     @JvmStatic
     public fun write(schema: Schema, directory: Path): List<Path> {
         val generated = VolanGenerator.generate(schema)
-        val output = directory.toAbsolutePath().normalize()
+        val output = directory.toFile().canonicalFile.toPath()
         val manifest = output.resolve(MANIFEST)
         checkParents(manifest)
         val previous = if (manifest.exists()) manifest.readLines().filter { it.isNotEmpty() }.toSet() else emptySet()

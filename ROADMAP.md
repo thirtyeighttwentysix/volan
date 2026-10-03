@@ -68,7 +68,7 @@ the JVM without giving up something the brief also asks for.
 - Clikt commands `init`, `generate`, `format` / `format --check` and semantic `validate`, with source
   diagnostics and database-independent generation. Existing `db pull` / `db push` remain explicit.
 - Generated-source manifests remove deleted models and renamed packages, retain unrelated files
-  and refuse filesystem collisions, escaping paths and symbolic links.
+  and refuse filesystem collisions, escaping paths and links inside the generated output.
 - Gradle Kotlin/JVM main generation is wired into compilation, adds the matching runtime and supports
   incremental builds, build cache and configuration cache. Plugin marker and implementation are staged
   together for Maven Central; no Plugin Portal publication is required.

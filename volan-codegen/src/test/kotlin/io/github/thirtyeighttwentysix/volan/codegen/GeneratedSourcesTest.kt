@@ -4,7 +4,10 @@ import io.github.thirtyeighttwentysix.volan.ir.SchemaLoader
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledOnOs
+import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
@@ -48,5 +51,18 @@ class GeneratedSourcesTest {
         output.resolve(".volan-generated-files").writeText("../../outside.kt\n")
         shouldThrow<IllegalArgumentException> { GeneratedSources.write(first, output) }
         output.resolve("example/Before.kt").readText() shouldBe original
+    }
+
+    @Test
+    @EnabledOnOs(OS.LINUX, OS.MAC)
+    fun `directory aliases above output work but links inside generated output are refused`() {
+        val actual = Files.createDirectory(output.resolve("actual"))
+        val alias = Files.createSymbolicLink(output.resolve("alias"), actual)
+        GeneratedSources.write(schema("Before"), alias.resolve("generated"))
+        actual.resolve("generated/example/Before.kt").exists() shouldBe true
+        val unsafe = Files.createDirectory(actual.resolve("unsafe"))
+        Files.createSymbolicLink(unsafe.resolve("example"), output)
+        shouldThrow<IllegalArgumentException> { GeneratedSources.write(schema("Before"), unsafe) }
+        output.resolve("Before.kt").exists() shouldBe false
     }
 }

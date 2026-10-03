@@ -31,6 +31,7 @@ gradlePlugin {
 }
 
 tasks.processResources {
-    inputs.property("volanVersion", project.version.toString())
-    filesMatching("volan-plugin.properties") { expand("volanVersion" to project.version.toString()) }
+    val volanVersion = project.version.toString()
+    inputs.property("volanVersion", volanVersion)
+    filesMatching("volan-plugin.properties") { expand("volanVersion" to volanVersion) }
 }

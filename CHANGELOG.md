@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Maven `generate-sources` plugin registering generated Kotlin source roots for the ordinary Kotlin
   compiler. Independent Gradle Kotlin/Java and Maven Java projects verify generation, CRUD and model removal.
 - Generated-source ownership manifests clean up removed models and renamed packages, preserve unrelated
-  files and refuse collisions, escaping paths and symbolic links.
+  files and refuse collisions, escaping paths and symbolic links inside the generated output.
 - M8: H2 runtime dialect with provider discovery, CRUD returning rows through data change delta
   tables, bulk writes, relations, nested writes, summaries, DISTINCT ON, cursors and transactions.
 - Initial H2 DDL generation, Decimal and native scalar arrays, JSON binding, nanosecond temporal
