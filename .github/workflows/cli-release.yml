@@ -78,3 +78,10 @@ jobs:
           if [[ "$VERSION" == *-* ]]; then args+=(--prerelease); fi
           gh release create "cli-v$VERSION" --target "$GITHUB_SHA" --title "Volan CLI $VERSION" \
             --notes-file docs/releases/cli-preview.md "${args[@]}" build/cli-release/*
+      - name: Install the published release over HTTPS
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          install_home=$(mktemp -d)
+          HOME="$install_home" VOLAN_TAG="cli-v$VERSION" bash scripts/install.sh
+          "$install_home/.local/share/volan/bin/volan" --help

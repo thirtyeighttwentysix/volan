@@ -38,7 +38,8 @@ def shell_path(value):
 class InstallerTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="volan-install-test-")
-        self.base = Path(self.temp.name)
+        # macOS /var and Windows short TEMP paths can alias their canonical locations.
+        self.base = Path(self.temp.name).resolve()
         self.assets = self.base / "assets"
         self.home = self.base / "home"
         self.home.mkdir()
@@ -85,7 +86,7 @@ function Invoke-WebRequest {{
 }}
 try {{
     & {ps_quote(self.script)} -InstallDir {ps_quote(self.root)}
-    if ($env:Path.Split(';')[0] -ne {ps_quote(str(self.root / 'bin'))}) {{ throw 'Process PATH was not updated' }}
+    if ($env:Path.Split(';')[0] -ne {ps_quote(str(self.root / 'bin'))}) {{ throw ('Unexpected process PATH: ' + $env:Path.Split(';')[0]) }}
 }} finally {{ [IO.File]::WriteAllText({ps_quote(self.mock_path)}, $global:mockUserPath) }}
 """
             self.runner = self.base / "run.ps1"
