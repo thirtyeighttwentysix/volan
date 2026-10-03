@@ -25,9 +25,8 @@ reflect over entity classes, does not scan the classpath and does not build prox
   rather than at the first request in production.
 - GraalVM native image support becomes almost free, because there is nothing to register for
   reflection.
-- The generated client must be regenerated when the schema changes. This is handled by the Gradle and
-  Maven plugins (M9) so that it is not a manual step; until they land, `volan generate` is run
-  explicitly.
+- The generated client must be regenerated when the schema changes. The Gradle and Maven plugins
+  handle this during ordinary compilation (M9); `volan generate` is also available for explicit use.
 - Generated sources are build outputs. They are not checked in, and editing them is not supported.
 
 ## Alternatives considered

@@ -1,0 +1,42 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>example</groupId><artifactId>volan-maven-consumer</artifactId><version>1.0</version>
+  <properties>
+    <volan.version>0.1.0-alpha.3</volan.version>
+    <kotlin.version>2.4.20</kotlin.version>
+    <kotlin.compiler.jdkRelease>17</kotlin.compiler.jdkRelease>
+    <kotlin.compiler.daemon>false</kotlin.compiler.daemon>
+    <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  <dependencies>
+    <dependency><groupId>io.github.thirtyeighttwentysix</groupId><artifactId>volan-runtime</artifactId><version>${volan.version}</version></dependency>
+    <dependency><groupId>io.github.thirtyeighttwentysix</groupId><artifactId>volan-dialect-h2</artifactId><version>${volan.version}</version></dependency>
+    <dependency><groupId>com.h2database</groupId><artifactId>h2</artifactId><version>2.5.252</version><scope>runtime</scope></dependency>
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>6.1.3</version><scope>test</scope></dependency>
+    <dependency><groupId>org.slf4j</groupId><artifactId>slf4j-nop</artifactId><version>2.0.20</version><scope>test</scope></dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.github.thirtyeighttwentysix</groupId><artifactId>volan-maven-plugin</artifactId><version>${volan.version}</version>
+        <executions><execution><goals><goal>generate</goal></goals></execution></executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jetbrains.kotlin</groupId><artifactId>kotlin-maven-plugin</artifactId><version>${kotlin.version}</version>
+        <extensions>true</extensions>
+      </plugin>
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.16.0</version></plugin>
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.4</version></plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>staged</id><activation><property><name>volanRepository</name></property></activation>
+      <repositories><repository><id>volan-staged</id><url>${volanRepository}</url></repository></repositories>
+      <pluginRepositories><pluginRepository><id>volan-staged</id><url>${volanRepository}</url></pluginRepository></pluginRepositories>
+    </profile>
+  </profiles>
+</project>

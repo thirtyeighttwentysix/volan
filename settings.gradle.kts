@@ -35,5 +35,7 @@ include(
     ":codegen-verify",
     ":java-compat-tests",
     ":volan-cli",
+    ":volan-gradle-plugin",
+    ":volan-maven-plugin",
     ":benchmarks",
 )

@@ -1,0 +1,14 @@
+public final class io/github/thirtyeighttwentysix/volan/maven/GenerateMojo : org/apache/maven/plugin/AbstractMojo {
+	public field outputDirectory Ljava/io/File;
+	public field project Lorg/apache/maven/project/MavenProject;
+	public field schemaFile Ljava/io/File;
+	public fun <init> ()V
+	public fun execute ()V
+	public final fun getOutputDirectory ()Ljava/io/File;
+	public final fun getProject ()Lorg/apache/maven/project/MavenProject;
+	public final fun getSchemaFile ()Ljava/io/File;
+	public final fun setOutputDirectory (Ljava/io/File;)V
+	public final fun setProject (Lorg/apache/maven/project/MavenProject;)V
+	public final fun setSchemaFile (Ljava/io/File;)V
+}
+

@@ -25,12 +25,18 @@ import java.sql.DriverManager
 import java.util.Properties
 import kotlin.io.path.readText
 
-/** Runs Volan's database synchronization commands. */
+/** Runs Volan's schema, generation and database commands. */
 public fun main(args: Array<String>) {
     command().main(args)
 }
 
-internal fun command(): CliktCommand = Root().subcommands(Database().subcommands(Pull(), Push()))
+internal fun command(): CliktCommand = Root().subcommands(
+    Init(),
+    Generate(),
+    Format(),
+    Validate(),
+    Database().subcommands(Pull(), Push()),
+)
 
 private class Root : CliktCommand(name = "volan") {
     override fun run(): Unit = Unit

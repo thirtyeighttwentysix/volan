@@ -166,8 +166,9 @@ dependencies {
 }
 ```
 
-Generate the client at build time with `volan-codegen`; the Gradle/Maven generation plugins are
-planned for M9. The [independent consumer](release-smoke/) shows generation and Java usage.
+Alpha.2 uses `volan-codegen` directly. On main for alpha.3, the Gradle and Maven plugins generate the
+client automatically during normal builds; `volan init`, `generate`, `format` and `validate` are also
+available. [Setup and complete build examples →](docs/build-plugins.md)
 
 ## Documentation
 
@@ -175,6 +176,7 @@ planned for M9. The [independent consumer](release-smoke/) shows generation and 
 - [docs/java-api.md](docs/java-api.md) — Java queries, async operations and transaction semantics
 - [docs/migrations.md](docs/migrations.md) — pull, push, versioned migrations and drift detection
 - [docs/dialects.md](docs/dialects.md) — database feature matrix and SQLite storage conventions
+- [docs/build-plugins.md](docs/build-plugins.md) — CLI commands and automatic Gradle/Maven generation
 - [benchmarks/README.md](benchmarks/README.md) — performance methodology and reproduction
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how Volan is built
 - [ROADMAP.md](ROADMAP.md) — milestones and what is deferred

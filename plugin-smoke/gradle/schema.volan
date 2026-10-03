@@ -1,0 +1,13 @@
+datasource db {
+  provider = "h2"
+  url = env("UNSET_PLUGIN_SMOKE_URL")
+}
+generator client {
+  provider = "volan-kotlin"
+  package = "example.generated"
+  javaFriendly = true
+}
+model User {
+  id Int @id @default(autoincrement())
+  name String
+}

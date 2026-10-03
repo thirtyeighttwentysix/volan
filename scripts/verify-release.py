@@ -20,12 +20,18 @@ LIBRARIES = {
     "volan-dialect-postgres", "volan-runtime", "volan-migrate",
 }
 NS = {"m": "http://maven.apache.org/POM/4.0.0"}
+PLUGIN_ID = "io.github.thirtyeighttwentysix.volan"
+MARKER = PLUGIN_ID + ".gradle.plugin"
 
 
 def libraries_for(version):
     # Keep verification of immutable alphas aligned with the modules each release actually contains.
     libraries = LIBRARIES if version == "0.1.0-alpha.1" else LIBRARIES | {"volan-dialect-sqlite"}
     return libraries if version in {"0.1.0-alpha.1", "0.1.0-alpha.2"} else libraries | {"volan-dialect-h2", "volan-dialect-mysql"}
+
+
+def plugins_for(version):
+    return set() if version in {"0.1.0-alpha.1", "0.1.0-alpha.2"} else {"volan-gradle-plugin", "volan-maven-plugin"}
 
 
 def require(condition, message):
@@ -36,19 +42,24 @@ def require(condition, message):
 def files_for(artifact, version):
     prefix = f"{artifact}-{version}"
     suffixes = [".pom", ".module"]
-    if artifact in libraries_for(version):
+    if artifact in libraries_for(version) | plugins_for(version):
         suffixes += [".jar", "-sources.jar", "-javadoc.jar"]
     return [prefix + suffix for suffix in suffixes]
 
 
 def download(repository, version, signatures, wait):
     pending = []
-    for artifact in sorted(libraries_for(version) | {"volan-bom"}):
+    for artifact in sorted(libraries_for(version) | plugins_for(version) | {"volan-bom"}):
         folder = Path(GROUP.replace(".", "/")) / artifact / version
         for name in files_for(artifact, version):
             pending += [folder / name, folder / (name + ".sha1"), folder / (name + ".md5")]
             if signatures:
                 pending.append(folder / (name + ".asc"))
+    if plugins_for(version):
+        marker = Path(PLUGIN_ID.replace(".", "/")) / MARKER / version / f"{MARKER}-{version}.pom"
+        pending += [marker, Path(str(marker) + ".sha1"), Path(str(marker) + ".md5")]
+        if signatures:
+            pending.append(Path(str(marker) + ".asc"))
     deadline = time.monotonic() + wait
     while pending:
         missing = []
@@ -73,7 +84,7 @@ def download(repository, version, signatures, wait):
 
 def verify(repository, version, public_key):
     libraries = libraries_for(version)
-    artifacts = libraries | {"volan-bom"}
+    artifacts = libraries | plugins_for(version) | {"volan-bom"}
     base = repository / GROUP.replace(".", "/")
     present = {p.name for p in base.iterdir() if (p / version).is_dir()}
     require(present == artifacts, f"Unexpected artifact set: {present ^ artifacts}")
@@ -103,7 +114,7 @@ def verify(repository, version, public_key):
                 dependency_version = dependency.findtext("m:version", namespaces=NS)
                 require(dependency_version and "SNAPSHOT" not in dependency_version, f"Unreleased dependency: {name}")
                 if group == GROUP:
-                    require(name in libraries and dependency_version == version, f"Invalid Volan dependency: {name}")
+                    require(name in artifacts and dependency_version == version, f"Invalid Volan dependency: {name}")
             if artifact == "volan-bom":
                 require(value("m:packaging") == "pom", "BOM must have pom packaging")
                 require({d.findtext("m:artifactId", namespaces=NS) for d in dependencies} == libraries,
@@ -132,6 +143,38 @@ def verify(repository, version, public_key):
                     subprocess.run([gpg, "--homedir", ".", "--batch", "--verify", "artifact.asc", "artifact"],
                                    cwd=keyring, check=True, capture_output=True)
             print(f"Verified {artifact}:{version}")
+        if plugins_for(version):
+            verify_plugins(repository, version, public_key, keyring, gpg)
+
+
+def verify_plugins(repository, version, public_key, keyring, gpg):
+    marker = repository / PLUGIN_ID.replace(".", "/") / MARKER / version / f"{MARKER}-{version}.pom"
+    pom = ET.parse(marker).getroot()
+    require(pom.findtext("m:groupId", namespaces=NS) == PLUGIN_ID, "Wrong plugin marker group")
+    require(pom.findtext("m:artifactId", namespaces=NS) == MARKER, "Wrong plugin marker artifact")
+    require(pom.findtext("m:version", namespaces=NS) == version, "Wrong plugin marker version")
+    dependency = pom.find("m:dependencies/m:dependency", NS)
+    require(dependency is not None and dependency.findtext("m:groupId", namespaces=NS) == GROUP
+            and dependency.findtext("m:artifactId", namespaces=NS) == "volan-gradle-plugin"
+            and dependency.findtext("m:version", namespaces=NS) == version, "Invalid plugin marker target")
+    for algorithm in ("sha1", "md5"):
+        require(Path(str(marker) + "." + algorithm).read_text().strip() == hashlib.new(algorithm, marker.read_bytes()).hexdigest(),
+                f"Invalid marker {algorithm}")
+    if public_key:
+        shutil.copyfile(marker, Path(keyring, "artifact"))
+        shutil.copyfile(str(marker) + ".asc", Path(keyring, "artifact.asc"))
+        subprocess.run([gpg, "--homedir", ".", "--batch", "--verify", "artifact.asc", "artifact"],
+                       cwd=keyring, check=True, capture_output=True)
+    for artifact, entry in (("volan-gradle-plugin", f"META-INF/gradle-plugins/{PLUGIN_ID}.properties"),
+                            ("volan-maven-plugin", "META-INF/maven/plugin.xml")):
+        jar = repository / GROUP.replace(".", "/") / artifact / version / f"{artifact}-{version}.jar"
+        with zipfile.ZipFile(jar) as archive:
+            require(entry in archive.namelist(), f"Missing plugin descriptor: {artifact}")
+            if artifact == "volan-maven-plugin":
+                descriptor = ET.fromstring(archive.read(entry))
+                require(descriptor.findtext("version") == version and descriptor.findtext("mojos/mojo/goal") == "generate"
+                        and descriptor.findtext("mojos/mojo/phase") == "generate-sources", "Invalid Maven plugin descriptor")
+    print(f"Verified Gradle marker and both plugin descriptors:{version}")
 
 
 if __name__ == "__main__":

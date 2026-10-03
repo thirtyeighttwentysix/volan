@@ -6,6 +6,7 @@ plugins {
 description = "The Volan database schema command line."
 
 dependencies {
+    implementation(project(":volan-codegen"))
     implementation(project(":volan-migrate"))
     implementation(project(":volan-dialect-postgres"))
     implementation(project(":volan-dialect-sqlite"))

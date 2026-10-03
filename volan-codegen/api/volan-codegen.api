@@ -5,6 +5,11 @@ public final class io/github/thirtyeighttwentysix/volan/codegen/GeneratedFile {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/thirtyeighttwentysix/volan/codegen/GeneratedSources {
+	public static final field INSTANCE Lio/github/thirtyeighttwentysix/volan/codegen/GeneratedSources;
+	public static final fun write (Lio/github/thirtyeighttwentysix/volan/ir/Schema;Ljava/nio/file/Path;)Ljava/util/List;
+}
+
 public final class io/github/thirtyeighttwentysix/volan/codegen/VolanGenerationException : io/github/thirtyeighttwentysix/volan/VolanException {
 	public fun <init> (Ljava/lang/String;)V
 }

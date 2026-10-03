@@ -13,7 +13,8 @@ generator client {
 ```
 
 The generated sources are Kotlin and must be compiled before the Java code that uses them.
-Build-plugin integration arrives in M9; [codegen-verify](../codegen-verify/build.gradle.kts) demonstrates
+Build-plugin integration is available on main for alpha.3; see [CLI and build plugins](build-plugins.md).
+[codegen-verify](../codegen-verify/build.gradle.kts) demonstrates
 generation as a Gradle task today. Compile generated sources with the Kotlin option
 `-Xemit-jvm-type-annotations` to retain JSpecify annotations on nullable types in the Java bytecode.
 

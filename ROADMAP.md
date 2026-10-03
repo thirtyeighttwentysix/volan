@@ -15,7 +15,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M6** | Migrations: introspection, diff, SQL generation, journal, checksums, drift detection, `db pull` / `db push` | Round-trip test: schema → migration → database → introspection → schema | ✅ |
 | **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; Java-visible generated signatures and runtime ABI checked (compiler enum accessors excluded) | ✅ |
 | **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The common integration suite passes on all five databases; supported differences documented | ✅ |
-| **M9** | CLI and build plugins: Clikt CLI, Gradle plugin, Maven plugin | An example project builds through the plugin alone, with no manual steps | ⬜ |
+| **M9** | CLI and build plugins: Clikt CLI, Gradle plugin, Maven plugin | An example project builds through the plugin alone, with no manual steps | ✅ |
 | **M10** | Coroutines, interceptors, Micrometer metrics | `suspend` API covered by tests; cancellation cancels the in-flight statement | ⬜ |
 | **M11** | Examples and documentation site: `kotlin-basic`, `java-basic`, `spring-boot`, `ktor`; Getting Started (Kotlin/Java), references, migration guides | Every example runs from its own README and has a CI smoke test | ⬜ |
 | **M12** | Benchmark extensions and the 1.0 release: broader workloads, Maven Central publication, changelog | Artifacts install into a clean project from a Central staging repository | ⬜ |
@@ -61,7 +61,23 @@ the JVM without giving up something the brief also asks for.
   Strict InnoDB introspection, pull/push, full-text index DDL, structural drift and versioned migrations
   use named session locks and durable progress. Unsupported catalogue shapes are refused.
 - H2 and the shared MySQL/MariaDB dialect module are included in the next release BOM and tested
-  by an independent Java consumer of staged Maven artifacts. M8 is complete; M9 is next.
+  by an independent Java consumer of staged Maven artifacts. M8 is complete.
+
+## M9 progress
+
+- Clikt commands `init`, `generate`, `format` / `format --check` and semantic `validate`, with source
+  diagnostics and database-independent generation. Existing `db pull` / `db push` remain explicit.
+- Generated-source manifests remove deleted models and renamed packages, retain unrelated files
+  and refuse filesystem collisions, escaping paths and symbolic links.
+- Gradle Kotlin/JVM main generation is wired into compilation, adds the matching runtime and supports
+  incremental builds, build cache and configuration cache. Plugin marker and implementation are staged
+  together for Maven Central; no Plugin Portal publication is required.
+- Maven generates during `generate-sources` and registers its sources for the ordinary Kotlin compiler;
+  Java consumers are exercised with incremental compilation, including deleted-model bytecode cleanup.
+- Independent Gradle Kotlin/Java and Maven Java examples build through the plugins without generator
+  programs or manual source-directory/task wiring. CI and release workflows verify staged publications
+  and ordinary builds, schema changes, source/bytecode removal and cache reuse. [Setup](docs/build-plugins.md).
+- M9 is complete; M10 is next. Build plugins ship with the upcoming alpha.3, not alpha.2.
 
 ## Deliberately deferred
 
@@ -103,12 +119,6 @@ main branch.
   combining the two is refused with an explanation until keyset paging over arbitrary orderings lands.
 - **Filters and ordering on list columns.** A `String[]` column is read and written, but has no filter
   handle. Array filter semantics remain deferred; PostgreSQL and H2 can store arrays.
-- **Remaining CLI commands, `volan-gradle-plugin`, `volan-maven-plugin`.**
-  The initial CLI ships `db pull` / `db push` in M6. The remaining CLI and build plugins arrive in M9;
-  the Java suite is already implemented in M7.
-- **The `volan format` and `volan validate` commands.** Both capabilities exist as library API from
-  M1 (`SchemaFormatter` and `SchemaParser`, which reports every syntax problem); wrapping them in a
-  command line is part of M9, where the CLI is built. `validate` gains semantic checks in M2.
 
 ### Post-1.0
 

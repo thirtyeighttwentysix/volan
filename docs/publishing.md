@@ -11,7 +11,9 @@ Current development is `0.1.0-alpha.3-SNAPSHOT`, adding H2, MySQL and MariaDB ru
 
 Alpha.2 contains nine library modules and `volan-bom`, including `volan-dialect-sqlite`
 and its BOM constraint. The next release adds `volan-dialect-h2` and `volan-dialect-mysql` (both MySQL and MariaDB),
-for eleven libraries plus the BOM: twelve Maven artifacts.
+for eleven libraries plus the BOM. M9 adds `volan-gradle-plugin`, `volan-maven-plugin` and the Gradle
+plugin marker `io.github.thirtyeighttwentysix.volan:io.github.thirtyeighttwentysix.volan.gradle.plugin`:
+fifteen Maven artifacts in total. Plugins are versioned explicitly and are not BOM constraints.
 Libraries contain JVM classes,
 sources and Dokka HTML documentation. POMs contain license, SCM and developer metadata. The BOM
 constrains only modules that are actually published. Placeholder modules, tests and benchmarks
@@ -47,6 +49,8 @@ Run the **Release** workflow manually on `main`. A branch run performs the full 
 migration coverage checks, stages unsigned artifacts and runs an independent PostgreSQL consumer.
 From alpha.2, the consumer also checks SQLite; from alpha.3 it also checks H2, MySQL and MariaDB. For a development SNAPSHOT, rehearsal removes the
 `-SNAPSHOT` suffix only in staged artifacts; it never uploads them.
+It also builds independent Gradle and Maven projects through the staged plugins, including ordinary
+compilation, CRUD, incremental regeneration and deleted-model source cleanup.
 It does not need release secrets and does not upload to Central.
 
 For a local rehearsal (Docker required):
@@ -55,6 +59,7 @@ For a local rehearsal (Docker required):
 ./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=0.1.0-alpha.3 -PvolanUnsignedLocalPublication --no-configuration-cache
 python scripts/verify-release.py --version 0.1.0-alpha.3
 ./gradlew -p release-smoke clean test "-PvolanVersion=0.1.0-alpha.3" "-PvolanRepository=/absolute/path/to/volan/build/release-repository"
+python scripts/verify-plugins.py --version 0.1.0-alpha.3 --repository build/release-repository
 ```
 
 `volanUnsignedLocalPublication` also disables registration of the Central publishing tasks.

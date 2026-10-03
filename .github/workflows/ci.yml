@@ -147,3 +147,41 @@ jobs:
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  build-plugins:
+    name: Gradle and Maven consumer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      - name: Read candidate version
+        id: version
+        run: |
+          version=$(sed -n 's/^version=//p' gradle.properties | tr -d '\r')
+          echo "value=${version%-SNAPSHOT}" >> "$GITHUB_OUTPUT"
+      - name: Stage build plugins and runtime
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: ./gradlew publishAllPublicationsToReleaseTestRepository "-Pversion=$VERSION" -PvolanUnsignedLocalPublication --no-configuration-cache --stacktrace
+      - name: Verify release artifacts and plugin descriptors
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: python3 scripts/verify-release.py --version "$VERSION"
+      - name: Build independent projects through the plugins
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: python3 scripts/verify-plugins.py --version "$VERSION" --repository build/release-repository
+      - name: Upload consumer reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-plugin-consumer-reports
+          path: |
+            build/plugin-smoke/gradle/build/reports/tests/**
+            build/plugin-smoke/maven/target/surefire-reports/**

@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- M9: `volan init`, `generate`, `format` / `format --check` and semantic `validate`, with CLI diagnostics
+  and generation that does not require a live database or datasource environment variables.
+- Gradle client generation with automatic Kotlin/JVM source wiring, the matching runtime dependency,
+  incremental inputs, build-cache support, configuration-cache reuse and a Maven Central plugin marker.
+- Maven `generate-sources` plugin registering generated Kotlin source roots for the ordinary Kotlin
+  compiler. Independent Gradle Kotlin/Java and Maven Java projects verify generation, CRUD and model removal.
+- Generated-source ownership manifests clean up removed models and renamed packages, preserve unrelated
+  files and refuse collisions, escaping paths and symbolic links.
 - M8: H2 runtime dialect with provider discovery, CRUD returning rows through data change delta
   tables, bulk writes, relations, nested writes, summaries, DISTINCT ON, cursors and transactions.
 - Initial H2 DDL generation, Decimal and native scalar arrays, JSON binding, nanosecond temporal

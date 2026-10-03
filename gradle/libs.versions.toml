@@ -3,6 +3,7 @@ kotlin = "2.4.20"
 coroutines = "1.11.0"
 kotlinpoet = "2.4.0"
 clikt = "5.1.0"
+maven = "3.9.11"
 hikari = "7.1.0"
 slf4j = "2.0.20"
 jspecify = "1.0.1"
@@ -45,6 +46,8 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 clikt = { module = "com.github.ajalt.clikt:clikt-jvm", version.ref = "clikt" }
+maven-plugin-api = { module = "org.apache.maven:maven-plugin-api", version.ref = "maven" }
+maven-core = { module = "org.apache.maven:maven-core", version.ref = "maven" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
