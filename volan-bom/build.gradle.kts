@@ -22,5 +22,7 @@ dependencies {
         api(project(":volan-dialect-mysql"))
         api(project(":volan-runtime"))
         api(project(":volan-migrate"))
+        api(project(":volan-coroutines"))
+        api(project(":volan-micrometer"))
     }
 }

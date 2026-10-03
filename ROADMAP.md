@@ -16,7 +16,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M7** | Java-facing API: generated Java-friendly layer, `*Async`, JSpecify nullability | `:java-compat-tests` green; Java-visible generated signatures and runtime ABI checked (compiler enum accessors excluded) | ✅ |
 | **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The common integration suite passes on all five databases; supported differences documented | ✅ |
 | **M9** | CLI and build plugins: Clikt CLI, Gradle plugin, Maven plugin | An example project builds through the plugin alone, with no manual steps | ✅ |
-| **M10** | Coroutines, interceptors, Micrometer metrics | `suspend` API covered by tests; cancellation cancels the in-flight statement | ⬜ |
+| **M10** | Coroutines, interceptors, Micrometer metrics | `suspend` API covered by tests; cancellation cancels the in-flight statement | ✅ |
 | **M11** | Examples and documentation site: `kotlin-basic`, `java-basic`, `spring-boot`, `ktor`; Getting Started (Kotlin/Java), references, migration guides | Every example runs from its own README and has a CI smoke test | ⬜ |
 | **M12** | Benchmark extensions and the 1.0 release: broader workloads, Maven Central publication, changelog | Artifacts install into a clean project from a Central staging repository | ⬜ |
 
@@ -77,7 +77,27 @@ the JVM without giving up something the brief also asks for.
 - Independent Gradle Kotlin/Java and Maven Java examples build through the plugins without generator
   programs or manual source-directory/task wiring. CI and release workflows verify staged publications
   and ordinary builds, schema changes, source/bytecode removal and cache reuse. [Setup](docs/build-plugins.md).
-- M9 is complete; M10 is next. Build plugins ship with the upcoming alpha.3, not alpha.2.
+- M9 is complete. Build plugins ship with the upcoming alpha.3, not alpha.2.
+
+## M10 progress
+
+- Optional published `volan-coroutines` adds typed `suspendQuery` access to every generated client
+  operation and a `SuspendingQueryExecutor` for the description API. Blocking JDBC runs on a bounded
+  IO dispatcher; whole transactions stay on one worker with synchronous callbacks and savepoints.
+- Cancellation skips queued callbacks, calls `Statement.cancel()` for active JDBC work, prevents
+  subsequent statements and rolls back before commit. Coroutine completion awaits worker cleanup;
+  Java futures request the same JDBC cancellation but become cancelled immediately.
+- Tests cancel long-running queries on PostgreSQL, SQLite, H2, MySQL and MariaDB, verify rollback and
+  reuse of the only pooled connection. Unit tests cover queued work, cancellation/close races,
+  worker reuse, failure propagation and refusal of coroutine dispatch from a transaction.
+- Thread-safe statement interceptors wrap checkout, execution, mapping and cleanup for generated SQL,
+  raw SQL, relation reads and generated-key writes. Registration order is deterministic; duplicate
+  downstream execution and cross-thread invocation are refused.
+- Optional published `volan-micrometer` records attempted-statement count and duration with bounded
+  dialect, operation and outcome tags, excluding SQL and parameters. Both optional modules are BOM
+  constraints and are exercised by an independent Gradle consumer of staged Maven publications.
+- M10 is complete; M11 is next. These APIs ship with alpha.3, not alpha.2.
+  [Usage, cancellation guarantees and limits](docs/coroutines-and-observability.md).
 
 ## Deliberately deferred
 

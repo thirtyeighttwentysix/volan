@@ -75,6 +75,7 @@ internal class ConnectionSource(private val dataSource: DataSource, private val 
     val inTransaction: Boolean get() = active.get() != null
 
     fun <T> use(block: (Connection) -> T): T {
+        QueryCancellation.check()
         active.get()?.let { return block(it.connection) }
         return borrow().use(block)
     }
@@ -104,12 +105,21 @@ internal class ConnectionSource(private val dataSource: DataSource, private val 
         val previousAutoCommit = connection.autoCommit
         val previousIsolation = connection.transactionIsolation
         val transaction = Transaction(connection)
+        var entered = false
         try {
             connection.autoCommit = false
             if (isolation != Isolation.DEFAULT) connection.transactionIsolation = isolation.jdbcLevel
             active.set(transaction)
+            QueryCancellation.enterTransaction()
+            entered = true
             val result = runCatching { block() }
             result.exceptionOrNull()?.let { failure ->
+                rollback(connection, failure)
+                throw failure
+            }
+            try {
+                QueryCancellation.check()
+            } catch (failure: java.util.concurrent.CancellationException) {
                 rollback(connection, failure)
                 throw failure
             }
@@ -117,6 +127,7 @@ internal class ConnectionSource(private val dataSource: DataSource, private val 
             return result.getOrThrow()
         } finally {
             active.remove()
+            if (entered) QueryCancellation.leaveTransaction()
             restore(connection, previousAutoCommit, previousIsolation)
             connection.close()
         }
@@ -145,12 +156,14 @@ internal class ConnectionSource(private val dataSource: DataSource, private val 
 
     @Suppress("TooGenericExceptionCaught") // Every initialization failure must return the borrowed connection to its owner.
     private fun borrow(): Connection {
+        QueryCancellation.check()
         val connection = try {
             dataSource.connection
         } catch (failure: SQLException) {
             throw translate(failure, "checking out a connection")
         }
         try {
+            QueryCancellation.check()
             dialect?.initialize(connection)
             return connection
         } catch (failure: Throwable) {

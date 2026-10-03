@@ -34,6 +34,7 @@ internal class JdbcExecutor(
     private val registry: TableRegistry,
     private val readers: Map<String, EntityReader<*>>,
     private val clock: Clock,
+    private val interceptors: QueryInterceptors,
 ) : QueryExecutor,
     RelationSource,
     NestedWriteTarget {
@@ -52,6 +53,7 @@ internal class JdbcExecutor(
         return query(statement, "reading the `$table` join table") { result ->
             val pairs = ArrayList<Pair<List<Any?>, List<Any?>>>()
             while (result.next()) {
+                QueryCancellation.check()
                 pairs.add(localColumns.map { result.getObject(it) } to targetColumns.map { result.getObject(it) })
             }
             pairs
@@ -61,7 +63,10 @@ internal class JdbcExecutor(
         val rows = query(dialect.render(planner.select(spec)), "reading ${spec.model}") { result ->
             val read = ArrayList<T>()
             val row = JdbcRow(result, dialect.timestampWithoutTimeZone)
-            while (result.next()) read.add(mapper.map(row))
+            while (result.next()) {
+                QueryCancellation.check()
+                read.add(mapper.map(row))
+            }
             read
         }
         return withRelations(spec, mapper, rows)
@@ -128,6 +133,7 @@ internal class JdbcExecutor(
             val groups = ArrayList<GroupRow<K>>()
             val row = JdbcRow(result, dialect.timestampWithoutTimeZone)
             while (result.next()) {
+                QueryCancellation.check()
                 val values = LinkedHashMap<String, Any?>()
                 spec.aggregations.forEach { values[it.alias] = row.aggregateValue(it.alias) }
                 groups.add(GroupRow(mapper.map(row), values))
@@ -323,37 +329,48 @@ internal class JdbcExecutor(
         query(SqlStatement(sql, parameters), "running a raw query") { result ->
             val rows = ArrayList<T>()
             val row = JdbcRow(result, dialect.timestampWithoutTimeZone)
-            while (result.next()) rows.add(mapper.map(row))
+            while (result.next()) {
+                QueryCancellation.check()
+                rows.add(mapper.map(row))
+            }
             rows
         }
 
     /** Runs a caller-written statement that changes rows. */
     fun rawExecute(sql: String, parameters: List<Any?>): Long = update(SqlStatement(sql, parameters), "running a raw statement").toLong()
 
-    private fun <T> query(statement: SqlStatement, context: String, read: (ResultSet) -> T): T = connections.use { connection ->
-        prepare(connection, statement, context).use { prepared ->
+    private fun <T> query(statement: SqlStatement, context: String, read: (ResultSet) -> T): T =
+        execute(statement, QueryOperation.QUERY, context) { prepared -> prepared.executeQuery().use(read) }
+
+    private fun update(statement: SqlStatement, context: String): Int =
+        execute(statement, QueryOperation.EXECUTE, context) { it.executeUpdate() }
+
+    private fun <T> execute(
+        statement: SqlStatement,
+        operation: QueryOperation,
+        context: String,
+        generatedKeys: Boolean = false,
+        block: (PreparedStatement) -> T,
+    ): T = interceptors.execute(QueryContext(statement.sql, operation, dialect.id)) {
+        QueryCancellation.check()
+        connections.use { connection ->
             try {
-                prepared.executeQuery().use(read)
+                val prepared = if (generatedKeys) {
+                    connection.prepareStatement(statement.sql, java.sql.Statement.RETURN_GENERATED_KEYS)
+                } else {
+                    connection.prepareStatement(statement.sql)
+                }
+                prepared.use {
+                    QueryCancellation.withStatement(it) {
+                        bind(it, statement.parameters)
+                        block(it)
+                    }
+                }
             } catch (failure: SQLException) {
+                QueryCancellation.check()
                 throw translate(failure, context)
             }
         }
-    }
-
-    private fun update(statement: SqlStatement, context: String): Int = connections.use { connection ->
-        prepare(connection, statement, context).use { prepared ->
-            try {
-                prepared.executeUpdate()
-            } catch (failure: SQLException) {
-                throw translate(failure, context)
-            }
-        }
-    }
-
-    private fun prepare(connection: Connection, statement: SqlStatement, context: String): PreparedStatement = try {
-        connection.prepareStatement(statement.sql).also { bind(it, statement.parameters) }
-    } catch (failure: SQLException) {
-        throw translate(failure, context)
     }
 
     /**
@@ -390,21 +407,12 @@ internal class JdbcExecutor(
                 throw VolanUnsupportedException("${dialect.id} create requires an explicit primary key or one generated key column.")
             }
             val sql = dialect.render(planner.insert(listOf(spec), clock.instant()).copy(returning = emptyList()))
-            val generated = connections.use { connection ->
-                connection.prepareStatement(sql.sql, java.sql.Statement.RETURN_GENERATED_KEYS).use { statement ->
-                    bind(statement, sql.parameters)
-                    try {
-                        statement.executeUpdate()
-                        if (missing.isEmpty()) {
-                            null
-                        } else {
-                            statement.generatedKeys.use { keys ->
-                                if (keys.next()) keys.getObject(1) else null
-                            }
-                        }
-                    } catch (failure: SQLException) {
-                        throw translate(failure, "creating a ${spec.model}")
-                    }
+            val generated = execute(sql, QueryOperation.EXECUTE, "creating a ${spec.model}", generatedKeys = true) { statement ->
+                statement.executeUpdate()
+                if (missing.isEmpty()) {
+                    null
+                } else {
+                    statement.generatedKeys.use { keys -> if (keys.next()) keys.getObject(1) else null }
                 }
             }
             val values = table.primaryKey.associateWith { spec.values[it] ?: generated }

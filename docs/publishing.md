@@ -5,15 +5,18 @@ The [release workflow](https://github.com/thirtyeighttwentysix/volan/actions/wor
 verifies downloaded artifacts, signatures and independent PostgreSQL and SQLite consumers before
 creating the [GitHub prerelease](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.2).
 Alpha.1 remains available as the first PostgreSQL-only release.
-Current development is `0.1.0-alpha.3-SNAPSHOT`, adding H2, MySQL and MariaDB runtime, introspection and migrations.
+Current development is `0.1.0-alpha.3-SNAPSHOT`, adding H2, MySQL and MariaDB runtime, introspection
+and migrations, build plugins, coroutine access, statement interception and optional Micrometer metrics.
 
 ## Published artifacts
 
 Alpha.2 contains nine library modules and `volan-bom`, including `volan-dialect-sqlite`
 and its BOM constraint. The next release adds `volan-dialect-h2` and `volan-dialect-mysql` (both MySQL and MariaDB),
 for eleven libraries plus the BOM. M9 adds `volan-gradle-plugin`, `volan-maven-plugin` and the Gradle
-plugin marker `io.github.thirtyeighttwentysix.volan:io.github.thirtyeighttwentysix.volan.gradle.plugin`:
-fifteen Maven artifacts in total. Plugins are versioned explicitly and are not BOM constraints.
+plugin marker `io.github.thirtyeighttwentysix.volan:io.github.thirtyeighttwentysix.volan.gradle.plugin`.
+M10 adds optional `volan-coroutines` and `volan-micrometer` libraries and their BOM constraints,
+for thirteen libraries and seventeen Maven artifacts in total. Plugins are versioned explicitly
+and are not BOM constraints.
 Libraries contain JVM classes,
 sources and Dokka HTML documentation. POMs contain license, SCM and developer metadata. The BOM
 constrains only modules that are actually published. Placeholder modules, tests and benchmarks

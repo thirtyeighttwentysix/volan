@@ -1,0 +1,35 @@
+public final class io/github/thirtyeighttwentysix/volan/coroutines/CoroutineAccess {
+	public static final field Companion Lio/github/thirtyeighttwentysix/volan/coroutines/CoroutineAccess$Companion;
+	public fun <init> ()V
+	public fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;)V
+	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final synthetic fun execute (Lkotlin/jvm/functions/Function0;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/coroutines/CoroutineAccess$Companion {
+	public final fun getDEFAULT ()Lio/github/thirtyeighttwentysix/volan/coroutines/CoroutineAccess;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/coroutines/CoroutineAccessKt {
+	public static final synthetic fun suspendQuery (Ljava/lang/Object;Lio/github/thirtyeighttwentysix/volan/coroutines/CoroutineAccess;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun suspendQuery$default (Ljava/lang/Object;Lio/github/thirtyeighttwentysix/volan/coroutines/CoroutineAccess;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/github/thirtyeighttwentysix/volan/coroutines/SuspendingQueryExecutor {
+	public fun <init> (Lio/github/thirtyeighttwentysix/volan/runtime/QueryExecutor;Lio/github/thirtyeighttwentysix/volan/coroutines/CoroutineAccess;)V
+	public synthetic fun <init> (Lio/github/thirtyeighttwentysix/volan/runtime/QueryExecutor;Lio/github/thirtyeighttwentysix/volan/coroutines/CoroutineAccess;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final synthetic fun aggregate (Lio/github/thirtyeighttwentysix/volan/runtime/AggregateSpec;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun count (Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun create (Lio/github/thirtyeighttwentysix/volan/runtime/CreateSpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun createMany (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun delete (Lio/github/thirtyeighttwentysix/volan/runtime/DeleteSpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun deleteMany (Lio/github/thirtyeighttwentysix/volan/runtime/DeleteSpec;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun exists (Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun findFirst (Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun findMany (Lio/github/thirtyeighttwentysix/volan/runtime/QuerySpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun groupBy (Lio/github/thirtyeighttwentysix/volan/runtime/GroupSpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun update (Lio/github/thirtyeighttwentysix/volan/runtime/UpdateSpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun updateMany (Lio/github/thirtyeighttwentysix/volan/runtime/UpdateSpec;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final synthetic fun upsert (Lio/github/thirtyeighttwentysix/volan/runtime/UpsertSpec;Lio/github/thirtyeighttwentysix/volan/runtime/RowMapper;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

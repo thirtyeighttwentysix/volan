@@ -132,6 +132,15 @@ intervals before interpreting small differences.
 [Raw results and machine metadata](benchmarks/results/) ·
 [Benchmark source](benchmarks/src/main/kotlin/bench/ReadAdapter.kt)
 
+## Coroutines and observability
+
+On main for alpha.3, optional `volan-coroutines` provides typed `suspendQuery` access to generated
+clients and repositories. Coroutine cancellation requests JDBC statement cancellation and waits for
+resource cleanup; entire transactions execute on one worker. Statement interceptors cover generated
+queries, relations and raw SQL, and optional `volan-micrometer` records duration/count with bounded
+provider, operation and outcome tags. These modules are not included in alpha.2.
+[Setup and cancellation semantics →](docs/coroutines-and-observability.md)
+
 ## Migrations
 
 Preview the SQL, apply it, then read the database back as a schema:

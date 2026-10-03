@@ -97,8 +97,10 @@ modify their captured inputs while the operation is pending.
 
 Query failures, callback failures and executor rejection complete the future exceptionally.
 `join()` wraps a failure in `CompletionException`; `get()` uses `ExecutionException`.
-Cancelling a future before execution skips the queued operation. Cancellation after JDBC starts
-does **not** cancel the statement or roll back its effects; statement cancellation is part of M10.
+On main for alpha.3, cancelling a future skips queued work and requests cancellation of its active JDBC
+statement. The worker rolls back an uncommitted transaction and releases its resources; the future itself
+becomes cancelled immediately and does not wait for cleanup. Already committed writes cannot be undone.
+Alpha.2 only skips queued work. [Cancellation details](coroutines-and-observability.md).
 
 ## Transactions
 

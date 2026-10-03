@@ -481,6 +481,11 @@ internal class RepositoryGenerator(private val types: TypeResolver) {
             Triple("poolName", STRING, "The name the pool reports itself under."),
             Triple("asyncExecutor", ClassName("java.util.concurrent", "Executor"), "Executor for asynchronous JDBC calls; caller owned."),
             Triple("dataSource", ClassName("javax.sql", "DataSource"), "Uses a data source owned by the application."),
+            Triple(
+                "interceptor",
+                ClassName("io.github.thirtyeighttwentysix.volan.runtime", "QueryInterceptor"),
+                "Adds a statement interceptor.",
+            ),
             Triple("dialect", ClassName("io.github.thirtyeighttwentysix.volan.dialect", "Dialect"), "Overrides the inferred dialect."),
         )
         val builder = TypeSpec.classBuilder("Builder")

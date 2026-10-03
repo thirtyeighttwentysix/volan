@@ -1,0 +1,7 @@
+public final class io/github/thirtyeighttwentysix/volan/micrometer/MicrometerQueryInterceptor : io/github/thirtyeighttwentysix/volan/runtime/QueryInterceptor {
+	public fun <init> (Lio/micrometer/core/instrument/MeterRegistry;)V
+	public fun <init> (Lio/micrometer/core/instrument/MeterRegistry;Ljava/lang/String;)V
+	public synthetic fun <init> (Lio/micrometer/core/instrument/MeterRegistry;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun intercept (Lio/github/thirtyeighttwentysix/volan/runtime/QueryContext;Ljava/util/function/Supplier;)Ljava/lang/Object;
+}
+

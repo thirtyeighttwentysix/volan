@@ -32,6 +32,7 @@ include(
     ":volan-runtime",
     ":volan-migrate",
     ":volan-coroutines",
+    ":volan-micrometer",
     ":codegen-verify",
     ":java-compat-tests",
     ":volan-cli",

@@ -2,6 +2,19 @@ package verify
 
 import com.example.sqlite.Role
 import com.example.sqlite.VolanClient
+import io.github.thirtyeighttwentysix.volan.coroutines.suspendQuery
+import io.github.thirtyeighttwentysix.volan.micrometer.MicrometerQueryInterceptor
+import io.github.thirtyeighttwentysix.volan.runtime.QueryContext
+import io.github.thirtyeighttwentysix.volan.runtime.QueryInterceptor
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Timeout
+import java.util.concurrent.CountDownLatch
+import java.util.function.Supplier
 import io.github.thirtyeighttwentysix.volan.Json
 import io.github.thirtyeighttwentysix.volan.dialect.VolanDialectException
 import io.github.thirtyeighttwentysix.volan.runtime.Isolation
@@ -52,6 +65,79 @@ abstract class EmbeddedIntegrationTest {
     @AfterEach
     fun stop() {
         client.close()
+    }
+
+    @Test
+    fun `coroutine generated queries preserve transactions across providers`() = runBlocking<Unit> {
+        val created = client.suspendQuery { user.create { email = "suspend@example.org" } }
+        client.suspendQuery {
+            transaction { tx ->
+                tx.post.create { title = "Suspend"; authorId = created.id }
+                tx.user.update { where { id eq created.id }; data { name = "Coroutine" } }
+            }
+        }
+        val loaded = client.suspendQuery { user.findFirstOrThrow { include { posts {} } } }
+        loaded.name shouldBe "Coroutine"
+        loaded.posts.single().title shouldBe "Suspend"
+        assertThrows<IllegalStateException> {
+            client.suspendQuery {
+                transaction { tx ->
+                    tx.user.create { email = "undo@example.org" }
+                    throw IllegalStateException("rollback")
+                }
+            }
+        }
+        client.suspendQuery { user.count() } shouldBe 1
+    }
+
+    @Test
+    @Timeout(30)
+    fun `coroutine cancellation stops a long JDBC query and returns the only pooled connection`() = runBlocking<Unit> {
+        val url = memoryUrl
+        val sql = when {
+            url.startsWith("jdbc:sqlite:") ->
+                "WITH RECURSIVE numbers(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM numbers WHERE x < 1000000000) " +
+                    "SELECT SUM(x) AS result_value FROM numbers"
+            url.startsWith("jdbc:h2:") -> "SELECT SUM(X) AS result_value FROM SYSTEM_RANGE(1, 1000000000)"
+            url.startsWith("jdbc:postgresql:") -> "SELECT 1 AS result_value FROM pg_sleep(60)"
+            else -> "SELECT SLEEP(60) AS result_value"
+        }
+        val started = CountDownLatch(1)
+        val observer = object : QueryInterceptor {
+            override fun <T> intercept(query: QueryContext, next: Supplier<T>): T {
+                if (query.sql == sql) started.countDown()
+                return next.get()
+            }
+        }
+        SimpleMeterRegistry().let { registry ->
+            VolanClient.builder().url(url).maxPoolSize(1).connectionTimeout(1_000)
+                .interceptor(MicrometerQueryInterceptor(registry)).interceptor(observer).build().use { db ->
+                    initialize(db)
+                    registry.clear()
+                    val job = async(start = CoroutineStart.UNDISPATCHED) {
+                        db.suspendQuery {
+                            transaction { tx ->
+                                tx.user.create { email = "cancelled@example.org" }
+                                tx.rawQuery(sql, emptyList()) { it.getLong("result_value") }
+                            }
+                        }
+                    }
+                    try {
+                        assertTrue(started.await(5, TimeUnit.SECONDS))
+                        // Let execution enter the driver; unit tests separately cover cancellation before execution.
+                        Thread.sleep(200)
+                        assertTrue(!job.isCompleted)
+                        val cancelledAt = System.nanoTime()
+                        job.cancelAndJoin()
+                        assertTrue(System.nanoTime() - cancelledAt < TimeUnit.SECONDS.toNanos(5))
+                        registry.get("volan.query").tag("outcome", "cancelled").timer().count() shouldBe 1
+                        db.suspendQuery { user.count() } shouldBe 0
+                        db.suspendQuery { rawQuery("SELECT 1 AS result_value", emptyList()) { it.getInt("result_value") }.single() } shouldBe 1
+                    } finally {
+                        job.cancelAndJoin()
+                    }
+                }
+        }
     }
 
     @Test

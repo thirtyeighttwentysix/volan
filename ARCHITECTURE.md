@@ -220,7 +220,8 @@ the first.
 - Serialization failures and deadlocks are retried with bounded exponential backoff when the block is
   declared retryable; the retry policy is configurable and off by default for non-idempotent blocks.
 - `volan-coroutines` dispatches blocking JDBC work to a bounded `Dispatchers.IO` view; cancellation
-  cancels the in-flight statement (`Statement.cancel`) and releases the connection.
+  requests cancellation of the in-flight statement (`Statement.cancel`) and awaits worker cleanup.
+  The typed `suspendQuery` facade dispatches entire synchronous transactions; their callbacks cannot suspend.
 
 ---
 
@@ -230,7 +231,7 @@ the first.
 |---|---|
 | `Dialect` | Adding a database backend |
 | `TypeCodec<T, J>` | Custom column ↔ Kotlin type conversion (e.g. a domain wrapper over `Json`) |
-| `QueryInterceptor` | Logging, tracing, metrics, soft delete, multi-tenancy filters |
+| `QueryInterceptor` | Physical statement logging, tracing and metrics |
 | `NamingStrategy` | Default table/column naming when `@map` is absent |
 | `ConnectionProvider` | Replacing HikariCP with an externally managed `DataSource` |
 

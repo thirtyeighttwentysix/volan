@@ -8,6 +8,8 @@ dependencies {
     implementation("io.github.thirtyeighttwentysix:volan-dialect-h2:$volanVersion")
     runtimeOnly("com.h2database:h2:2.5.252")
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
+    testImplementation("io.github.thirtyeighttwentysix:volan-coroutines:$volanVersion")
+    testImplementation("io.github.thirtyeighttwentysix:volan-micrometer:$volanVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.3")
     testRuntimeOnly("org.slf4j:slf4j-nop:2.0.20")
 }

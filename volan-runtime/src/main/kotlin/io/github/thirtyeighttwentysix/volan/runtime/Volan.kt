@@ -29,6 +29,7 @@ public class Volan internal constructor(
     readers: Map<String, EntityReader<*>>,
     clock: Clock,
     asyncExecutor: Executor = ForkJoinPool.commonPool(),
+    interceptors: List<QueryInterceptor> = emptyList(),
 ) : AutoCloseable {
     /** Dispatches independent operations; a transaction cannot cross a thread boundary. */
     public val async: AsyncAccess = AsyncAccess(asyncExecutor) {
@@ -46,6 +47,7 @@ public class Volan internal constructor(
         registry = registry,
         readers = readers,
         clock = clock,
+        interceptors = QueryInterceptors(interceptors),
     )
 
     /** What the runtime knows about the models of this schema. */
@@ -133,6 +135,10 @@ public class Volan internal constructor(
         private var clock: Clock = Clock.systemUTC()
         private var dataSource: @Nullable DataSource? = null
         private var asyncExecutor: Executor = ForkJoinPool.commonPool()
+        private val interceptors = ArrayList<QueryInterceptor>()
+
+        /** Adds a thread-safe statement interceptor, in outermost-first order. */
+        public fun interceptor(interceptor: QueryInterceptor): Builder = apply { interceptors.add(interceptor) }
 
         /** Executor for asynchronous JDBC calls. The application owns and shuts down this executor. */
         public fun asyncExecutor(executor: Executor): Builder = apply { this.asyncExecutor = executor }
@@ -192,7 +198,16 @@ public class Volan internal constructor(
                     "a data source was given but no dialect could be chosen.\n" +
                         "  Set `url(…)` so the dialect can be inferred, or name it with `dialect(…)`.",
                 )
-                return Volan(null, ConnectionSource(supplied, resolved), TableRegistry(tables), resolved, readers, clock, asyncExecutor)
+                return Volan(
+                    null,
+                    ConnectionSource(supplied, resolved),
+                    TableRegistry(tables),
+                    resolved,
+                    readers,
+                    clock,
+                    asyncExecutor,
+                    interceptors.toList(),
+                )
             }
             val jdbcUrl = url ?: throw VolanConfigurationException(
                 "no database URL was given.\n  Set one with `url(…)`, reading it from the environment as the schema does.",
@@ -208,7 +223,16 @@ public class Volan internal constructor(
                 this.poolName = this@Builder.poolName
             }
             val pool = HikariDataSource(configuration)
-            return Volan(pool, ConnectionSource(pool, resolved), TableRegistry(tables), resolved, readers, clock, asyncExecutor)
+            return Volan(
+                pool,
+                ConnectionSource(pool, resolved),
+                TableRegistry(tables),
+                resolved,
+                readers,
+                clock,
+                asyncExecutor,
+                interceptors.toList(),
+            )
         }
 
         /**
