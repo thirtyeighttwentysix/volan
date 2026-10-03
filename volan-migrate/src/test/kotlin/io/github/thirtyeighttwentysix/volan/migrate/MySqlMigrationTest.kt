@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.writeText
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@EnabledIf("io.github.thirtyeighttwentysix.volan.migrate.Docker#isAvailable")
 abstract class MySqlMigrationBase {
     protected abstract val dialect: DdlRenderer
     protected abstract fun container(): JdbcDatabaseContainer<*>
@@ -273,11 +272,13 @@ abstract class MySqlMigrationBase {
     }
 }
 
+@EnabledIf("io.github.thirtyeighttwentysix.volan.migrate.Docker#isAvailable")
 class MySqlMigrationTest : MySqlMigrationBase() {
     override val dialect: DdlRenderer get() = MySqlDialect
     override fun container(): JdbcDatabaseContainer<*> = MySQLContainer("mysql:8.4")
 }
 
+@EnabledIf("io.github.thirtyeighttwentysix.volan.migrate.Docker#isAvailable")
 class MariaDbMigrationTest : MySqlMigrationBase() {
     override val dialect: DdlRenderer get() = MariaDbDialect
     override fun container(): JdbcDatabaseContainer<*> = MariaDBContainer("mariadb:11.4")

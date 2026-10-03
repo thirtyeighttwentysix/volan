@@ -28,7 +28,6 @@ import com.example.mysql.VolanClient as MySqlClient
 import kotlin.io.path.readText
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@EnabledIf("verify.Docker#isAvailable")
 abstract class MySqlIntegrationBase : EmbeddedIntegrationTest() {
     protected abstract fun container(): JdbcDatabaseContainer<*>
     protected abstract val dialect: DdlRenderer
@@ -112,11 +111,13 @@ abstract class MySqlIntegrationBase : EmbeddedIntegrationTest() {
     }
 }
 
+@EnabledIf("verify.Docker#isAvailable")
 class MySqlIntegrationTest : MySqlIntegrationBase() {
     override val dialect: DdlRenderer get() = MySqlDialect
     override fun container(): JdbcDatabaseContainer<*> = MySQLContainer("mysql:8.4").withUsername("root").withPassword("test")
 }
 
+@EnabledIf("verify.Docker#isAvailable")
 class MariaDbIntegrationTest : MySqlIntegrationBase() {
     override val dialect: DdlRenderer get() = MariaDbDialect
     override fun container(): JdbcDatabaseContainer<*> = MariaDBContainer("mariadb:11.4").withUsername("root").withPassword("test")
