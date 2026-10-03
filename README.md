@@ -179,6 +179,31 @@ Alpha.2 uses `volan-codegen` directly. On main for alpha.3, the Gradle and Maven
 client automatically during normal builds; `volan init`, `generate`, `format` and `validate` are also
 available. [Setup and complete build examples →](docs/build-plugins.md)
 
+## Install the CLI / Установка CLI
+
+**Windows (PowerShell):**
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/thirtyeighttwentysix/volan/main/scripts/install.ps1)))
+```
+
+**Linux / macOS:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/thirtyeighttwentysix/volan/main/scripts/install.sh | bash
+```
+
+Requires **Java 17+**. Downloads the CLI, verifies SHA-256 and adds `volan` to your user `PATH`
+without administrator privileges. Run the same command to upgrade. Open a new terminal on Linux/macOS,
+then run `volan --help`. The installer currently selects a separate CLI preview;
+Maven Central libraries remain at alpha.2.
+
+Нужна **Java 17+**. Установщик скачает CLI, проверит SHA-256 и добавит `volan` в `PATH` без прав
+администратора. Та же команда обновляет CLI. На Linux/macOS открой новый терминал и выполни
+`volan --help`. Сейчас устанавливается отдельный preview CLI; версия библиотеки в Maven Central — alpha.2.
+
+[Versions, custom paths and removal / Версии, каталог установки и удаление →](docs/cli-installation.md)
+
 ## Documentation
 
 - [docs/schema-language.md](docs/schema-language.md) — the `schema.volan` syntax reference
@@ -186,6 +211,7 @@ available. [Setup and complete build examples →](docs/build-plugins.md)
 - [docs/migrations.md](docs/migrations.md) — pull, push, versioned migrations and drift detection
 - [docs/dialects.md](docs/dialects.md) — database feature matrix and SQLite storage conventions
 - [docs/build-plugins.md](docs/build-plugins.md) — CLI commands and automatic Gradle/Maven generation
+- [docs/cli-installation.md](docs/cli-installation.md) — install and upgrade the CLI on Windows, Linux and macOS
 - [benchmarks/README.md](benchmarks/README.md) — performance methodology and reproduction
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how Volan is built
 - [ROADMAP.md](ROADMAP.md) — milestones and what is deferred

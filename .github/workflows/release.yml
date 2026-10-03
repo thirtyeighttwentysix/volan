@@ -138,7 +138,10 @@ jobs:
         run: |
           args=()
           if [[ "$VERSION" == *-* ]]; then args+=(--prerelease); fi
-          gh release create "$GITHUB_REF_NAME" --verify-tag --title "Volan $VERSION" --notes-file "docs/releases/$VERSION.md" "${args[@]}"
+          ./gradlew :volan-cli:installDist "-Pversion=$VERSION" --stacktrace
+          python3 scripts/package-cli.py
+          python3 scripts/test-installers.py --assets build/cli-release
+          gh release create "$GITHUB_REF_NAME" --verify-tag --title "Volan $VERSION" --notes-file "docs/releases/$VERSION.md" "${args[@]}" build/cli-release/*
 
       - name: Upload verification reports
         if: always()

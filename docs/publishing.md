@@ -20,7 +20,20 @@ and are not BOM constraints.
 Libraries contain JVM classes,
 sources and Dokka HTML documentation. POMs contain license, SCM and developer metadata. The BOM
 constrains only modules that are actually published. Placeholder modules, tests and benchmarks
-are excluded; the CLI is currently built from source.
+are excluded. The CLI ships separately as portable GitHub release archives with SHA-256 checksums;
+see [CLI installation](cli-installation.md).
+
+## Publish CLI archives
+
+For an independent CLI preview, set `scripts/cli-release.txt` to `cli-v<version>`, commit and push,
+then run the **CLI release** workflow with that version. It tests installers on Windows, Linux and
+macOS, builds and tests the CLI, checks the real packaged launcher, and creates a GitHub release
+with both archives, installers and `SHA256SUMS`. It does not publish to Maven Central.
+The initial CLI channel is `cli-v0.1.0-alpha.3-preview.1`.
+
+Future library tag releases also attach CLI archives. To move the installer channel to a library
+release, set `scripts/cli-release.txt` to its `v<version>` tag after the archives are published.
+For subsequent previews update `docs/releases/cli-preview.md` to describe the shipped changes.
 
 ## One-time credentials
 
