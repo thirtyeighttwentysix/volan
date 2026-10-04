@@ -29,9 +29,10 @@ file. Generated schema text always uses `env("DATABASE_URL")` and does not conta
 
 Push is for bringing a development database into the desired shape. It does **not** create migration
 files or update the journal. Review `--dry-run` first; changes carrying warnings require
-`--accept-data-loss`, including changes that may fail on existing rows. The whole push is transactional.
-Its resulting structure is checked before commit. Repeating a successful push makes no changes.
-H2 supports the read-only preview command; automatic application is refused because its DDL is not transactional.
+`--accept-data-loss`, including changes that may fail on existing rows. PostgreSQL and SQLite push are
+transactional and check the resulting structure before commit. H2, MySQL and MariaDB push retain
+durable progress across implicit DDL commits and require manual repair after interruption; see
+[nontransactional push recovery](#nontransactional-push-recovery). Repeating a successful push makes no changes.
 
 ## Versioned migrations
 

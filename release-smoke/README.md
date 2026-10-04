@@ -8,8 +8,9 @@ From alpha.2, a second Java test discovers SQLite from its published JAR and exe
 DDL, pull/push, constraints, pooling and rollback without Docker. It creates tables from the schema
 through published migration APIs. Alpha.1 verification omits that dialect.
 From alpha.3, an H2 Java test checks published provider discovery, initial DDL, CRUD, async reads
-and transaction rollback, plus schema introspection and export round trips. H2 automatic push and
-migration journals are not yet supported.
+and transaction rollback, plus schema introspection and export round trips. H2 push and versioned
+migrations are implemented on main with durable progress and manual recovery across implicit DDL
+commits; see [migration guarantees](../docs/migrations.md). Alpha.3 libraries are not yet on Central.
 
 From the repository root:
 
