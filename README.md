@@ -206,6 +206,9 @@ Maven Central libraries remain at alpha.2.
 
 ## Documentation
 
+- [English documentation](https://volan.mintlify.app/en/introduction)
+- [Документация на русском](https://volan.mintlify.app/ru/introduction)
+
 - [docs/schema-language.md](docs/schema-language.md) — the `schema.volan` syntax reference
 - [docs/java-api.md](docs/java-api.md) — Java queries, async operations and transaction semantics
 - [docs/migrations.md](docs/migrations.md) — pull, push, versioned migrations and drift detection
