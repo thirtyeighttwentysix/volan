@@ -20,6 +20,30 @@ env:
     -Dorg.gradle.project.kotlin.compiler.execution.strategy=in-process
 
 jobs:
+  benchmark-adapters:
+    name: Benchmark correctness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      - name: Start dedicated benchmark database
+        run: docker compose -p volan-bench -f benchmarks/compose.yaml up -d --wait
+      - name: Verify all adapters and report validation
+        env:
+          VOLAN_BENCH_URL: jdbc:postgresql://localhost:55432/volan_bench
+        run: |
+          ./gradlew :benchmarks:verifyAdapters --stacktrace
+          python3 -m unittest discover -s benchmarks -p 'test_report.py'
+      - name: Stop benchmark database
+        if: always()
+        run: docker compose -p volan-bench -f benchmarks/compose.yaml down
+
   cli-installers:
     name: CLI installer (${{ matrix.os }})
     runs-on: ${{ matrix.os }}

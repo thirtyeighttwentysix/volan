@@ -17,3 +17,12 @@ model Person {
 
   @@map("bench_people")
 }
+
+model WritePerson {
+  id Int @id
+  email String
+  name String
+  score Int
+
+  @@map("bench_write_people")
+}

@@ -3,7 +3,6 @@ package bench;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.*;
 
-/** Each invocation builds a query, borrows a pooled connection, maps rows and commits. */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -11,33 +10,31 @@ import org.openjdk.jmh.annotations.*;
 @Measurement(iterations = 5, time = 2)
 @Fork(value = 2, jvmArgsAppend = {"-Xms512m", "-Xmx512m", "-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"})
 @Threads(1)
-public class OrmBenchmark {
+public class WriteBenchmark {
     @Param({"Volan", "Hibernate", "Exposed", "jOOQ", "JDBC"})
     public String orm;
 
     @Param({"1", "100"})
     public int rows;
 
-    private ReadAdapter adapter;
-    @State(Scope.Thread)
-    public static class Cursor {
-        private int position;
-
-        public int next() {
-            position = (position + 101) % 9800;
-            return position + 1;
-        }
-    }
+    private WriteAdapter adapter;
+    private int cursor;
 
     @Setup(Level.Trial)
     public void setup() {
-        adapter = new ReadAdapter(orm);
+        adapter = new WriteAdapter(orm);
         adapter.verify(rows);
     }
 
     @Benchmark
-    public Object read(Cursor cursor) {
-        return adapter.read(cursor.next(), rows);
+    public long update() {
+        cursor = (cursor + 101) % 9800;
+        return adapter.update(cursor + 1, rows, cursor);
+    }
+
+    @Benchmark
+    public long insertDelete() {
+        return adapter.insertDelete(rows, false);
     }
 
     @TearDown(Level.Trial)

@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
 }
 
-description = "Reproducible PostgreSQL reads across Volan, Hibernate, Exposed, jOOQ and JDBC."
+description = "Reproducible PostgreSQL reads and writes across Volan, Hibernate, Exposed, jOOQ and JDBC."
 
 val generator: SourceSet by sourceSets.creating
 val generatedSources = layout.buildDirectory.dir("generated/volan")
@@ -44,6 +44,13 @@ tasks.withType<JavaCompile>().configureEach { options.release.set(17) }
 tasks.withType<KotlinCompile>().configureEach { compilerOptions.jvmTarget.set(JvmTarget.JVM_17) }
 tasks.named("compileKotlin") { dependsOn(generateClient) }
 
+tasks.register<JavaExec>("verifyAdapters") {
+    group = "verification"
+    description = "Checks every benchmark adapter against PostgreSQL without measuring performance."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("bench.VerifyAdapters")
+}
+
 val benchmarkArgs = providers.gradleProperty("benchmarkArgs").orElse("")
 val resultsFile = layout.buildDirectory.file("results/jmh.json")
 
@@ -52,7 +59,8 @@ tasks.register<JavaExec>("jmh") {
     description = "Runs JMH against a dedicated PostgreSQL database configured with VOLAN_BENCH_URL."
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("org.openjdk.jmh.Main")
-    args("bench.OrmBenchmark", "-rf", "json", "-rff", resultsFile.get().asFile.absolutePath, "-foe", "true")
+    args("bench.(Orm|ConcurrentRead|Write)Benchmark", "-rf", "json", "-rff", resultsFile.get().asFile.absolutePath, "-foe", "true")
     args(benchmarkArgs.get().split(Regex("\\s+")).filter { it.isNotBlank() })
-    doFirst { resultsFile.get().asFile.parentFile.mkdirs() }
+    val outputDirectory = resultsFile.get().asFile.parentFile
+    doFirst { outputDirectory.mkdirs() }
 }
