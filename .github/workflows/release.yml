@@ -4,6 +4,12 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      candidate_version:
+        description: 'Unsigned branch rehearsal version (empty uses the project version)'
+        required: false
+        default: ''
+        type: string
 
 concurrency:
   group: release-${{ github.ref }}
@@ -38,15 +44,11 @@ jobs:
       - name: Read and validate version
         id: version
         shell: bash
+        env:
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
         run: |
-          version=$(sed -n 's/^version=//p' gradle.properties | tr -d '\r')
-          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]
-          if [[ "$GITHUB_REF_TYPE" == tag ]]; then
-            [[ "$version" != *SNAPSHOT* ]]
-            [[ "$GITHUB_REF_NAME" == "v$version" ]]
-          else
-            version=${version%-SNAPSHOT}
-          fi
+          python3 -m unittest discover -s scripts -p 'test_release_version.py'
+          version=$(python3 scripts/release-version.py --ref-type "$GITHUB_REF_TYPE" --ref-name "$GITHUB_REF_NAME" --candidate "$CANDIDATE_VERSION")
           echo "value=$version" >> "$GITHUB_OUTPUT"
 
       - name: Check publishing secrets
