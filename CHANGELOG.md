@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-05
+
 ### Added
 
 - M10: optional coroutine access to generated clients, bounded JDBC dispatch, statement cancellation
@@ -37,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial H2 DDL generation, Decimal and native scalar arrays, JSON binding, nanosecond temporal
   storage and private/named memory pool handling. A shared embedded integration suite covers SQLite
   and H2.
-- H2 Maven publication and BOM constraint for the next alpha, with an independent Java consumer.
+- H2 Maven publication and BOM constraint, with an independent Java consumer.
 - Strict H2 current-schema introspection, schema export, drift detection and executable SQL change
   plans. The CLI supports H2 `db pull` and `db push`.
 - H2 versioned migrations with durable start records and per-statement progress, exclusive database

@@ -9,5 +9,5 @@ Each folder is an independent Gradle project with its own schema, migrations, ap
 | [Spring Boot](spring-boot/README.md) | Client ownership and constructor injection in a console application |
 | [Ktor](ktor/README.md) | HTTP routes, suspendQuery and application shutdown |
 
-These examples target the unreleased 1.0.0-rc.1 candidate. Follow an individual README to stage artifacts first.
+These examples target the selected 1.0.0 release candidate. Follow an individual README to stage artifacts first.
 CI consumes copies through published build plugins rather than including these projects in the main multi-module build.

@@ -3,7 +3,7 @@ plugins {
     id("io.github.thirtyeighttwentysix.volan")
     application
 }
-val volanVersion = providers.gradleProperty("volanVersion").getOrElse("1.0.0-rc.1")
+val volanVersion = providers.gradleProperty("volanVersion").getOrElse("1.0.0")
 dependencies {
     implementation(platform("io.github.thirtyeighttwentysix:volan-bom:$volanVersion"))
     implementation("io.github.thirtyeighttwentysix:volan-dialect-h2")

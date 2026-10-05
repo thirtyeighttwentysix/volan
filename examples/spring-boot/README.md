@@ -6,25 +6,25 @@ A Spring-owned client bean and constructor-injected service. This is a console a
 
 Requires JDK 17+ and the Gradle wrapper from this checkout. The example is a separate Gradle build:
 it resolves Volan artifacts through the published plugin, without project dependencies or a generator program.
-It targets the unreleased `1.0.0-rc.1` candidate. Stage that candidate from the repository root first:
+It targets the selected `1.0.0` release candidate. Stage that candidate from the repository root first:
 
 ```shell
-./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=1.0.0-rc.1 -PvolanUnsignedLocalPublication --no-configuration-cache
+./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=1.0.0 -PvolanUnsignedLocalPublication --no-configuration-cache
 ```
 
 Then change to `examples/spring-boot` and run:
 
 ```shell
-../../gradlew test run -PvolanVersion=1.0.0-rc.1 -PvolanRepository=../../build/release-repository
+../../gradlew test run -PvolanVersion=1.0.0 -PvolanRepository=../../build/release-repository
 ```
 
 PowerShell equivalents:
 
 ```powershell
 # From the repository root:
-.\gradlew.bat publishAllPublicationsToReleaseTestRepository '-Pversion=1.0.0-rc.1' -PvolanUnsignedLocalPublication --no-configuration-cache
+.\gradlew.bat publishAllPublicationsToReleaseTestRepository '-Pversion=1.0.0' -PvolanUnsignedLocalPublication --no-configuration-cache
 Set-Location examples/spring-boot
-..\..\gradlew.bat test run '-PvolanVersion=1.0.0-rc.1' '-PvolanRepository=../../build/release-repository'
+..\..\gradlew.bat test run '-PvolanVersion=1.0.0' '-PvolanRepository=../../build/release-repository'
 ```
 
 Once a compatible release is on Maven Central, omit `volanRepository` and pass its version through

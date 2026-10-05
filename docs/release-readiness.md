@@ -1,13 +1,13 @@
 # 1.0 release preparation
 
-The current public library release is **0.1.0-alpha.2**. The `1.0.0-rc.1` rehearsal version is
-an unsigned validation candidate, not a Maven Central publication. Root project coordinates stay
-at `0.1.0-alpha.3-SNAPSHOT` until a release version is selected.
+The current public library release is **0.1.0-alpha.2**. The selected release version is
+**1.0.0**; its exact coordinates, changelog and release notes are prepared for verification.
+Unsigned rehearsals are validation candidates, not Maven Central publications.
 
 ## Verify the candidate
 
 Run the [Release workflow](https://github.com/thirtyeighttwentysix/volan/actions/workflows/release.yml)
-on the development branch with `candidate_version=1.0.0-rc.1`. A successful run proves:
+on the development branch with `candidate_version=1.0.0`. A successful run proves:
 
 - The complete build, public API check and migration coverage gates pass.
 - All seventeen Maven artifacts have the required metadata, sources, documentation, checksums,
@@ -19,7 +19,7 @@ on the development branch with `candidate_version=1.0.0-rc.1`. A successful run 
 - Kotlin, Java, Spring Boot and Ktor examples build through staged plugins, run their smoke tests
   and package launchers. Console examples additionally run their documented application command.
 
-The downloadable `candidate-repository-1.0.0-rc.1` artifact contains the unsigned Maven repository.
+The downloadable `candidate-repository-1.0.0` artifact contains the unsigned Maven repository.
 It is retained for 14 days. A successful rehearsal proves consumption from that repository; it does
 not prove Central Portal acceptance or propagation. Signed staging and Central downloads are
 checked by the tag release workflow.
