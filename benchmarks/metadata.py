@@ -47,6 +47,8 @@ def main():
         "postgres": command("docker", "exec", args.container, "psql", "-U", "volan_bench", "-d", "volan_bench", "-Atc", "select version()"),
         "postgresImage": command("docker", "inspect", "--format", "{{.Image}}", args.container),
         "docker": command("docker", "version", "--format", "{{.Server.Version}}"),
+        "dockerCpus": int(command("docker", "info", "--format", "{{.NCPU}}")),
+        "dockerMemoryBytes": int(command("docker", "info", "--format", "{{.MemTotal}}")),
         "versions": {key: versions[key] for key in ("hibernate", "exposed", "jooq", "postgres", "hikari", "jmh", "kotlin")},
         "volanVersion": re.search(r'^version=(.+)$', (root / "gradle.properties").read_text(), re.MULTILINE).group(1),
         "jvm": {key: first[key] for key in ("jdkVersion", "vmName", "vmVersion", "jvmArgs")},

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="660" viewBox="0 0 1100 660" role="img" aria-labelledby="title desc">
+<title id="title">PostgreSQL: Read, four threads sharing four connections</title>
+<desc id="desc">Mean microseconds per operation with 99.9% confidence intervals. Lower is better. Separate axes for 1 and 100 rows. Negative lower bounds are clipped at zero.</desc>
+<rect width="1100" height="660" rx="16" fill="#101827"/>
+<g font-family="Segoe UI,Arial,sans-serif" fill="#edf2fa">
+<text x="40" y="52" font-size="25" font-weight="700">PostgreSQL: Read, four threads sharing four connections</text>
+<text x="40" y="81" font-size="15" fill="#a7b5ca">Mean latency; lower is better; error bars show 99.9% confidence intervals</text>
+<text x="40" y="124" font-size="19" font-weight="600">1 row</text>
+<text x="40" y="163" font-size="15">JDBC</text>
+<rect x="155" y="143" width="349.17" height="27" rx="4" fill="#7e98b7"/>
+<path d="M 495.35,156 H 512.99 M 495.35,151 v 10 M 512.99,151 v 10" stroke="#f4f7fb" stroke-width="1.5"/>
+<text x="880" y="163" font-size="15">1260.7 ± 31.8 µs</text>
+<text x="40" y="199" font-size="15">jOOQ</text>
+<rect x="155" y="179" width="354.14" height="27" rx="4" fill="#3c638a"/>
+<path d="M 503.63,192 H 514.64 M 503.63,187 v 10 M 514.64,187 v 10" stroke="#f4f7fb" stroke-width="1.5"/>
+<text x="880" y="199" font-size="15">1278.7 ± 19.9 µs</text>
+<text x="40" y="235" font-size="15">Hibernate</text>
+<rect x="155" y="215" width="356.50" height="27" rx="4" fill="#3c638a"/>
+<path d="M 499.88,228 H 523.11 M 499.88,223 v 10 M 523.11,223 v 10" stroke="#f4f7fb" stroke-width="1.5"/>
+<text x="880" y="235" font-size="15">1287.2 ± 41.9 µs</text>
+<text x="40" y="271" font-size="15">Exposed</text>
+<rect x="155" y="251" width="503.28" height="27" rx="4" fill="#3c638a"/>
+<path d="M 646.26,264 H 670.31 M 646.26,259 v 10 M 670.31,259 v 10" stroke="#f4f7fb" stroke-width="1.5"/>
+<text x="880" y="271" font-size="15">1817.2 ± 43.4 µs</text>
+<text x="40" y="307" font-size="15">Volan</text>
+<rect x="155" y="287" width="674.20" height="27" rx="4" fill="#8db8e8"/>
+<path d="M 813.40,300 H 845.00 M 813.40,295 v 10 M 845.00,295 v 10" stroke="#f4f7fb" stroke-width="1.5"/>
+<text x="880" y="307" font-size="15">2434.3 ± 57.1 µs</text>
+<text x="40" y="370" font-size="19" font-weight="600">100 rows</text>
+<text x="40" y="409" font-size="15">JDBC</text>
+<rect x="155" y="389" width="364.95" height="27" rx="4" fill="#7e98b7"/>
+<path d="M 516.11,402 H 523.78 M 516.11,397 v 10 M 523.78,397 v 10" stroke="#f4f7fb" stroke-width="1.5"/>
+<text x="880" y="409" font-size="15">1372.8 ± 14.4 µs</text>
+<text x="40" y="445" font-size="15">Hibernate</text>
+<rect x="155" y="425" width="383.65" height="27" rx="4" fill="#3c638a"/>
+<path d="M 530.00,438 H 547.29 M 530.00,433 v 10 M 547.29,433 v 10" stroke="#f4f7fb" stroke-width="1.5"/>
+<text x="880" y="445" font-size="15">1443.1 ± 32.5 µs</text>
+<text x="40" y="481" font-size="15">jOOQ</text>
+<rect x="155" y="461" width="389.90" height="27" rx="4" fill="#3c638a"/>
+<path d="M 526.86,474 H 562.95 M 526.86,469 v 10 M 562.95,469 v 10" stroke="#f4f7fb" stroke-width="1.5"/>
+<text x="880" y="481" font-size="15">1466.6 ± 67.9 µs</text>
+<text x="40" y="517" font-size="15">Exposed</text>
+<rect x="155" y="497" width="529.13" height="27" rx="4" fill="#3c638a"/>
+<path d="M 642.95,510 H 725.32 M 642.95,505 v 10 M 725.32,505 v 10" stroke="#f4f7fb" stroke-width="1.5"/>
+<text x="880" y="517" font-size="15">1990.4 ± 154.9 µs</text>
+<text x="40" y="553" font-size="15">Volan</text>
+<rect x="155" y="533" width="673.02" height="27" rx="4" fill="#8db8e8"/>
+<path d="M 811.04,546 H 845.00 M 811.04,541 v 10 M 845.00,541 v 10" stroke="#f4f7fb" stroke-width="1.5"/>
+<text x="880" y="553" font-size="15">2531.6 ± 63.9 µs</text>
+<text x="40" y="623" fill="#a7b5ca" font-size="14">10,000 baseline rows; 4 thread(s); four pooled connections; transaction per operation</text>
+</g></svg>

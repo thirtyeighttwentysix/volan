@@ -53,7 +53,7 @@ def chart(cases, workload):
     parts = [
         '<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="660" viewBox="0 0 1100 660" role="img" aria-labelledby="title desc">',
         f'<title id="title">PostgreSQL: {html.escape(title)}</title>',
-        '<desc id="desc">Mean microseconds per operation with 99.9% confidence intervals. Lower is better. Separate axes for 1 and 100 rows.</desc>',
+        '<desc id="desc">Mean microseconds per operation with 99.9% confidence intervals. Lower is better. Separate axes for 1 and 100 rows. Negative lower bounds are clipped at zero.</desc>',
         '<rect width="1100" height="660" rx="16" fill="#101827"/>',
         '<g font-family="Segoe UI,Arial,sans-serif" fill="#edf2fa">',
         f'<text x="40" y="52" font-size="25" font-weight="700">PostgreSQL: {html.escape(title)}</text>',

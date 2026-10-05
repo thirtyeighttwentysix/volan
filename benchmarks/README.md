@@ -69,6 +69,11 @@ source digest and results checksum. `report.py` generates tables and SVGs direct
 it refuses missing/duplicate cases, incompatible configurations, invalid confidence intervals
 and smoke settings. The original ten-case September report remains reproducible.
 
+The 5 October write measurements have broad, heavily overlapping intervals. They are retained
+as measured, but do not support a reliable ordering of libraries. Read intervals are narrower;
+Volan has higher mean read latency in this run. Chart whiskers with a negative statistical lower
+bound are clipped at zero; tables retain the full JMH error value.
+
 This suite does not measure relation loading, nested writes, migrations, generated IDs, cold start,
 allocation rates or sustained concurrent writes. PostgreSQL over Docker/WSL2 loopback includes
 network and transaction latency. Results do not transfer directly to embedded or remote databases.
