@@ -2,7 +2,7 @@
   "recordedAt": "2026-10-05T15:44:46.468251+00:00",
   "sourceCommit": "c9ad5648e697920b1863882fbe88635254f336f0",
   "sourceTreeSha256": "04c65ab74fb816c39a38783246673d48e4048d671a6067c4c5df8682ca71805e",
-  "resultsSha256": "7c42927bc4bc127bb097f1c09a4859e3dda0df3a9467448518da4e15e4b4fbfd",
+  "resultsSha256": "9bb47d66e8eab6230e1d09229903e6ea50a887684e346b0d3cf28b821ed4bd6c",
   "host": "Windows-11-10.0.26200-SP0",
   "cpu": "AMD Ryzen 5 5500",
   "logicalProcessors": 12,
@@ -51,5 +51,6 @@
   ],
   "datasetRows": 10000,
   "pool": "HikariCP min/max 4 shared by all threads",
-  "physicalCores": 6
+  "physicalCores": 6,
+  "digestLineEndings": "CRLF normalized to LF for source and results digests"
 }
