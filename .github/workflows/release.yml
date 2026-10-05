@@ -103,6 +103,11 @@ jobs:
           VERSION: ${{ steps.version.outputs.value }}
         run: python3 scripts/verify-plugins.py --version "$VERSION" --repository build/release-repository
 
+      - name: Run documentation examples from staged artifacts
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: python3 scripts/verify-examples.py --version "$VERSION" --repository build/release-repository
+
       - name: Publish to Maven Central
         if: startsWith(github.ref, 'refs/tags/')
         env:
@@ -131,6 +136,12 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.value }}
         run: python3 scripts/verify-plugins.py --version "$VERSION"
+
+      - name: Run documentation examples from Maven Central
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: python3 scripts/verify-examples.py --version "$VERSION"
 
       - name: Create GitHub release
         if: startsWith(github.ref, 'refs/tags/')

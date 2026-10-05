@@ -222,6 +222,10 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.value }}
         run: python3 scripts/verify-plugins.py --version "$VERSION" --repository build/release-repository
+      - name: Run Kotlin, Java, Spring Boot and Ktor examples
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: python3 scripts/verify-examples.py --version "$VERSION" --repository build/release-repository
       - name: Upload consumer reports
         if: always()
         uses: actions/upload-artifact@v7
@@ -230,3 +234,4 @@ jobs:
           path: |
             build/plugin-smoke/gradle/build/reports/tests/**
             build/plugin-smoke/maven/target/surefire-reports/**
+            build/example-smoke/**/build/reports/tests/**
