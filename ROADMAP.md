@@ -17,8 +17,8 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M8** | Dialects: MySQL, MariaDB, SQLite, H2 + feature-support matrix in the docs | The common integration suite passes on all five databases; supported differences documented | ✅ |
 | **M9** | CLI and build plugins: Clikt CLI, Gradle plugin, Maven plugin | An example project builds through the plugin alone, with no manual steps | ✅ |
 | **M10** | Coroutines, interceptors, Micrometer metrics | `suspend` API covered by tests; cancellation cancels the in-flight statement | ✅ |
-| **M11** | Examples and documentation site: `kotlin-basic`, `java-basic`, `spring-boot`, `ktor`; Getting Started (Kotlin/Java), references, migration guides | Every example runs from its own README and has a CI smoke test | ⬜ |
-| **M12** | Benchmark extensions and the 1.0 release: broader workloads, Maven Central publication, changelog | Artifacts install into a clean project from a Central staging repository | ⬜ |
+| **M11** | Examples and documentation site: `kotlin-basic`, `java-basic`, `spring-boot`, `ktor`; Getting Started (Kotlin/Java), references, migration guides | Every example runs from its own README and has a CI smoke test | 🚧 |
+| **M12** | Benchmark extensions and the 1.0 release: broader workloads, Maven Central publication, changelog | Artifacts install into a clean project from a Central staging repository | 🚧 |
 
 ## Deliberately different from the original specification
 
@@ -96,8 +96,28 @@ the JVM without giving up something the brief also asks for.
 - Optional published `volan-micrometer` records attempted-statement count and duration with bounded
   dialect, operation and outcome tags, excluding SQL and parameters. Both optional modules are BOM
   constraints and are exercised by an independent Gradle consumer of staged Maven publications.
-- M10 is complete; M11 is next. These APIs ship with alpha.3, not alpha.2.
+  M10 is complete. These APIs are part of the next library release, not alpha.2.
   [Usage, cancellation guarantees and limits](docs/coroutines-and-observability.md).
+
+## M11 progress
+
+- Russian and English versioned documentation is published on [Mintlify](https://volan.mintlify.app).
+- Four independent [example projects](examples/README.md) use the build plugin, committed migrations
+  and generated clients: Kotlin, Java, Spring Boot client ownership and Ktor coroutine request handling.
+  CI and release verification build their copies against staged artifacts; tag releases repeat the
+  examples against Central downloads.
+
+## M12 progress
+
+- The benchmark suite now has 40 PostgreSQL cases: one/four-thread reads, range updates and
+  insert/delete transactions for 1/100 rows, across Volan, Hibernate, Exposed, jOOQ and JDBC.
+  Shared-pool concurrency and write effects are verified before timing and by a CI correctness job.
+- Reports validate complete suites, consistent JVM/settings and publishable measurements;
+  machine metadata records source and results digests, dependency versions and the Docker image.
+- Release rehearsals accept an explicit candidate version and validate seventeen Maven artifacts,
+  independent consumers and build plugins without publishing. Successful rehearsals retain the
+  unsigned repository as a downloadable CI artifact. Tags require release notes and a dated changelog.
+- Maven Central publication of 1.0 remains pending; an unsigned rehearsal is not a Central release.
 
 ## Deliberately deferred
 

@@ -3,6 +3,7 @@ import argparse
 import datetime
 import hashlib
 import json
+import os
 import platform
 import re
 import subprocess
@@ -32,7 +33,7 @@ def main():
     for path in sorted(sources):
         digest.update(path.relative_to(root).as_posix().encode())
         digest.update(b"\0")
-        digest.update(path.read_bytes())
+        digest.update(path.read_bytes().replace(b"\r\n", b"\n"))
         digest.update(b"\0")
     versions = dict(re.findall(r'^([\w]+) = "([^"]+)"$', (root / "gradle/libs.versions.toml").read_text(), re.MULTILINE))
     metadata = {
@@ -42,6 +43,7 @@ def main():
         "resultsSha256": hashlib.sha256(args.results.read_bytes()).hexdigest(),
         "host": platform.platform(),
         "cpu": platform.processor(),
+        "logicalProcessors": os.cpu_count(),
         "postgres": command("docker", "exec", args.container, "psql", "-U", "volan_bench", "-d", "volan_bench", "-Atc", "select version()"),
         "postgresImage": command("docker", "inspect", "--format", "{{.Image}}", args.container),
         "docker": command("docker", "version", "--format", "{{.Server.Version}}"),
@@ -53,6 +55,11 @@ def main():
         "measurement": [first["measurementIterations"], first["measurementTime"]],
         "datasetRows": 10000, "pool": "HikariCP min/max 4 shared by all threads",
     }
+    if os.name == "nt":
+        processor = json.loads(command("powershell.exe", "-NoProfile", "-Command",
+                                      "Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores,NumberOfLogicalProcessors | ConvertTo-Json -Compress"))
+        metadata["cpu"] = processor["Name"].strip()
+        metadata["physicalCores"] = processor["NumberOfCores"]
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Recorded {len(results)} cases in {args.output}")

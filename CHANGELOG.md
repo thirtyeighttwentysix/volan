@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- M10: optional coroutine access to generated clients, bounded JDBC dispatch, statement cancellation
+  and cleanup before coroutine completion; whole transactions stay on one worker.
+- Statement interceptors and optional Micrometer query count/duration with bounded dialect,
+  operation and outcome tags. Both optional modules are Maven publications and BOM constraints.
+- Cross-platform CLI installers with checksum checks, user PATH setup, upgrade rollback and
+  Windows/Linux/macOS installer verification; portable CLI preview archives on GitHub.
+- Russian and English Mintlify documentation, with versioned guides and verified Kotlin/Java examples.
+- Independent Kotlin, Java, Spring Boot and Ktor example projects with automatic client generation,
+  reviewed migrations and smoke tests against staged artifacts and Maven Central releases.
+- M12 benchmark harness: 40 PostgreSQL cases for reads, four shared-pool readers, range updates,
+  and insert/delete transactions, across Volan, Hibernate, Exposed, jOOQ and JDBC. Correctness checks
+  run before timing and in CI; reports refuse incomplete suites and smoke measurements.
+- Explicit unsigned release-candidate rehearsals, downloadable staged Maven repositories and
+  early validation of release notes and dated changelog entries before tag publication.
+
 - M9: `volan init`, `generate`, `format` / `format --check` and semantic `validate`, with CLI diagnostics
   and generation that does not require a live database or datasource environment variables.
 - Gradle client generation with automatic Kotlin/JVM source wiring, the matching runtime dependency,
