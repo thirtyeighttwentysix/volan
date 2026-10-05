@@ -102,35 +102,91 @@ Volan includes a migration journal and `db pull` / `db push`;
 
 ## Measured performance
 
-The same PostgreSQL table, the same four fields, the same read-committed transaction boundary.
-Every adapter materializes its results, and the harness checks their values before timing.
+Forty PostgreSQL cases compare reads, four concurrent readers, range updates and insert/delete
+transactions. Every adapter uses the same table shape, four fields and read-committed transaction
+boundary. The harness checks values, affected counts and final database state before timing.
 
 ![PostgreSQL read latency comparison](docs/benchmarks/read-latency.svg)
 
 <!-- BENCHMARKS:START -->
 
+**Read, one thread**
+
 | Library | 1 row, µs/op | 100 rows, µs/op |
 |---|---:|---:|
-| **Volan** | 2432.5 ± 76.7 | 2640.4 ± 145.4 |
-| Hibernate | 1360.0 ± 171.6 | 1504.5 ± 163.3 |
-| Exposed | 1791.6 ± 130.0 | 1816.3 ± 84.9 |
-| jOOQ | 1233.7 ± 85.0 | 1458.8 ± 153.5 |
-| JDBC | 1157.4 ± 44.5 | 1311.5 ± 86.4 |
+| **Volan** | 2191.2 ± 80.3 | 2232.7 ± 35.0 |
+| Hibernate | 1165.0 ± 94.4 | 1281.7 ± 53.7 |
+| Exposed | 1580.1 ± 25.1 | 1726.9 ± 85.0 |
+| jOOQ | 1160.3 ± 40.3 | 1259.0 ± 56.6 |
+| JDBC | 1103.5 ± 23.0 | 1198.7 ± 31.7 |
+
+**Read, four threads sharing four connections**
+
+| Library | 1 row, µs/op | 100 rows, µs/op |
+|---|---:|---:|
+| **Volan** | 2434.3 ± 57.1 | 2531.6 ± 63.9 |
+| Hibernate | 1287.2 ± 41.9 | 1443.1 ± 32.5 |
+| Exposed | 1817.2 ± 43.4 | 1990.4 ± 154.9 |
+| jOOQ | 1278.7 ± 19.9 | 1466.6 ± 67.9 |
+| JDBC | 1260.7 ± 31.8 | 1372.8 ± 14.4 |
+
+**Update and commit**
+
+| Library | 1 row, µs/op | 100 rows, µs/op |
+|---|---:|---:|
+| **Volan** | 5853.2 ± 4522.4 | 6054.1 ± 4544.5 |
+| Hibernate | 5791.4 ± 4681.1 | 6470.1 ± 4176.3 |
+| Exposed | 7705.6 ± 5878.3 | 5452.7 ± 4557.9 |
+| jOOQ | 5047.0 ± 4151.0 | 6973.1 ± 4248.9 |
+| JDBC | 5477.7 ± 4435.6 | 4020.6 ± 4156.2 |
+
+**Insert, delete and commit**
+
+| Library | 1 row, µs/op | 100 rows, µs/op |
+|---|---:|---:|
+| **Volan** | 8490.2 ± 4486.9 | 8455.8 ± 3985.3 |
+| Hibernate | 7411.6 ± 6522.3 | 7668.1 ± 5327.7 |
+| Exposed | 8679.7 ± 5122.4 | 10317.0 ± 11026.4 |
+| jOOQ | 8688.1 ± 20356.8 | 7645.5 ± 4835.7 |
+| JDBC | 7819.5 ± 3946.9 | 6710.7 ± 4798.8 |
 
 <!-- BENCHMARKS:END -->
 
-**Lower is better.** Values are means ± JMH's 99.9% confidence interval, in microseconds per query.
-Measured on 7 September 2026: Ryzen 5 5500, Windows 11, Corretto 25.0.3,
-PostgreSQL 17.10 in Docker/WSL2, 10,000 rows, 1 thread, HikariCP pools of 4 connections.
+**Lower is better.** Values are means ± JMH's 99.9% confidence interval, in microseconds per operation.
+Measured on 5 October 2026: Ryzen 5 5500, Windows 11, Corretto 25.0.3,
+PostgreSQL 17.10 in Docker/WSL2, 10,000 baseline rows and HikariCP pools of 4 connections.
 Each case uses 2 JVM forks, 3 × 2 s warmup and 5 × 2 s measurement, with a 512 MiB heap.
 
-This measures pooled reads of 1 or 100 rows over loopback, including transaction and mapping costs.
-It does not establish performance for writes, relations or concurrent workloads. Compare confidence
-intervals before interpreting small differences.
+Volan has higher read latency in this run. **Write intervals are wide and overlap heavily**, so
+their means do not support a reliable ranking. Four-thread values are latency per caller, not
+aggregate throughput. Insert/delete includes both operations and one commit; it is not an
+insert-only score. Libraries use the documented bulk strategies, including Hibernate/Exposed
+JDBC batches and multi-row inserts for Volan/jOOQ/JDBC.
+
+<details>
+<summary>Concurrent read and write charts</summary>
+
+![PostgreSQL concurrent read latency](docs/benchmarks/concurrent-read-latency.svg)
+![PostgreSQL update latency](docs/benchmarks/update-latency.svg)
+![PostgreSQL insert/delete transaction latency](docs/benchmarks/insert-delete-latency.svg)
+
+</details>
+
+Results include loopback network, pooling and transaction costs. They do not establish performance
+for relations, nested writes, generated IDs, migrations or another database deployment.
 
 [Methodology and reproduction](benchmarks/README.md) ·
 [Raw results and machine metadata](benchmarks/results/) ·
 [Benchmark source](benchmarks/src/main/kotlin/bench/ReadAdapter.kt)
+
+## Examples
+
+Independent projects demonstrate [Kotlin](examples/kotlin-basic/README.md),
+[Java](examples/java-basic/README.md), [Spring Boot](examples/spring-boot/README.md) and
+[Ktor](examples/ktor/README.md), including automatic generation, committed migrations and
+client lifecycle. They target the upcoming release; follow their README to stage its artifacts.
+The [1.0 preparation guide](docs/release-readiness.md) distinguishes validation candidates from
+published Maven Central versions.
 
 ## Coroutines and observability
 

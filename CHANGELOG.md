@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-05
+
 ### Added
+
+- M10: optional coroutine access to generated clients, bounded JDBC dispatch, statement cancellation
+  and cleanup before coroutine completion; whole transactions stay on one worker.
+- Statement interceptors and optional Micrometer query count/duration with bounded dialect,
+  operation and outcome tags. Both optional modules are Maven publications and BOM constraints.
+- Cross-platform CLI installers with checksum checks, user PATH setup, upgrade rollback and
+  Windows/Linux/macOS installer verification; portable CLI preview archives on GitHub.
+- Russian and English Mintlify documentation, with versioned guides and verified Kotlin/Java examples.
+- Independent Kotlin, Java, Spring Boot and Ktor example projects with automatic client generation,
+  reviewed migrations and smoke tests against staged artifacts and Maven Central releases.
+- M12 benchmark harness: 40 PostgreSQL cases for reads, four shared-pool readers, range updates,
+  and insert/delete transactions, across Volan, Hibernate, Exposed, jOOQ and JDBC. Correctness checks
+  run before timing and in CI; reports refuse incomplete suites and smoke measurements.
+- Explicit unsigned release-candidate rehearsals, downloadable staged Maven repositories and
+  early validation of release notes and dated changelog entries before tag publication.
 
 - M9: `volan init`, `generate`, `format` / `format --check` and semantic `validate`, with CLI diagnostics
   and generation that does not require a live database or datasource environment variables.
@@ -22,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial H2 DDL generation, Decimal and native scalar arrays, JSON binding, nanosecond temporal
   storage and private/named memory pool handling. A shared embedded integration suite covers SQLite
   and H2.
-- H2 Maven publication and BOM constraint for the next alpha, with an independent Java consumer.
+- H2 Maven publication and BOM constraint, with an independent Java consumer.
 - Strict H2 current-schema introspection, schema export, drift detection and executable SQL change
   plans. The CLI supports H2 `db pull` and `db push`.
 - H2 versioned migrations with durable start records and per-statement progress, exclusive database

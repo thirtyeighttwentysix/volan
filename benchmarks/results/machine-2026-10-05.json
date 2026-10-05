@@ -1,0 +1,56 @@
+{
+  "recordedAt": "2026-10-05T15:44:46.468251+00:00",
+  "sourceCommit": "c9ad5648e697920b1863882fbe88635254f336f0",
+  "sourceTreeSha256": "04c65ab74fb816c39a38783246673d48e4048d671a6067c4c5df8682ca71805e",
+  "resultsSha256": "9bb47d66e8eab6230e1d09229903e6ea50a887684e346b0d3cf28b821ed4bd6c",
+  "host": "Windows-11-10.0.26200-SP0",
+  "cpu": "AMD Ryzen 5 5500",
+  "logicalProcessors": 12,
+  "postgres": "PostgreSQL 17.10 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "postgresImage": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "docker": "29.6.2",
+  "dockerCpus": 12,
+  "dockerMemoryBytes": 8257634304,
+  "versions": {
+    "hibernate": "7.4.11.Final",
+    "exposed": "1.5.0",
+    "jooq": "3.19.39",
+    "postgres": "42.7.13",
+    "hikari": "7.1.0",
+    "jmh": "1.37",
+    "kotlin": "2.4.20"
+  },
+  "volanVersion": "0.1.0-alpha.3-SNAPSHOT",
+  "jvm": {
+    "jdkVersion": "25.0.3",
+    "vmName": "OpenJDK 64-Bit Server VM",
+    "vmVersion": "25.0.3+9-LTS",
+    "jvmArgs": [
+      "-Dfile.encoding=UTF-8",
+      "-Duser.country=RU",
+      "-Duser.language=ru",
+      "-Duser.variant",
+      "-Xms512m",
+      "-Xmx512m",
+      "-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"
+    ]
+  },
+  "cases": 40,
+  "threads": [
+    1,
+    4
+  ],
+  "forks": 2,
+  "warmup": [
+    3,
+    "2 s"
+  ],
+  "measurement": [
+    5,
+    "2 s"
+  ],
+  "datasetRows": 10000,
+  "pool": "HikariCP min/max 4 shared by all threads",
+  "physicalCores": 6,
+  "digestLineEndings": "CRLF normalized to LF for source and results digests"
+}

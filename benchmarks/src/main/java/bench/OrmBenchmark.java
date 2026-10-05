@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.*;
 
 /** Each invocation builds a query, borrows a pooled connection, maps rows and commits. */
-@State(Scope.Thread)
+@State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Warmup(iterations = 3, time = 2)
@@ -19,7 +19,15 @@ public class OrmBenchmark {
     public int rows;
 
     private ReadAdapter adapter;
-    private int cursor;
+    @State(Scope.Thread)
+    public static class Cursor {
+        private int position;
+
+        public int next() {
+            position = (position + 101) % 9800;
+            return position + 1;
+        }
+    }
 
     @Setup(Level.Trial)
     public void setup() {
@@ -28,9 +36,8 @@ public class OrmBenchmark {
     }
 
     @Benchmark
-    public Object read() {
-        cursor = (cursor + 101) % 9800;
-        return adapter.read(cursor + 1, rows);
+    public Object read(Cursor cursor) {
+        return adapter.read(cursor.next(), rows);
     }
 
     @TearDown(Level.Trial)

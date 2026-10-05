@@ -69,6 +69,15 @@ It also builds independent Gradle and Maven projects through the staged plugins,
 compilation, CRUD, incremental regeneration and deleted-model source cleanup.
 It does not need release secrets and does not upload to Central.
 
+The optional `candidate_version` input rehearses a specific version, such as `1.0.0-rc.1`,
+without changing `gradle.properties`. It is accepted only for branch runs; tags must match the
+declared project version. A successful branch run uploads `candidate-repository-<version>`
+with the complete unsigned Maven repository for 14 days. This is a downloadable CI artifact,
+not a published Maven Central version or a Central Portal staging deployment.
+
+Rehearsal also builds and tests [Kotlin, Java, Spring Boot and Ktor examples](../examples/README.md)
+as independent projects. Library tag releases repeat these examples using Central downloads.
+
 For a local rehearsal (Docker required):
 
 ```shell
@@ -76,6 +85,7 @@ For a local rehearsal (Docker required):
 python scripts/verify-release.py --version 0.1.0-alpha.3
 ./gradlew -p release-smoke clean test "-PvolanVersion=0.1.0-alpha.3" "-PvolanRepository=/absolute/path/to/volan/build/release-repository"
 python scripts/verify-plugins.py --version 0.1.0-alpha.3 --repository build/release-repository
+python scripts/verify-examples.py --version 0.1.0-alpha.3 --repository build/release-repository
 ```
 
 `volanUnsignedLocalPublication` also disables registration of the Central publishing tasks.
@@ -84,7 +94,7 @@ plugin; verification then adds `--public-key docs/release-signing-key.asc`.
 
 ## Publish a release
 
-1. Set `version` in `gradle.properties` and add `docs/releases/<version>.md`.
+1. Set `version` in `gradle.properties`, add `docs/releases/<version>.md` and a dated entry in `CHANGELOG.md`.
 2. Commit and push. Wait for both CI and the manual Release rehearsal to succeed.
 3. Push an annotated tag matching the version, for example `v0.1.0-alpha.2`.
 
@@ -93,6 +103,10 @@ signatures, and runs the independent consumer before calling `publishAndReleaseT
 It then waits up to 30 minutes for Central downloads, verifies them and reruns the consumer using
 Maven Central. Only after those checks does it create a GitHub release; prerelease versions are
 marked as prereleases.
+
+Before accessing publishing secrets, `scripts/release-version.py` refuses mismatched tags,
+SNAPSHOT versions, missing release notes and missing dated changelog entries. A release tag
+cannot use the rehearsal version override.
 
 Central release versions are immutable. If a run fails **after upload**, inspect the deployment in
 Central Portal and artifact URLs before retrying: a published version cannot be overwritten.

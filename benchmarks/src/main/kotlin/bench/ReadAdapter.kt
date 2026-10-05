@@ -30,7 +30,7 @@ private object People : Table("bench_people") {
 }
 
 class ReadAdapter(orm: String) : AutoCloseable {
-    private val pool = HikariDataSource(HikariConfig().apply {
+    internal val pool = HikariDataSource(HikariConfig().apply {
         jdbcUrl = requireNotNull(System.getenv("VOLAN_BENCH_URL")) { "Set VOLAN_BENCH_URL to a dedicated seeded PostgreSQL database." }
         username = System.getenv("VOLAN_BENCH_USER") ?: "volan_bench"
         password = System.getenv("VOLAN_BENCH_PASSWORD") ?: "volan_bench"
@@ -39,8 +39,10 @@ class ReadAdapter(orm: String) : AutoCloseable {
         transactionIsolation = "TRANSACTION_READ_COMMITTED"
         addDataSourceProperty("prepareThreshold", "5")
     })
-    private var hibernate: SessionFactory? = null
-    private var volan: VolanClient? = null
+    internal var hibernate: SessionFactory? = null
+        private set
+    internal var volan: VolanClient? = null
+        private set
     private val query: (Int, Int) -> List<*>
 
     init {
@@ -96,8 +98,10 @@ class ReadAdapter(orm: String) : AutoCloseable {
             .applySetting("hibernate.show_sql", false)
             .applySetting("hibernate.cache.use_second_level_cache", false)
             .applySetting("hibernate.cache.use_query_cache", false)
+            .applySetting("hibernate.jdbc.batch_size", 100)
             .build()
         val factory = MetadataSources(registry).addAnnotatedClass(HibernatePerson::class.java)
+            .addAnnotatedClass(HibernateWritePerson::class.java)
             .buildMetadata().buildSessionFactory()
         hibernate = factory
         return { start, size ->
@@ -150,11 +154,20 @@ class ReadAdapter(orm: String) : AutoCloseable {
         }
     }
 
-    private fun <T> inTransaction(block: (Connection) -> T): T = pool.connection.use { connection ->
+    internal fun <T> inTransaction(block: (Connection) -> T): T = pool.connection.use { connection ->
         connection.autoCommit = false
-        val result = block(connection)
-        connection.commit()
-        result
+        try {
+            val result = block(connection)
+            connection.commit()
+            result
+        } catch (failure: Throwable) {
+            try {
+                connection.rollback()
+            } catch (rollback: Throwable) {
+                failure.addSuppressed(rollback)
+            }
+            throw failure
+        }
     }
 
     override fun close() {
