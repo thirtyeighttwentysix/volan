@@ -18,7 +18,7 @@ Status legend: ✅ done · 🚧 in progress · ⬜ not started
 | **M9** | CLI and build plugins: Clikt CLI, Gradle plugin, Maven plugin | An example project builds through the plugin alone, with no manual steps | ✅ |
 | **M10** | Coroutines, interceptors, Micrometer metrics | `suspend` API covered by tests; cancellation cancels the in-flight statement | ✅ |
 | **M11** | Examples and documentation site: `kotlin-basic`, `java-basic`, `spring-boot`, `ktor`; Getting Started (Kotlin/Java), references, migration guides | Every example runs from its own README and has a CI smoke test | ✅ |
-| **M12** | Benchmark extensions and the 1.0 release: broader workloads, Maven Central publication, changelog | Artifacts install into a clean project from a Central staging repository | 🚧 |
+| **M12** | Benchmark extensions and the 1.0 release: broader workloads, Maven Central publication, changelog | Artifacts install into a clean project from staging and Maven Central | ✅ |
 
 ## Deliberately different from the original specification
 
@@ -47,7 +47,7 @@ the JVM without giving up something the brief also asks for.
   are tested. Table rebuilds retain rows, indexes and AUTOINCREMENT history; concurrent writers serialize.
 - H2 runtime and initial DDL: generated clients, scalar arrays, Decimal, relations, nested writes,
   summaries, DISTINCT ON, cursors, async operations and transactions run against real H2 on every CI OS.
-  Its Maven module and BOM entry are configured for the next alpha; alpha.2 does not include H2.
+  Its Maven module and BOM entry ship in 1.0.0; alpha.2 does not include H2.
 - H2 schema inspection: strict current-schema introspection, `db pull`, structural drift and SQL plans
   (`db push --dry-run`) are tested, including scalar arrays, composite foreign keys and identity columns.
 - H2 versioned migrations: administrator connections acquire exclusive access across DDL commits.
@@ -77,7 +77,7 @@ the JVM without giving up something the brief also asks for.
 - Independent Gradle Kotlin/Java and Maven Java examples build through the plugins without generator
   programs or manual source-directory/task wiring. CI and release workflows verify staged publications
   and ordinary builds, schema changes, source/bytecode removal and cache reuse. [Setup](docs/build-plugins.md).
-- M9 is complete. Build plugins ship with the upcoming alpha.3, not alpha.2.
+- M9 is complete. Build plugins ship in 1.0.0; alpha.2 does not contain them.
 
 ## M10 progress
 
@@ -96,7 +96,7 @@ the JVM without giving up something the brief also asks for.
 - Optional published `volan-micrometer` records attempted-statement count and duration with bounded
   dialect, operation and outcome tags, excluding SQL and parameters. Both optional modules are BOM
   constraints and are exercised by an independent Gradle consumer of staged Maven publications.
-  M10 is complete. These APIs are part of the next library release, not alpha.2.
+  M10 is complete. These APIs ship in 1.0.0; alpha.2 does not contain them.
   [Usage, cancellation guarantees and limits](docs/coroutines-and-observability.md).
 
 ## M11 progress
@@ -122,7 +122,7 @@ the JVM without giving up something the brief also asks for.
 - Release rehearsals accept an explicit candidate version and validate seventeen Maven artifacts,
   independent consumers and build plugins without publishing. Successful rehearsals retain the
   unsigned repository as a downloadable CI artifact. Tags require release notes and a dated changelog.
-- Maven Central publication of 1.0 remains pending; an unsigned rehearsal is not a Central release.
+- 1.0.0 is published to Maven Central. The [publication verification](https://github.com/thirtyeighttwentysix/volan/actions/runs/37348445496) verified all seventeen artifacts and clean consumers, both plugins and all four examples from actual Central downloads. CLI archives are attached to the GitHub release. M12 is complete.
 
 ## Deliberately deferred
 

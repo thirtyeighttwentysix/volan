@@ -3,7 +3,7 @@ plugins {
     id("io.github.thirtyeighttwentysix.volan")
 }
 
-val volanVersion = providers.gradleProperty("volanVersion").getOrElse("0.1.0-alpha.3")
+val volanVersion = providers.gradleProperty("volanVersion").getOrElse("1.0.0")
 dependencies {
     implementation("io.github.thirtyeighttwentysix:volan-dialect-h2:$volanVersion")
     runtimeOnly("com.h2database:h2:2.5.252")

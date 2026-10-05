@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>example</groupId><artifactId>volan-maven-consumer</artifactId><version>1.0</version>
   <properties>
-    <volan.version>0.1.0-alpha.3</volan.version>
+    <volan.version>1.0.0</volan.version>
     <kotlin.version>2.4.20</kotlin.version>
     <kotlin.compiler.jdkRelease>17</kotlin.compiler.jdkRelease>
     <kotlin.compiler.daemon>false</kotlin.compiler.daemon>

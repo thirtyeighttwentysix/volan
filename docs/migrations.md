@@ -1,8 +1,7 @@
 # Migrations
 
-M6 provides SQL plans, migration files, a checksum journal, database introspection and schema
-synchronization. Alpha.2 supports PostgreSQL and SQLite; alpha.1 supports PostgreSQL only.
-Main adds H2, MySQL and MariaDB runtime, introspection, pull/push and versioned migrations for alpha.3.
+Version 1.0.0 provides SQL plans, migration files, checksum journals, introspection and schema
+synchronization for PostgreSQL, SQLite, H2, MySQL and MariaDB.
 Their DDL commits immediately, so interrupted changes require manual repair. See the
 [database matrix](dialects.md). PostgreSQL examples address the current schema; SQLite addresses main;
 MySQL and MariaDB address the selected database. Multi-schema models remain deferred.
@@ -152,7 +151,7 @@ outside this supported subset, and column renames or changes to autoincrement.
 
 ## H2 versioned migrations
 
-This support is on main for alpha.3; alpha.2 does not include H2. Generate a plan with
+H2 support is included in 1.0.0. Generate a plan with
 `DatabaseSync(H2Reader(), H2Dialect)`, review the SQL, and save it with `MigrationDirectory.write`.
 Apply it using the same `Migrator` API as PostgreSQL:
 

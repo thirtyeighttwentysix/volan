@@ -1,8 +1,11 @@
-# 1.0 release preparation
+# 1.0 release verification
 
-The current public library release is **0.1.0-alpha.2**. The selected release version is
-**1.0.0**; its exact coordinates, changelog and release notes are prepared for verification.
-Unsigned rehearsals are validation candidates, not Maven Central publications.
+Version **1.0.0** is published on Maven Central, with CLI archives on the
+[GitHub release](https://github.com/thirtyeighttwentysix/volan/releases/tag/v1.0.0).
+The [signed upload](https://github.com/thirtyeighttwentysix/volan/actions/runs/37342709878) verified
+staging; the [publication verification](https://github.com/thirtyeighttwentysix/volan/actions/runs/37348445496)
+verified actual Central downloads and independent consumers before creating CLI assets.
+M12 is complete; documented limitations below still apply.
 
 ## Verify the candidate
 
@@ -38,9 +41,9 @@ The benchmark comparison covers specific PostgreSQL reads, updates and insert/de
 It establishes neither overall ORM superiority nor relation, nested-write or migration performance.
 Keep its raw JSON, run log and machine metadata with the generated README tables.
 
-## Publish
+## Repeat the release process
 
-Select either a public release candidate or the final `1.0.0`. Set the exact version in
+For a subsequent candidate or release, set the exact version in
 `gradle.properties`, add `docs/releases/<version>.md`, and move the corresponding changes from
 `Unreleased` to a dated changelog entry. Wait for CI and a rehearsal of that exact version, then
 follow [publishing](publishing.md#publish-a-release).
@@ -48,4 +51,4 @@ follow [publishing](publishing.md#publish-a-release).
 After the tag workflow verifies actual Central downloads, update README installation coordinates,
 the CLI installer channel and the Mintlify version navigation to the version actually published.
 Keep the alpha.2 guides available because its dialects and build setup differ from the new release.
-M12 is complete only after the 1.0 artifacts are published and consumed successfully.
+Unsigned rehearsals alone are not proof of a published release.

@@ -14,13 +14,13 @@
 
 ---
 
-> **Status: in development, pre-1.0.**
-> [0.1.0-alpha.2](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.2) supports
-> PostgreSQL and SQLite with CRUD, relations, summaries, Java API and migration tooling.
-> Install it from Maven Central using the BOM below. APIs may change during the alpha series.
-> Development toward alpha.3 adds H2, MySQL and MariaDB, including runtime, schema sync and versioned migrations; these are not included in alpha.2.
-> See [database support](docs/dialects.md), [publishing](docs/publishing.md) and [ROADMAP.md](ROADMAP.md), and
-> [ARCHITECTURE.md](ARCHITECTURE.md) for how it is put together.
+> **Volan 1.0.0 is available on Maven Central.**
+> PostgreSQL, SQLite, H2, MySQL and MariaDB; typed Kotlin/Java clients, automatic Gradle/Maven
+> generation, migrations, optional coroutines and query metrics. The CLI is included in the
+> [1.0.0 release](https://github.com/thirtyeighttwentysix/volan/releases/tag/v1.0.0).
+> Review [database support](docs/dialects.md), [migration guarantees](docs/migrations.md) and
+> [known limitations](ROADMAP.md#deliberately-deferred) before choosing a schema or provider.
+> [ARCHITECTURE.md](ARCHITECTURE.md) describes the implementation.
 
 ## The idea
 
@@ -91,7 +91,7 @@ CompletableFuture<List<User>> pending = db.getUser().findManyAsync(q -> q.setTak
 | Row mapping | Generated code | Managed entities | Result rows / DAO entities | Records / explicit mappers |
 | Relations | Explicit, batched `include` | Entity associations and fetch plans | DSL joins / DAO references | SQL joins and nested records |
 | Nested writes | Generated relation operations | Entity cascades | Application / DAO operations | SQL operations |
-| Current Volan scope | PostgreSQL, SQLite, H2, MySQL and MariaDB on main; Kotlin and Java | — | — | — |
+| Current Volan scope | PostgreSQL, SQLite, H2, MySQL and MariaDB in 1.0.0; Kotlin and Java | — | — | — |
 
 These tools offer different abstractions. See the primary references for
 [Hibernate](https://docs.hibernate.org/orm/7.4/introduction/),
@@ -184,17 +184,16 @@ for relations, nested writes, generated IDs, migrations or another database depl
 Independent projects demonstrate [Kotlin](examples/kotlin-basic/README.md),
 [Java](examples/java-basic/README.md), [Spring Boot](examples/spring-boot/README.md) and
 [Ktor](examples/ktor/README.md), including automatic generation, committed migrations and
-client lifecycle. They target the upcoming release; follow their README to stage its artifacts.
-The [1.0 preparation guide](docs/release-readiness.md) distinguishes validation candidates from
-published Maven Central versions.
+client lifecycle. They resolve version 1.0.0 from Maven Central; no local artifact staging is needed.
+The [release verification](docs/release-readiness.md) records the checks performed before and after publication.
 
 ## Coroutines and observability
 
-On main for alpha.3, optional `volan-coroutines` provides typed `suspendQuery` access to generated
+Optional `volan-coroutines` provides typed `suspendQuery` access to generated
 clients and repositories. Coroutine cancellation requests JDBC statement cancellation and waits for
 resource cleanup; entire transactions execute on one worker. Statement interceptors cover generated
 queries, relations and raw SQL, and optional `volan-micrometer` records duration/count with bounded
-provider, operation and outcome tags. These modules are not included in alpha.2.
+provider, operation and outcome tags. Add either module separately, aligned by the 1.0.0 BOM.
 [Setup and cancellation semantics →](docs/coroutines-and-observability.md)
 
 ## Migrations
@@ -213,27 +212,44 @@ refuses inconsistent history. [Setup, library API and limitations →](docs/migr
 
 ## Supported databases
 
-**Available in alpha.2:** PostgreSQL and SQLite with generated queries, relations, transactions,
-DDL, pull/push and versioned migrations. **On main for alpha.3:** H2, MySQL and MariaDB
-with the same generated client API, schema sync and recoverable migration journals.
+**Available in 1.0.0:** PostgreSQL, SQLite, H2, MySQL and MariaDB with generated queries, relations,
+transactions, DDL, pull/push and versioned migrations. H2, MySQL and MariaDB have recoverable journals.
 H2/MySQL/MariaDB DDL commits immediately; interrupted changes require manual repair.
 [Feature matrix, setup and limitations →](docs/dialects.md)
 
 ## Maven Central
 
+Configure plugin repositories in `settings.gradle.kts`:
+
 ```kotlin
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal() // Kotlin compiler plugin
+    }
+}
+```
+
+Then add the plugin and your database dependencies to `build.gradle.kts`:
+
+```kotlin
+plugins {
+    kotlin("jvm") version "2.4.20"
+    id("io.github.thirtyeighttwentysix.volan") version "1.0.0"
+}
 repositories { mavenCentral() }
 dependencies {
-    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.2"))
-    implementation("io.github.thirtyeighttwentysix:volan-runtime")
+    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:1.0.0"))
     implementation("io.github.thirtyeighttwentysix:volan-dialect-postgres")
     runtimeOnly("org.postgresql:postgresql:42.7.13")
 }
 ```
 
-Alpha.2 uses `volan-codegen` directly. On main for alpha.3, the Gradle and Maven plugins generate the
-client automatically during normal builds; `volan init`, `generate`, `format` and `validate` are also
-available. [Setup and complete build examples →](docs/build-plugins.md)
+Add `schema.volan` with a `volan-kotlin` generator and run `./gradlew build`. The plugin supplies
+the matching runtime and generates the client before compilation, without a database connection.
+Database changes remain explicit. Java consumers also compile generated Kotlin through the Kotlin
+compiler. Maven projects use `volan-maven-plugin:1.0.0` during `generate-sources`.
+[Complete Gradle/Maven setup and CLI commands →](docs/build-plugins.md)
 
 ## Install the CLI / Установка CLI
 
@@ -251,12 +267,11 @@ curl -fsSL https://raw.githubusercontent.com/thirtyeighttwentysix/volan/main/scr
 
 Requires **Java 17+**. Downloads the CLI, verifies SHA-256 and adds `volan` to your user `PATH`
 without administrator privileges. Run the same command to upgrade. Open a new terminal on Linux/macOS,
-then run `volan --help`. The installer currently selects a separate CLI preview;
-Maven Central libraries remain at alpha.2.
+then run `volan --help`. The installer selects the CLI from the `v1.0.0` release.
 
 Нужна **Java 17+**. Установщик скачает CLI, проверит SHA-256 и добавит `volan` в `PATH` без прав
 администратора. Та же команда обновляет CLI. На Linux/macOS открой новый терминал и выполни
-`volan --help`. Сейчас устанавливается отдельный preview CLI; версия библиотеки в Maven Central — alpha.2.
+`volan --help`. Установщик выбирает CLI из релиза `v1.0.0`; библиотеки 1.0.0 доступны в Maven Central.
 
 [Versions, custom paths and removal / Версии, каталог установки и удаление →](docs/cli-installation.md)
 

@@ -6,7 +6,7 @@ pluginManagement {
         gradlePluginPortal()
     }
     plugins {
-        id("io.github.thirtyeighttwentysix.volan") version providers.gradleProperty("volanVersion").getOrElse("0.1.0-alpha.3")
+        id("io.github.thirtyeighttwentysix.volan") version providers.gradleProperty("volanVersion").getOrElse("1.0.0")
     }
 }
 

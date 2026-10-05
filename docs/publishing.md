@@ -1,22 +1,20 @@
 # Publishing Volan
 
-The current release version is `0.1.0-alpha.2`, under `io.github.thirtyeighttwentysix`.
-The [release workflow](https://github.com/thirtyeighttwentysix/volan/actions/workflows/release.yml)
-verifies downloaded artifacts, signatures and independent PostgreSQL and SQLite consumers before
-creating the [GitHub prerelease](https://github.com/thirtyeighttwentysix/volan/releases/tag/v0.1.0-alpha.2).
-Alpha.1 remains available as the first PostgreSQL-only release.
-Current development is `0.1.0-alpha.3-SNAPSHOT`, adding H2, MySQL and MariaDB runtime, introspection
-and migrations, build plugins, coroutine access, statement interception and optional Micrometer metrics.
+The current release is **1.0.0**, under `io.github.thirtyeighttwentysix`.
+The [signed upload](https://github.com/thirtyeighttwentysix/volan/actions/runs/37342709878) verified
+staging and submitted the release. The [publication verification](https://github.com/thirtyeighttwentysix/volan/actions/runs/37348445496)
+verified seventeen Maven artifacts, five database consumers, Gradle/Maven plugins and four example
+projects from actual Central downloads before creating the
+[GitHub release](https://github.com/thirtyeighttwentysix/volan/releases/tag/v1.0.0).
+Alpha.1 and alpha.2 remain available separately.
 
 ## Published artifacts
 
-Alpha.2 contains nine library modules and `volan-bom`, including `volan-dialect-sqlite`
-and its BOM constraint. The next release adds `volan-dialect-h2` and `volan-dialect-mysql` (both MySQL and MariaDB),
-for eleven libraries plus the BOM. M9 adds `volan-gradle-plugin`, `volan-maven-plugin` and the Gradle
-plugin marker `io.github.thirtyeighttwentysix.volan:io.github.thirtyeighttwentysix.volan.gradle.plugin`.
-M10 adds optional `volan-coroutines` and `volan-micrometer` libraries and their BOM constraints,
-for thirteen libraries and seventeen Maven artifacts in total. Plugins are versioned explicitly
-and are not BOM constraints.
+The release includes thirteen library modules, `volan-bom`, `volan-gradle-plugin`,
+`volan-maven-plugin` and the Gradle marker
+`io.github.thirtyeighttwentysix.volan:io.github.thirtyeighttwentysix.volan.gradle.plugin`.
+`volan-dialect-mysql` implements both MySQL and MariaDB. Coroutines and Micrometer are optional
+modules. Plugins are versioned explicitly and are not BOM constraints.
 Libraries contain JVM classes,
 sources and Dokka HTML documentation. POMs contain license, SCM and developer metadata. The BOM
 constrains only modules that are actually published. Placeholder modules, tests and benchmarks
@@ -29,9 +27,9 @@ For an independent CLI preview, set `scripts/cli-release.txt` to `cli-v<version>
 then run the **CLI release** workflow with that version. It tests installers on Windows, Linux and
 macOS, builds and tests the CLI, checks the real packaged launcher, and creates a GitHub release
 with both archives, installers and `SHA256SUMS`. It does not publish to Maven Central.
-The initial CLI channel is `cli-v0.1.0-alpha.3-preview.1`.
+The current installer channel is `v1.0.0`; the initial preview remains available separately.
 
-Future library tag releases also attach CLI archives. To move the installer channel to a library
+Library tag releases also attach CLI archives. To move the installer channel to a library
 release, set `scripts/cli-release.txt` to its `v<version>` tag after the archives are published.
 For subsequent previews update `docs/releases/cli-preview.md` to describe the shipped changes.
 
@@ -63,7 +61,7 @@ and [Gradle publishing plugin documentation](https://vanniktech.github.io/gradle
 
 Run the **Release** workflow manually on `main`. A branch run performs the full build, ABI and
 migration coverage checks, stages unsigned artifacts and runs an independent PostgreSQL consumer.
-From alpha.2, the consumer also checks SQLite; from alpha.3 it also checks H2, MySQL and MariaDB. For a development SNAPSHOT, rehearsal removes the
+From alpha.2, the consumer also checks SQLite; from 1.0.0 it also checks H2, MySQL and MariaDB. For a development SNAPSHOT, rehearsal removes the
 `-SNAPSHOT` suffix only in staged artifacts; it never uploads them.
 It also builds independent Gradle and Maven projects through the staged plugins, including ordinary
 compilation, CRUD, incremental regeneration and deleted-model source cleanup.
@@ -81,11 +79,11 @@ as independent projects. Library tag releases repeat these examples using Centra
 For a local rehearsal (Docker required):
 
 ```shell
-./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=0.1.0-alpha.3 -PvolanUnsignedLocalPublication --no-configuration-cache
-python scripts/verify-release.py --version 0.1.0-alpha.3
-./gradlew -p release-smoke clean test "-PvolanVersion=0.1.0-alpha.3" "-PvolanRepository=/absolute/path/to/volan/build/release-repository"
-python scripts/verify-plugins.py --version 0.1.0-alpha.3 --repository build/release-repository
-python scripts/verify-examples.py --version 0.1.0-alpha.3 --repository build/release-repository
+./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=1.0.0 -PvolanUnsignedLocalPublication --no-configuration-cache
+python scripts/verify-release.py --version 1.0.0
+./gradlew -p release-smoke clean test "-PvolanVersion=1.0.0" "-PvolanRepository=/absolute/path/to/volan/build/release-repository"
+python scripts/verify-plugins.py --version 1.0.0 --repository build/release-repository
+python scripts/verify-examples.py --version 1.0.0 --repository build/release-repository
 ```
 
 `volanUnsignedLocalPublication` also disables registration of the Central publishing tasks.
@@ -96,11 +94,11 @@ plugin; verification then adds `--public-key docs/release-signing-key.asc`.
 
 1. Set `version` in `gradle.properties`, add `docs/releases/<version>.md` and a dated entry in `CHANGELOG.md`.
 2. Commit and push. Wait for both CI and the manual Release rehearsal to succeed.
-3. Push an annotated tag matching the version, for example `v0.1.0-alpha.2`.
+3. Push an annotated tag matching the version, for example `v1.0.0`.
 
 A tag starts the signed release workflow. It builds and tests, validates all staged artifacts and
 signatures, and runs the independent consumer before calling `publishAndReleaseToMavenCentral`.
-It then waits up to 30 minutes for Central downloads, verifies them and reruns the consumer using
+It then waits up to 60 minutes for Central downloads, verifies them and reruns the consumer using
 Maven Central. Only after those checks does it create a GitHub release; prerelease versions are
 marked as prereleases.
 
@@ -110,5 +108,9 @@ cannot use the rehearsal version override.
 
 Central release versions are immutable. If a run fails **after upload**, inspect the deployment in
 Central Portal and artifact URLs before retrying: a published version cannot be overwritten.
-For an already published release, run the verifier with `--central` and the independent consumer
-without `volanRepository`; repair the GitHub release separately instead of uploading again.
+If Central is still publishing or the upload succeeded but a later step failed, run the Release
+workflow on `main` with `published_tag=v1.0.0` (use the affected tag) and leave `candidate_version`
+empty. This checks out that tag, skips staging and upload, waits for public artifacts, verifies
+signatures and all consumers, and creates the GitHub release with tested CLI assets. It also
+accepts an existing GitHub release when all five CLI assets are present. Never rerun the original
+tag workflow to recover an already uploaded version.

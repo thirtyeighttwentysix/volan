@@ -1,9 +1,9 @@
 # Database support
 
-`0.1.0-alpha.2` supports PostgreSQL and SQLite, including runtime operations and migrations.
-H2, MySQL and MariaDB are implemented on main for alpha.3; they are not part of alpha.2.
+`1.0.0` supports PostgreSQL, SQLite, H2, MySQL and MariaDB, including runtime operations and migrations.
+Alpha.2 remains available with PostgreSQL and SQLite; alpha.1 supports PostgreSQL only.
 
-| Capability | PostgreSQL | SQLite | H2 on main | MySQL / MariaDB on main |
+| Capability | PostgreSQL | SQLite | H2 | MySQL / MariaDB |
 |---|---|---|---|---|
 | Generated Kotlin and Java clients | Yes | Yes | Yes | Yes |
 | CRUD, upsert, bulk writes, raw SQL | Yes | Yes | Yes | Yes; transactional row read-back |
@@ -22,19 +22,13 @@ H2, MySQL and MariaDB are implemented on main for alpha.3; they are not part of 
 | Full-text index DDL | Yes | Rejected | Rejected | Yes |
 | Typed full-text search | Planned | Planned | Planned | Planned |
 
-## H2 setup on main
+## H2 setup
 
-H2 is not included in alpha.2. To try the next candidate, stage the artifacts locally:
-
-```shell
-./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=0.1.0-alpha.3 -PvolanUnsignedLocalPublication --no-configuration-cache
-```
-
-Point your consumer's Maven repository at `build/release-repository` and use:
+Use Maven Central and the 1.0.0 BOM:
 
 ```kotlin
 dependencies {
-    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.3"))
+    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:1.0.0"))
     implementation("io.github.thirtyeighttwentysix:volan-runtime")
     implementation("io.github.thirtyeighttwentysix:volan-dialect-h2")
     implementation("io.github.thirtyeighttwentysix:volan-migrate") // Schema inspection, plans and versioned migrations.
@@ -99,14 +93,14 @@ summaries, cursors, constraints, asynchronous reads, file reopening and savepoin
 schema separately generates and compiles a client covering Decimal, UUID defaults and every scalar
 array. The independent release consumer verifies H2 CRUD and schema round trips from staged Maven artifacts.
 
-## MySQL and MariaDB setup on main
+## MySQL and MariaDB setup
 
 The shared `volan-dialect-mysql` module discovers both providers through ServiceLoader.
-Stage the alpha.3 candidate locally using the command above, then select the matching JDBC driver:
+Resolve the module from Maven Central and select the matching JDBC driver:
 
 ```kotlin
 dependencies {
-    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.3"))
+    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:1.0.0"))
     implementation("io.github.thirtyeighttwentysix:volan-runtime")
     implementation("io.github.thirtyeighttwentysix:volan-dialect-mysql")
     implementation("io.github.thirtyeighttwentysix:volan-migrate")
@@ -173,7 +167,7 @@ SQLite is available from alpha.2. Use Maven Central:
 repositories { mavenCentral() }
 
 dependencies {
-    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.2"))
+    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:1.0.0"))
     implementation("io.github.thirtyeighttwentysix:volan-runtime")
     implementation("io.github.thirtyeighttwentysix:volan-dialect-sqlite")
     runtimeOnly("org.xerial:sqlite-jdbc:3.53.4.0")

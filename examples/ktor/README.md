@@ -6,30 +6,20 @@ HTTP routes backed by the generated client. JDBC runs through suspendQuery; Appl
 
 Requires JDK 17+ and the Gradle wrapper from this checkout. The example is a separate Gradle build:
 it resolves Volan artifacts through the published plugin, without project dependencies or a generator program.
-It targets the selected `1.0.0` release candidate. Stage that candidate from the repository root first:
+It resolves Volan 1.0.0 from Maven Central. From the repository root:
 
 ```shell
-./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=1.0.0 -PvolanUnsignedLocalPublication --no-configuration-cache
+./gradlew -p examples/ktor test run
 ```
 
-Then change to `examples/ktor` and run:
-
-```shell
-../../gradlew test run -PvolanVersion=1.0.0 -PvolanRepository=../../build/release-repository
-```
-
-PowerShell equivalents:
+PowerShell:
 
 ```powershell
-# From the repository root:
-.\gradlew.bat publishAllPublicationsToReleaseTestRepository '-Pversion=1.0.0' -PvolanUnsignedLocalPublication --no-configuration-cache
-Set-Location examples/ktor
-..\..\gradlew.bat test run '-PvolanVersion=1.0.0' '-PvolanRepository=../../build/release-repository'
+.\gradlew.bat -p examples/ktor test run
 ```
 
-Once a compatible release is on Maven Central, omit `volanRepository` and pass its version through
-`volanVersion`. Alpha.2 cannot run this example: the H2 dialect and build plugin were added later.
-The Java example still uses the Kotlin compiler to compile the generated sources; all application code is Java.
+Alpha.2 cannot run this example: the H2 dialect and build plugin were added later.
+Java application code uses the Kotlin compiler for the generated client sources.
 
 ## What runs
 

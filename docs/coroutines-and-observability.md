@@ -1,12 +1,12 @@
 # Coroutines, interception and metrics
 
-These APIs are on main for alpha.3; Maven Central alpha.2 does not include them.
+These APIs are available in 1.0.0 from Maven Central.
 The JDBC core stays synchronous and has no coroutine or Micrometer dependencies.
 Add only the optional modules your application uses, aligned with the generation plugin:
 
 ```kotlin
 dependencies {
-    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:0.1.0-alpha.3"))
+    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:1.0.0"))
     implementation("io.github.thirtyeighttwentysix:volan-coroutines")
     implementation("io.github.thirtyeighttwentysix:volan-micrometer")
 }

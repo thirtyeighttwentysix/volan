@@ -1,6 +1,6 @@
 # CLI and build plugins
 
-These features are on `main` for **alpha.3**; Maven Central alpha.2 does not contain them.
+These features are available in **1.0.0** from Maven Central.
 JDK 17+ is required. Generation validates the schema without opening a database connection or
 reading the datasource environment variable. A schema still needs a `volan-kotlin` generator:
 
@@ -60,14 +60,14 @@ pluginManagement {
 ```
 
 ```kotlin
-// build.gradle.kts — alpha.3 example, once published
+// build.gradle.kts — 1.0.0 example
 plugins {
     kotlin("jvm") version "2.4.20"
-    id("io.github.thirtyeighttwentysix.volan") version "0.1.0-alpha.3"
+    id("io.github.thirtyeighttwentysix.volan") version "1.0.0"
 }
 repositories { mavenCentral() }
 dependencies {
-    implementation("io.github.thirtyeighttwentysix:volan-dialect-sqlite:0.1.0-alpha.3")
+    implementation("io.github.thirtyeighttwentysix:volan-dialect-sqlite:1.0.0")
     runtimeOnly("org.xerial:sqlite-jdbc:3.53.4.0")
 }
 ```
@@ -142,9 +142,9 @@ The Gradle consumer also verifies generated-source restoration from build cache 
 To verify the development candidate locally:
 
 ```bash
-./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=0.1.0-alpha.3 -PvolanUnsignedLocalPublication --no-configuration-cache
-python scripts/verify-release.py --version 0.1.0-alpha.3
-python scripts/verify-plugins.py --version 0.1.0-alpha.3 --repository build/release-repository
+./gradlew publishAllPublicationsToReleaseTestRepository -Pversion=1.0.0 -PvolanUnsignedLocalPublication --no-configuration-cache
+python scripts/verify-release.py --version 1.0.0
+python scripts/verify-plugins.py --version 1.0.0 --repository build/release-repository
 ```
 
 The last command requires Maven on PATH and copies examples into `build/plugin-smoke` before

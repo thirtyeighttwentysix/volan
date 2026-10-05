@@ -39,19 +39,19 @@ Use `VOLAN_TAG` to select a specific GitHub release containing CLI assets; older
 library releases have no CLI assets. `JAVA_HOME`, when set, takes precedence over Java on `PATH`.
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/thirtyeighttwentysix/volan/main/scripts/install.ps1))) -Tag cli-v0.1.0-alpha.3-preview.1 -InstallDir "$env:LOCALAPPDATA\Programs\Volan"
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/thirtyeighttwentysix/volan/main/scripts/install.ps1))) -Tag v1.0.0 -InstallDir "$env:LOCALAPPDATA\Programs\Volan"
 ```
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/thirtyeighttwentysix/volan/main/scripts/install.sh |
-  VOLAN_TAG=cli-v0.1.0-alpha.3-preview.1 VOLAN_INSTALL_DIR="$HOME/.local/share/volan" bash
+  VOLAN_TAG=v1.0.0 VOLAN_INSTALL_DIR="$HOME/.local/share/volan" bash
 ```
 
 Both installers also accept `VOLAN_INSTALL_DIR`. Keep the same directory when upgrading.
 For a manual/offline install, download `volan-cli.zip` (Windows) or `volan-cli.tar.gz` (Linux/macOS)
-and `SHA256SUMS` from the [CLI release](https://github.com/thirtyeighttwentysix/volan/releases/tag/cli-v0.1.0-alpha.3-preview.1),
+and `SHA256SUMS` from the [CLI release](https://github.com/thirtyeighttwentysix/volan/releases/tag/v1.0.0),
 verify the archive checksum, extract it and add the extracted `volan/bin` directory to `PATH`.
-The CLI preview does not publish new library artifacts to Maven Central.
+The same release publishes matching 1.0.0 libraries and build plugins to Maven Central.
 
 ### Remove the CLI
 
@@ -78,8 +78,8 @@ Bash, Zsh и Fish; открой новый терминал или выполн�
 `VOLAN_INSTALL_DIR` или `-InstallDir`. При обновлении используй прежний каталог.
 Если задан `JAVA_HOME`, Java будет выбрана из него.
 
-Проверь установку командой `volan --help`. Сейчас установщик ставит отдельный preview CLI;
-библиотека в Maven Central остаётся на alpha.2. Старые релизы alpha.1/alpha.2 не содержат архивов CLI.
+Проверь установку командой `volan --help`. Установщик ставит CLI 1.0.0; библиотеки и плагины
+той же версии доступны в Maven Central. Старые релизы alpha.1/alpha.2 не содержат архивов CLI.
 `volan init` создаёт схему, настройка Gradle/Maven описана в [build-plugins.md](build-plugins.md).
 
 Для удаления удали каталог установки и его запись в пользовательском `PATH` на Windows.
