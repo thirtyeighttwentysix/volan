@@ -29,7 +29,7 @@ mavenPublish = "0.37.0"
 pluginPublish = "2.2.1"
 jmh = "1.37"
 hibernate = "7.4.11.Final"
-exposed = "1.5.0"
+exposed = "1.5.1"
 jooq = "3.19.39"
 
 [libraries]
