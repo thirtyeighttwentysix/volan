@@ -10,9 +10,9 @@ jspecify = "1.0.1"
 micrometer = "1.17.1"
 jackson = "2.22.3"
 
-postgres = "42.7.13"
-mysql = "26.7.0"
-mariadb = "3.5.10"
+postgres = "42.7.14"
+mysql = "26.10.0"
+mariadb = "4.0.0"
 sqlite = "3.53.4.0"
 h2 = "2.5.252"
 
