@@ -1,12 +1,12 @@
 package io.github.thirtyeighttwentysix.volan.codegen
 
+import com.squareup.kotlinpoet.BOOLEAN
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.LIST
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.MUTABLE_LIST
-import com.squareup.kotlinpoet.MUTABLE_SET
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
@@ -48,13 +48,14 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
     private fun payload(model: Model, name: String, kdoc: String, requireMandatory: Boolean): TypeSpec {
         val builder = TypeSpec.classBuilder(name)
             .addKdoc(kdoc)
-            .addProperty(
-                PropertySpec.builder("touched", MUTABLE_SET.parameterizedBy(STRING))
+        model.fields.filterNot { it.isUpdatedAt }.forEach { field ->
+            builder.addProperty(
+                PropertySpec.builder(touchedField(field), BOOLEAN)
                     .addModifiers(KModifier.PRIVATE)
-                    .initializer("linkedSetOf()")
+                    .mutable()
+                    .initializer("false")
                     .build(),
             )
-        model.fields.filterNot { it.isUpdatedAt }.forEach { field ->
             builder.addProperty(mutableField(model, field))
         }
         addNestedWrites(builder, model, if (requireMandatory) "Write" else "Change")
@@ -356,6 +357,9 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
     private fun nestedWriteName(model: Model, relation: RelationField, suffix: String): String =
         "${model.name}${relation.name.replaceFirstChar { it.uppercase() }}$suffix"
 
+    // Schema names cannot contain a dollar sign, so this flag cannot collide with a field name.
+    private fun touchedField(field: ScalarField): String = "\$${field.name}Set"
+
     private fun mutableField(model: Model, field: ScalarField): PropertySpec {
         val type = types.fieldType(field.type, field.cardinality).copy(nullable = true)
         return PropertySpec.builder(field.name, type)
@@ -379,7 +383,7 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
                 FunSpec.setterBuilder()
                     .addParameter("value", type)
                     .addStatement("field = value")
-                    .addStatement("touched.add(%S)", field.name)
+                    .addStatement("this.%N = true", touchedField(field))
                     .build(),
             )
             .build()
@@ -395,7 +399,7 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
         val body = CodeBlock.builder()
             .addStatement("val values = LinkedHashMap<%T, Any?>()", STRING)
         model.fields.filterNot { it.isUpdatedAt }.forEach { field ->
-            body.beginControlFlow("if (touched.contains(%S))", field.name)
+            body.beginControlFlow("if (%N)", touchedField(field))
             body.addStatement("values[%S] = %L", field.dbName, encode(field, access(model, field)))
             body.endControlFlow()
         }

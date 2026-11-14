@@ -230,14 +230,14 @@ internal class JdbcExecutor(
         return connections.transaction(Isolation.DEFAULT, RetryPolicy.NONE) {
             val now = clock.instant()
             insertShapes(specs).sumOf { group ->
-                val first = planner.insert(listOf(group.first()), now)
-                val batchSize = if (first.columns.isEmpty()) {
+                val columns = planner.insertColumnCount(group.first())
+                val batchSize = if (columns == 0) {
                     1
                 } else {
-                    maxOf(1, dialect.capabilities.maximumParameters / first.columns.size)
+                    maxOf(1, dialect.capabilities.maximumParameters / columns)
                 }
                 group.chunked(batchSize).sumOf { batch ->
-                    val statement = dialect.render(planner.insert(batch, now).copy(returning = emptyList()))
+                    val statement = dialect.render(planner.insert(batch, now, returning = false))
                     update(statement, "creating ${batch.size} ${batch.first().model} rows").toLong()
                 }
             }
@@ -352,9 +352,16 @@ internal class JdbcExecutor(
         context: String,
         generatedKeys: Boolean = false,
         block: (PreparedStatement) -> T,
-    ): T = interceptors.execute(QueryContext(statement.sql, operation, dialect.id)) {
+    ): T {
+        if (interceptors.isEmpty) return executeJdbc(statement, context, generatedKeys, block)
+        return interceptors.execute(QueryContext(statement.sql, operation, dialect.id)) {
+            executeJdbc(statement, context, generatedKeys, block)
+        }
+    }
+
+    private fun <T> executeJdbc(statement: SqlStatement, context: String, generatedKeys: Boolean, block: (PreparedStatement) -> T): T {
         QueryCancellation.check()
-        connections.use { connection ->
+        return connections.use { connection ->
             try {
                 val prepared = if (generatedKeys) {
                     connection.prepareStatement(statement.sql, java.sql.Statement.RETURN_GENERATED_KEYS)
@@ -407,7 +414,7 @@ internal class JdbcExecutor(
             if (table.primaryKey.isEmpty() || missing.size > 1) {
                 throw VolanUnsupportedException("${dialect.id} create requires an explicit primary key or one generated key column.")
             }
-            val sql = dialect.render(planner.insert(listOf(spec), clock.instant()).copy(returning = emptyList()))
+            val sql = dialect.render(planner.insert(listOf(spec), clock.instant(), returning = false))
             val generated = execute(sql, QueryOperation.EXECUTE, "creating a ${spec.model}", generatedKeys = true) { statement ->
                 statement.executeUpdate()
                 if (missing.isEmpty()) {

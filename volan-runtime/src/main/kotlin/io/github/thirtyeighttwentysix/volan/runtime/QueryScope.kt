@@ -110,12 +110,15 @@ public abstract class QueryScope protected constructor(private val model: String
 
     /** Records the condition a `where { … }` block collected. */
     protected fun recordFilter(scope: FilterScope) {
-        filter = Filter.all(listOfNotNull(filter, scope.build()))
+        val next = scope.build() ?: return
+        val previous = filter
+        filter = if (previous == null) next else Filter.And(listOf(previous, next))
     }
 
     /** Records the terms an `orderBy { … }` block collected. */
     protected fun recordOrder(scope: OrderScope) {
-        orderTerms = orderTerms + scope.build()
+        val next = scope.build()
+        if (next.isNotEmpty()) orderTerms = if (orderTerms.isEmpty()) next else orderTerms + next
     }
 
     /** Records the fields a `select { … }` block collected. */
@@ -130,7 +133,8 @@ public abstract class QueryScope protected constructor(private val model: String
 
     /** Records the relations an `include { … }` block collected. */
     protected fun recordIncludes(scope: IncludeScope) {
-        relations = relations + scope.build()
+        val next = scope.build()
+        if (next.isNotEmpty()) relations = if (relations.isEmpty()) next else relations + next
     }
 
     /**

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Performance
+
+- Transactions using the connection's default isolation avoid two PostgreSQL round trips. Explicit
+  isolation is restored when Volan changes it, and nested transactions retain their savepoints.
+- Reuse the default column list when planning reads. Bulk inserts avoid a throwaway plan and track
+  assigned fields without allocating a set for every generated write payload.
+
 ### Fixed
 
 - The generated Kotlin client escapes keyword names such as `when` in entity construction,
