@@ -106,7 +106,11 @@ Forty PostgreSQL cases compare reads, four concurrent readers, range updates and
 transactions. Every adapter uses the same table shape, four fields and read-committed transaction
 boundary. The harness checks values, affected counts and final database state before timing.
 
-![PostgreSQL read latency comparison](docs/benchmarks/read-latency.svg)
+Volan averaged **1.80 ms to read 100 rows with four concurrent readers**, down from 2.58 ms before
+the optimization on the same machine. This was the lowest mean in that case, followed by JDBC
+at 2.22 ms. JDBC had the lowest means in the single-thread read cases. Write latency varied widely.
+
+![PostgreSQL latency for four concurrent readers](docs/benchmarks/concurrent-read-latency.svg)
 
 <!-- BENCHMARKS:START -->
 
@@ -114,59 +118,59 @@ boundary. The harness checks values, affected counts and final database state be
 
 | Library | 1 row, µs/op | 100 rows, µs/op |
 |---|---:|---:|
-| **Volan** | 2191.2 ± 80.3 | 2232.7 ± 35.0 |
-| Hibernate | 1165.0 ± 94.4 | 1281.7 ± 53.7 |
-| Exposed | 1580.1 ± 25.1 | 1726.9 ± 85.0 |
-| jOOQ | 1160.3 ± 40.3 | 1259.0 ± 56.6 |
-| JDBC | 1103.5 ± 23.0 | 1198.7 ± 31.7 |
+| **Volan** | 1898.6 ± 374.4 | 2123.6 ± 100.0 |
+| Hibernate | 2041.8 ± 311.6 | 2367.0 ± 144.7 |
+| Exposed | 2751.9 ± 197.7 | 3075.4 ± 286.6 |
+| jOOQ | 2039.2 ± 253.5 | 2200.0 ± 158.2 |
+| JDBC | 1787.5 ± 116.7 | 2009.3 ± 136.2 |
 
-**Read, four threads sharing four connections**
+**Read, four threads**
 
 | Library | 1 row, µs/op | 100 rows, µs/op |
 |---|---:|---:|
-| **Volan** | 2434.3 ± 57.1 | 2531.6 ± 63.9 |
-| Hibernate | 1287.2 ± 41.9 | 1443.1 ± 32.5 |
-| Exposed | 1817.2 ± 43.4 | 1990.4 ± 154.9 |
-| jOOQ | 1278.7 ± 19.9 | 1466.6 ± 67.9 |
-| JDBC | 1260.7 ± 31.8 | 1372.8 ± 14.4 |
+| **Volan** | 1851.1 ± 444.8 | 1800.1 ± 106.1 |
+| Hibernate | 1858.3 ± 297.6 | 2619.6 ± 523.3 |
+| Exposed | 3063.1 ± 362.8 | 3145.7 ± 149.0 |
+| jOOQ | 2098.3 ± 192.2 | 2267.1 ± 199.8 |
+| JDBC | 2172.9 ± 365.7 | 2216.0 ± 192.6 |
 
 **Update and commit**
 
 | Library | 1 row, µs/op | 100 rows, µs/op |
 |---|---:|---:|
-| **Volan** | 5853.2 ± 4522.4 | 6054.1 ± 4544.5 |
-| Hibernate | 5791.4 ± 4681.1 | 6470.1 ± 4176.3 |
-| Exposed | 7705.6 ± 5878.3 | 5452.7 ± 4557.9 |
-| jOOQ | 5047.0 ± 4151.0 | 6973.1 ± 4248.9 |
-| JDBC | 5477.7 ± 4435.6 | 4020.6 ± 4156.2 |
+| **Volan** | 5844.5 ± 4267.6 | 6445.3 ± 4334.9 |
+| Hibernate | 7409.8 ± 4482.6 | 5385.0 ± 919.6 |
+| Exposed | 8264.9 ± 4849.7 | 5715.2 ± 344.4 |
+| jOOQ | 7549.3 ± 4925.8 | 7384.7 ± 4977.0 |
+| JDBC | 4860.7 ± 2288.2 | 7874.5 ± 4748.9 |
 
 **Insert, delete and commit**
 
 | Library | 1 row, µs/op | 100 rows, µs/op |
 |---|---:|---:|
-| **Volan** | 8490.2 ± 4486.9 | 8455.8 ± 3985.3 |
-| Hibernate | 7411.6 ± 6522.3 | 7668.1 ± 5327.7 |
-| Exposed | 8679.7 ± 5122.4 | 10317.0 ± 11026.4 |
-| jOOQ | 8688.1 ± 20356.8 | 7645.5 ± 4835.7 |
-| JDBC | 7819.5 ± 3946.9 | 6710.7 ± 4798.8 |
+| **Volan** | 9679.2 ± 4005.1 | 10534.8 ± 3658.6 |
+| Hibernate | 5904.4 ± 417.4 | 9418.9 ± 3740.1 |
+| Exposed | 8041.7 ± 3142.3 | 8772.7 ± 2922.0 |
+| jOOQ | 8485.2 ± 4720.0 | 6521.3 ± 389.2 |
+| JDBC | 8121.7 ± 4915.7 | 9060.9 ± 4462.2 |
 
 <!-- BENCHMARKS:END -->
 
-**Lower is better.** Values are means ± JMH's 99.9% confidence interval, in microseconds per operation.
-Measured on 5 October 2026: Ryzen 5 5500, Windows 11, Corretto 25.0.3,
-PostgreSQL 17.10 in Docker/WSL2, 10,000 baseline rows and HikariCP pools of 4 connections.
-Each case uses 2 JVM forks, 3 × 2 s warmup and 5 × 2 s measurement, with a 512 MiB heap.
+**Lower is better.** Charts show the means, with one scale for both row counts in each chart.
+Tables show the means and JMH's 99.9% confidence margins in microseconds per operation.
+The [14 November 2026 run](benchmarks/results/jmh-2026-11-14.json) measured the unreleased
+optimization on a Ryzen 5 5500 with Windows 11, Corretto 25.0.3 and PostgreSQL 17.10 in Docker/WSL2.
+Each case used two JVM forks, 3 × 2 s warmup and 5 × 2 s measurement, a 512 MiB heap, and `-prof gc`.
 
-Volan has higher read latency in this run. **Write intervals are wide and overlap heavily**, so
-their means do not support a reliable ranking. Four-thread values are latency per caller, not
-aggregate throughput. Insert/delete includes both operations and one commit; it is not an
-insert-only score. Libraries use the documented bulk strategies, including Hibernate/Exposed
-JDBC batches and multi-row inserts for Volan/jOOQ/JDBC.
+The before/after runs used the same harness and settings. Volan allocated **32% fewer bytes** per
+100-row insert/delete transaction. Write latency varies widely; see the intervals before comparing
+write means. Four-thread results measure latency per caller. Insert/delete includes both operations
+and commit.
 
 <details>
-<summary>Concurrent read and write charts</summary>
+<summary>Single-thread read and write charts</summary>
 
-![PostgreSQL concurrent read latency](docs/benchmarks/concurrent-read-latency.svg)
+![PostgreSQL latency for one reader](docs/benchmarks/read-latency.svg)
 ![PostgreSQL update latency](docs/benchmarks/update-latency.svg)
 ![PostgreSQL insert/delete transaction latency](docs/benchmarks/insert-delete-latency.svg)
 
@@ -175,9 +179,9 @@ JDBC batches and multi-row inserts for Volan/jOOQ/JDBC.
 Results include loopback network, pooling and transaction costs. They do not establish performance
 for relations, nested writes, generated IDs, migrations or another database deployment.
 
-[Methodology and reproduction](benchmarks/README.md) ·
-[Raw results and machine metadata](benchmarks/results/) ·
-[Benchmark source](benchmarks/src/main/kotlin/bench/ReadAdapter.kt)
+[Methodology, before/after results and reproduction](benchmarks/README.md)
+
+[Raw measurements and machine metadata](benchmarks/results/)
 
 ## Examples
 
