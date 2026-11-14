@@ -128,14 +128,15 @@ internal class JdbcExecutor(
      * once through the mapper for its key, once by alias for what was worked out about it.
      */
     override fun <K> groupBy(spec: GroupSpec, mapper: RowMapper<K>): List<GroupRow<K>> {
-        val statement = dialect.render(planner.group(spec))
+        val plan = planner.group(spec)
+        val statement = dialect.render(plan.select)
         return query(statement, "grouping ${spec.model}") { result ->
             val groups = ArrayList<GroupRow<K>>()
             val row = JdbcRow(result, dialect.timestampWithoutTimeZone)
             while (result.next()) {
                 QueryCancellation.check()
                 val values = LinkedHashMap<String, Any?>()
-                spec.aggregations.forEach { values[it.alias] = row.aggregateValue(it.alias) }
+                spec.aggregations.forEachIndexed { index, item -> values[item.alias] = row.aggregateValue(plan.resultAliases[index]) }
                 groups.add(GroupRow(mapper.map(row), values))
             }
             groups

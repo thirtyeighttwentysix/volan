@@ -144,7 +144,7 @@ internal class MappingGenerator(private val schema: Schema, private val types: T
         val entity = types.declared(model.name)
         val body = CodeBlock.builder().add("return %T(\n", entity)
         model.fields.forEach { field ->
-            body.add("  %L = %L,\n", field.name, readExpression(field))
+            body.add("  %N = %L,\n", field.name, readExpression(field))
         }
         body.add(")\n")
         return TypeSpec.objectBuilder("${model.name}RowMapper")
@@ -180,7 +180,7 @@ internal class MappingGenerator(private val schema: Schema, private val types: T
             .indent()
             .add("when (column) {\n")
             .indent()
-        model.fields.forEach { field -> body.add("%S -> entity.%L\n", field.dbName, field.name) }
+        model.fields.forEach { field -> body.add("%S -> entity.%N\n", field.dbName, field.name) }
         body.add(
             "else -> throw %T(%P)\n",
             Types.configurationException,

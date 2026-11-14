@@ -415,10 +415,10 @@ internal class WriteGenerator(private val schema: Schema, private val types: Typ
      * the caller wrote `field = null` on a column the schema says is not nullable.
      */
     private fun access(model: Model, field: ScalarField): CodeBlock = if (field.cardinality == Cardinality.OPTIONAL) {
-        CodeBlock.of("%L", field.name)
+        CodeBlock.of("%N", field.name)
     } else {
         CodeBlock.of(
-            "(%L ?: throw %T(%S))",
+            "(%N ?: throw %T(%S))",
             field.name,
             Types.validationException,
             "${model.name}.${field.name} cannot be set to null",

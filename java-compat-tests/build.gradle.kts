@@ -10,6 +10,8 @@ dependencies {
     testImplementation(project(":codegen-verify"))
     testImplementation(project(":volan-runtime"))
     testImplementation(project(":volan-dialect-postgres"))
+    testRuntimeOnly(project(":volan-dialect-h2"))
+    testRuntimeOnly(libs.jdbc.h2)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)

@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class VolanGeneratorTest {
     private val schema: Schema = load("blog.volan")
@@ -127,6 +128,24 @@ class VolanGeneratorTest {
         val thrown = runCatching { VolanGenerator.generate(without) }.exceptionOrNull()
         (thrown is VolanGenerationException) shouldBe true
         thrown?.message.orEmpty() shouldContain "found 0"
+    }
+
+    @Test
+    fun `an explicit generator rejects a count field from a migration only schema`() {
+        val migrationOnly = SchemaLoader.load(
+            "schema.volan",
+            """
+            datasource db { provider = "sqlite" url = env("DATABASE_URL") }
+            model Record {
+              id Int @id
+              count Int
+            }
+            """.trimIndent(),
+        ).schemaOrThrow()
+        val failure = assertThrows<VolanGenerationException> {
+            VolanGenerator.generate(migrationOnly, schema.generators.single())
+        }
+        failure.message.orEmpty() shouldContain "`Record.count` conflicts with the generated `groupBy` row count"
     }
 
     private fun contents(name: String): String = requireNotNull(files[name]) { "no generated file $name" }.contents

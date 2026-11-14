@@ -118,6 +118,9 @@ public enum class SemanticCode(override val id: String) : DiagnosticCode {
 
     /** A field or index uses a feature unavailable on the selected database. */
     UNSUPPORTED_PROVIDER_FEATURE("E0235"),
+
+    /** A schema field would duplicate a member of the generated client. */
+    GENERATED_MEMBER_CONFLICT("E0236"),
     ;
 
     override fun toString(): String = id

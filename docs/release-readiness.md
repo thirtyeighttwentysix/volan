@@ -32,8 +32,8 @@ checked by the tag release workflow.
 Use the [database matrix](dialects.md), [migration guarantees](migrations.md),
 [coroutine cancellation contract](coroutines-and-observability.md) and
 [documented limitations](../ROADMAP.md#deliberately-deferred) when evaluating 1.0.
-In particular, the currently deferred schema names `count` and Kotlin keywords can cause generated
-code compilation errors; use supported names and mapping until those generator cases are fixed.
+In 1.0.0, `count` and some Kotlin keywords can cause generated code compilation errors. See
+[generated client names](schema-language.md#names-in-generated-clients) for the 1.0.1 changes.
 The runtime coverage gate is also still deferred. A stable release must describe those limits
 without claiming universal schema or SQL support.
 

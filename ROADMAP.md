@@ -148,12 +148,9 @@ main branch.
 - **Nested writes more than one level deep from an update.** A nested `update` writes columns; a shape
   that reaches a third level down would need the key of a row nobody has read yet. It is refused where
   it was written rather than silently dropped.
-- **A field named `count`.** The result of `aggregate` and of `groupBy` reads the row count as `count`,
-  so a model with a scalar field of that name generates two properties with one name and the generated
-  code does not compile. The generator should reject the schema with a diagnostic instead; until it
-  does, the failure is loud but points at generated code rather than at the schema.
-- **Kotlin keyword field names.** Some generated expression fragments do not escape names such as
-  `when`. Use a different field name with `@map("when")` until the generator handles these consistently.
+- **Generated field names.** In 1.0.0, fields named `count` or Kotlin keywords such as `when` can
+  cause compilation errors in the generated client. The 1.0.1 changes escape keyword names and
+  report `count` at the schema field with a suggestion to rename it and retain `@map("count")`.
 - **Writing a grandchild that needs its grandparent's key.** A nested write supplies the foreign key of
   the row it is nested under, so a shape reaching two levels down works whenever the deeper row's other
   required columns are already known. A composite key that needs a key from two levels up — a comment

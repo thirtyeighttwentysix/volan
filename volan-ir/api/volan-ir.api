@@ -560,6 +560,7 @@ public final class io/github/thirtyeighttwentysix/volan/ir/SemanticCode : java/l
 	public static final field DUPLICATE_MEMBER Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
 	public static final field DUPLICATE_PRIMARY_KEY Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
 	public static final field EMPTY_FIELD_LIST Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
+	public static final field GENERATED_MEMBER_CONFLICT Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
 	public static final field INVALID_ATTRIBUTE_TARGET Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
 	public static final field INVALID_DEFAULT Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;
 	public static final field INVALID_ID_FIELD Lio/github/thirtyeighttwentysix/volan/ir/SemanticCode;

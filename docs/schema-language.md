@@ -76,6 +76,17 @@ field a relation. The marker after the type sets how many values the field holds
 The scalar types are `String`, `Int`, `Long`, `Float`, `Double`, `Decimal`, `Boolean`, `DateTime`,
 `Date`, `Time`, `Json`, `Bytes` and `Uuid`.
 
+### Names in generated clients
+
+Starting with 1.0.1, write a field such as `when` normally in `schema.volan`. Use backticks in Kotlin
+(for example, ``row.`when` ``) and the regular getter `row.getWhen()` in Java.
+
+When the schema declares the `volan-kotlin` generator, a generated data field named `count` reports
+`E0236` at the field name: the `groupBy` result already uses `count` for its row count. To keep a
+database column named `count`, give the field a different name: `itemCount Int @map("count")`.
+If the field already has `@map`, keep that mapping when renaming it. Fields and models omitted from
+generation can still use the name `count`.
+
 ## Attributes
 
 `@` attributes apply to the field or enum value on their line. `@@` attributes apply to the whole
@@ -242,6 +253,8 @@ whole schema is known — which is why these problems are reported with their ow
 | `E0232` | A model requires a row of itself |
 | `E0233` | One-to-one foreign key is not unique |
 | `E0234` | Connection URL written into the schema (warning) |
+| `E0235` | Field or index uses an unsupported provider feature |
+| `E0236` | Field name conflicts with a generated client member (since 1.0.1) |
 
 ## Grammar
 

@@ -71,7 +71,7 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
      * `HAVING` names its summaries by the alias they come back under, which no database will accept
      * there, so each one is put back as the expression it stands for.
      */
-    fun group(spec: GroupSpec): SqlSelect {
+    fun group(spec: GroupSpec): GroupPlan {
         val table = registry.require(spec.model)
         val scope = Scope(table, Aliases())
         if (spec.by.isEmpty()) {
@@ -82,12 +82,14 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
                 null,
             )
         }
-        val keys = spec.by.map { field -> scope.column(columnOf(table, field)) }
-        return SqlSelect(
+        val columns = spec.by.map { columnOf(table, it) }
+        val keys = columns.map(scope::column)
+        val resultAliases = groupResultAliases(columns, spec.aggregations)
+        val select = SqlSelect(
             table = table.table,
             alias = scope.alias,
-            items = spec.by.mapIndexed { index, field -> SqlSelectItem.Column(keys[index], alias = columnOf(table, field)) } +
-                spec.aggregations.map { aggregateItem(it, scope) },
+            items = keys.zip(columns) { key, column -> SqlSelectItem.Column(key, alias = column) } +
+                spec.aggregations.zip(resultAliases) { item, alias -> aggregateItem(item, scope, alias) },
             condition = spec.filter?.let { condition(it, scope) },
             groupBy = keys,
             having = spec.having?.let { condition(it, scope.over(spec.havingAggregations.mapValues { (_, it) -> summary(it, scope) })) },
@@ -95,11 +97,28 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
             limit = spec.pagination.take,
             offset = spec.pagination.skip,
         )
+        return GroupPlan(select, resultAliases)
     }
 
-    private fun aggregateItem(item: Aggregation, scope: Scope): SqlSelectItem {
-        val column = item.column ?: return SqlSelectItem.CountAll(item.alias)
-        return SqlSelectItem.Aggregate(sqlFunction(item.function), scope.column(column), item.alias)
+    /** The SQL and the JDBC label of each summary, in the order requested by [GroupSpec.aggregations]. */
+    class GroupPlan(val select: SqlSelect, val resultAliases: List<String>)
+
+    private fun groupResultAliases(columns: List<String>, aggregations: List<Aggregation>): List<String> {
+        // Drivers may match a result label case-insensitively, even when the SQL used quotes.
+        val keyLabels = columns.mapTo(HashSet(), String::lowercase)
+        val used = keyLabels.toHashSet()
+        aggregations.forEach { used.add(it.alias.lowercase()) }
+        return aggregations.mapIndexed { index, item ->
+            if (item.alias.lowercase() !in keyLabels) return@mapIndexed item.alias
+            var label = "__volan_summary_$index"
+            while (!used.add(label)) label += "_"
+            label
+        }
+    }
+
+    private fun aggregateItem(item: Aggregation, scope: Scope, alias: String): SqlSelectItem {
+        val column = item.column ?: return SqlSelectItem.CountAll(alias)
+        return SqlSelectItem.Aggregate(sqlFunction(item.function), scope.column(column), alias)
     }
 
     private fun summary(item: Aggregation, scope: Scope): SqlExpression = SqlExpression.Call(

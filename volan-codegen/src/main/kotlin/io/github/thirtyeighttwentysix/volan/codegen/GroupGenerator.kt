@@ -92,7 +92,7 @@ internal class GroupGenerator(private val types: TypeResolver, private val aggre
                             "@throws io.github.thirtyeighttwentysix.volan.runtime.VolanFieldNotSelectedException " +
                             "if the query did not group by it.\n",
                     )
-                    .getter(FunSpec.getterBuilder().addStatement("return key.%L", field.name).build())
+                    .getter(FunSpec.getterBuilder().addStatement("return key.%N", field.name).build())
                     .build(),
             )
             builder.addProperty(
