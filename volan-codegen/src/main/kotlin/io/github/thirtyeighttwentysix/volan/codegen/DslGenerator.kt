@@ -14,6 +14,7 @@ import com.squareup.kotlinpoet.STRING
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.UNIT
+import com.squareup.kotlinpoet.joinToCode
 import io.github.thirtyeighttwentysix.volan.ir.Cardinality
 import io.github.thirtyeighttwentysix.volan.ir.FieldType
 import io.github.thirtyeighttwentysix.volan.ir.Model
@@ -258,13 +259,13 @@ internal class DslGenerator(private val types: TypeResolver) {
             )
         fields.forEach { builder.addParameter(it.name, types.fieldType(it.type, it.cardinality)) }
         builder.addParameter(ParameterSpec.builder("inclusive", BOOLEAN).defaultValue("false").build())
-        val entries = fields.joinToString(", ") { "\"${it.dbName}\" to ${encodeExpression(it)}" }
+        val entries = fields.map { CodeBlock.of("%S to %L", it.dbName, encodeExpression(it)) }.joinToCode(", ")
         builder.addStatement("recordCursor(mapOf(%L), inclusive)", entries)
         return builder.build()
     }
 
-    private fun encodeExpression(field: ScalarField): String =
-        if (field.type is FieldType.EnumRef) "${field.name}.databaseValue" else field.name
+    private fun encodeExpression(field: ScalarField): CodeBlock =
+        CodeBlock.of(if (field.type is FieldType.EnumRef) "%N.databaseValue" else "%N", field.name)
 
     private fun relationFilterName(model: Model, relation: RelationField): String =
         "${model.name}${relation.name.replaceFirstChar { it.uppercase() }}Filter"

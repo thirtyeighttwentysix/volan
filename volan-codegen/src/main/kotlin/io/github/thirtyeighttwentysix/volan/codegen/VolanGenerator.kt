@@ -55,10 +55,20 @@ public object VolanGenerator {
         return generate(schema, generators.single())
     }
 
-    /** Generates the client described by [generator]. */
+    /**
+     * Generates the client described by [generator].
+     *
+     * @throws VolanGenerationException if a field conflicts with a generated member.
+     */
     @JvmStatic
     public fun generate(schema: Schema, generator: GeneratorConfig): List<GeneratedFile> {
         val visible = visibleSchema(schema)
+        visible.models.firstOrNull { it.field("count") != null }?.let { model ->
+            throw VolanGenerationException(
+                "`${model.name}.count` conflicts with the generated `groupBy` row count; " +
+                    "rename the field and preserve its column with `@map`",
+            )
+        }
         val generators = Generators(visible, TypeResolver(generator.packageName))
 
         val files = ArrayList<GeneratedFile>()

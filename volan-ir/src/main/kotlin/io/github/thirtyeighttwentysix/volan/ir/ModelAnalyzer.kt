@@ -23,6 +23,7 @@ internal class ModelAnalyzer(
     private val sink: DiagnosticSink,
     private val enums: Map<String, EnumType>,
     private val modelNames: Set<String>,
+    private val generatesKotlin: Boolean,
 ) {
     private val defaults = DefaultValueAnalyzer(sink, enums)
 
@@ -41,6 +42,7 @@ internal class ModelAnalyzer(
         // Saying "no primary key" on top of "this key is broken" would just be noise.
         if (primaryKey == null && !resolution.reported && !isIgnored) reportMissingPrimaryKey(declaration)
         reportColumnCollisions(scalars)
+        if (generatesKotlin && !isIgnored) reportGeneratedMemberConflict(declaration, scalars)
 
         return ModelDraft(
             name = declaration.name.text,
@@ -54,6 +56,19 @@ internal class ModelAnalyzer(
             isIgnored = isIgnored,
             documentation = documentationOf(declaration.leadingComments),
             span = declaration.span,
+        )
+    }
+
+    private fun reportGeneratedMemberConflict(declaration: ModelDeclaration, fields: List<ScalarField>) {
+        val field = fields.firstOrNull { it.name == "count" && !it.isIgnored } ?: return
+        val name = declaration.fields.first { it.name.text == field.name }.name
+        val mapping = if (field.dbName == field.name) "use `@map(\"count\")` to keep the column name" else "keep the existing `@map`"
+        sink.error(
+            code = SemanticCode.GENERATED_MEMBER_CONFLICT,
+            span = name.span,
+            message = "`${declaration.name.text}.${field.name}` conflicts with the generated `groupBy` row count",
+            label = "this property is reserved for the number of rows in a group",
+            help = "rename the field to an unused name such as `itemCount` and $mapping",
         )
     }
 

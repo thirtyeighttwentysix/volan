@@ -1,5 +1,7 @@
 package verify
 
+import com.example.h2.KeywordRecord
+import com.example.h2.KeywordState
 import com.example.h2.Role
 import com.example.h2.VolanClient
 import io.github.thirtyeighttwentysix.volan.Json
@@ -141,5 +143,29 @@ class H2TypesIntegrationTest {
         }
         client.scalars.count { where { amount gt BigDecimal("0.15") } } shouldBe 1
         client.scalars.aggregate { sum { amount } }.sumOfAmount!!.compareTo(BigDecimal("0.3")) shouldBe 0
+    }
+
+    @Test
+    fun `keyword fields survive construction writes reads relations and grouping`() {
+        val records = client.keywordRecord
+        val bytes = byteArrayOf(1, 2)
+        val parent = records.create { `when` = 1; `in` = 7; `as` = bytes }
+        records.create { `when` = 2; `in` = 7; parentId = parent.`when` }
+
+        val expected = KeywordRecord.builder().`when`(1).`in`(7).`as`(bytes.copyOf()).state(KeywordState.`object`).build()
+        parent shouldBe expected
+        parent.hashCode() shouldBe expected.hashCode()
+        parent.toString() shouldBe "KeywordRecord(when=1, in=7, as=[1, 2], state=object, parentId=null)"
+
+        val child = records.findMany { cursor(`when` = 1); include { `object` {} } }.single()
+        child.`when` shouldBe 2
+        child.`object` shouldBe parent
+
+        val projection = records.projectFirst { where { `when` eq 2 }; select { `in` } }
+        requireNotNull(projection).`in` shouldBe 7
+        val group = records.groupBy { by { `in` }; count(); sum { `when` } }.single()
+        group.`in` shouldBe 7
+        group.count shouldBe 2L
+        group.sumOfWhen shouldBe BigDecimal("3")
     }
 }

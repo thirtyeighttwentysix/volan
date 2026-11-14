@@ -33,6 +33,12 @@ class GeneratedNameTest {
     }
 
     @Test
+    fun `an existing mapping is retained when renaming a conflicting field`() {
+        val result = SchemaLoader.load("schema.volan", schema("count Int @map(\"quantity\")", generator))
+        result.errors.single().help.orEmpty() shouldContain "keep the existing `@map`"
+    }
+
+    @Test
     fun `mapping or omitting the field from generation preserves a database column called count`() {
         val schemas = listOf(
             schema("itemCount Int @map(\"count\")", generator),

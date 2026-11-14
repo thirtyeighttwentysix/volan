@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The generated Kotlin client escapes keyword names such as `when` in entity construction,
+  reads and writes. Java callers keep access through the generated getters, setters and builders.
+- Schema validation reports `E0236` at a generated scalar or enum field named `count`. Rename the
+  field and use `@map("count")` to keep an existing column name.
+- Grouped JDBC results keep aggregate values separate from columns with the same result label,
+  such as a `count` column grouped alongside `count()`.
+
 ## [1.0.0] - 2026-10-05
 
 ### Added

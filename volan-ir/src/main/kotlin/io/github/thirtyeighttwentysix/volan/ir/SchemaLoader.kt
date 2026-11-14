@@ -113,7 +113,7 @@ internal class SemanticAnalyzer(private val sink: DiagnosticSink) {
         val enumsByName = enums.associateBy { it.name }
 
         val modelNames = document.models.map { it.name.text }.toSet()
-        val modelAnalyzer = ModelAnalyzer(sink, enumsByName, modelNames)
+        val modelAnalyzer = ModelAnalyzer(sink, enumsByName, modelNames, generators.any { it.provider == "volan-kotlin" })
         val drafts = document.models.map { modelAnalyzer.analyze(it) }
         val draftsByName = drafts.associateBy { it.name }
 

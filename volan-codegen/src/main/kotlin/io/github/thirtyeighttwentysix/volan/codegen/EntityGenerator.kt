@@ -15,6 +15,7 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.STRING
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.joinToCode
 import io.github.thirtyeighttwentysix.volan.ir.Cardinality
 import io.github.thirtyeighttwentysix.volan.ir.EnumType
 import io.github.thirtyeighttwentysix.volan.ir.Model
@@ -68,7 +69,7 @@ internal class EntityGenerator(private val types: TypeResolver) {
             .returns(types.declared(enumType.name))
             .beginControlFlow("return when (value)")
             .apply {
-                enumType.values.forEach { addStatement("%S -> %L", it.dbName, it.name) }
+                enumType.values.forEach { addStatement("%S -> %N", it.dbName, it.name) }
                 addStatement(
                     "else -> throw %T(%P)",
                     Types.mappingException,
@@ -93,7 +94,7 @@ internal class EntityGenerator(private val types: TypeResolver) {
             builder.addProperty(
                 PropertySpec.builder(field.name, type)
                     .addKdoc(documentation(field.documentation, "The `${field.dbName}` column."))
-                    .initializer(field.name)
+                    .initializer("%N", field.name)
                     .build(),
             )
         }
@@ -122,23 +123,18 @@ internal class EntityGenerator(private val types: TypeResolver) {
     private fun withRelationValue(model: Model): FunSpec {
         val body = CodeBlock.builder().beginControlFlow("return when (relation)")
         model.relationFields.forEach { relation ->
-            val arguments = (
-                model.fields.map { it.name } +
-                    model.relationFields.map { other ->
-                        if (other.name == relation.name) {
-                            "${other.name}Slot = %T.loaded(value as %T)"
-                        } else {
-                            "${other.name}Slot = ${other.name}Slot"
-                        }
+            val arguments = buildList {
+                model.fields.forEach { add(CodeBlock.of("%N", it.name)) }
+                model.relationFields.forEach { other ->
+                    val slot = "${other.name}Slot"
+                    if (other.name == relation.name) {
+                        add(CodeBlock.of("%N = %T.loaded(value as %T)", slot, Types.relationSlot, relationType(relation)))
+                    } else {
+                        add(CodeBlock.of("%N = %N", slot, slot))
                     }
-                ).joinToString(", ")
-            body.addStatement(
-                "%S -> %T($arguments)",
-                relation.name,
-                types.declared(model.name),
-                Types.relationSlot,
-                relationType(relation),
-            )
+                }
+            }.joinToCode(", ")
+            body.addStatement("%S -> %T(%L)", relation.name, types.declared(model.name), arguments)
         }
         body.addStatement("else -> this")
         body.endControlFlow()
@@ -199,15 +195,21 @@ internal class EntityGenerator(private val types: TypeResolver) {
     }
 
     private fun equals(model: Model, entityName: ClassName): FunSpec {
-        val comparisons = model.fields.joinToString(" &&\n    ") { field ->
+        val comparisons = model.fields.map { field ->
+            val name = field.name
             when {
-                isByteArray(field) -> "${field.name}.contentEquals(other.${field.name})"
-                isByteArrayList(field) ->
-                    "${field.name}.size == other.${field.name}.size && " +
-                        "${field.name}.indices.all { index -> ${field.name}[index].contentEquals(other.${field.name}[index]) }"
-                else -> "${field.name} == other.${field.name}"
+                isByteArray(field) -> CodeBlock.of("%N.contentEquals(other.%N)", name, name)
+                isByteArrayList(field) -> CodeBlock.of(
+                    "%N.size == other.%N.size && %N.indices.all { index -> %N[index].contentEquals(other.%N[index]) }",
+                    name,
+                    name,
+                    name,
+                    name,
+                    name,
+                )
+                else -> CodeBlock.of("%N == other.%N", name, name)
             }
-        }
+        }.joinToCode(" &&\n    ")
         return FunSpec.builder("equals")
             .addModifiers(KModifier.OVERRIDE)
             .addParameter("other", ANY.copy(nullable = true))
@@ -229,19 +231,23 @@ internal class EntityGenerator(private val types: TypeResolver) {
         return FunSpec.builder("hashCode").addModifiers(KModifier.OVERRIDE).returns(INT).addCode(body.build()).build()
     }
 
-    private fun hashExpression(field: ScalarField): String {
-        if (isByteArrayList(field)) return "${field.name}.fold(1) { hash, value -> 31 * hash + value.contentHashCode() }"
+    private fun hashExpression(field: ScalarField): CodeBlock {
+        if (isByteArrayList(field)) {
+            return CodeBlock.of("%N.fold(1) { hash, value -> 31 * hash + value.contentHashCode() }", field.name)
+        }
         val nullable = field.cardinality == Cardinality.OPTIONAL
         val call = if (isByteArray(field)) "contentHashCode()" else "hashCode()"
-        return if (nullable) "(${field.name}?.$call ?: 0)" else "${field.name}.$call"
+        return CodeBlock.of(if (nullable) "(%N?.%L ?: 0)" else "%N.%L", field.name, call)
     }
 
     private fun toString(model: Model): FunSpec {
         val parts = model.fields.joinToString(", ") { field ->
+            val name = CodeBlock.of("%N", field.name).toString()
             when {
-                isByteArray(field) -> "${field.name}=\${${field.name}.contentToString()}"
-                isByteArrayList(field) -> "${field.name}=\${${field.name}.map { it.contentToString() }}"
-                else -> "${field.name}=\$${field.name}"
+                isByteArray(field) -> "${field.name}=\${$name.contentToString()}"
+                isByteArrayList(field) -> "${field.name}=\${$name.map { it.contentToString() }}"
+                name != field.name -> "${field.name}=\${$name}"
+                else -> "${field.name}=\$$name"
             }
         }
         return FunSpec.builder("toString")
@@ -276,7 +282,7 @@ internal class EntityGenerator(private val types: TypeResolver) {
                     .addKdoc("Sets `${field.name}`.\n")
                     .addParameter("value", type)
                     .returns(builderType)
-                    .addStatement("this.%LValue = value", field.name)
+                    .addStatement("this.%N = value", "${field.name}Value")
                     .addStatement("return this")
                     .build(),
             )
@@ -288,13 +294,14 @@ internal class EntityGenerator(private val types: TypeResolver) {
         val body = CodeBlock.builder()
         body.add("return %T(\n", types.declared(model.name))
         model.fields.forEach { field ->
+            val value = "${field.name}Value"
             if (field.cardinality == Cardinality.OPTIONAL) {
-                body.add("  %L = %LValue,\n", field.name, field.name)
+                body.add("  %N = %N,\n", field.name, value)
             } else {
                 body.add(
-                    "  %L = requireNotNull(%LValue) { %S },\n",
+                    "  %N = requireNotNull(%N) { %S },\n",
                     field.name,
-                    field.name,
+                    value,
                     "${model.name}.${field.name} is required and was not set",
                 )
             }

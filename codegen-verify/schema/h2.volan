@@ -39,3 +39,17 @@ model Defaults {
   id Long @id @default(autoincrement())
   createdAt DateTime @default(now())
 }
+
+enum KeywordState {
+  object @map("active")
+}
+
+model KeywordRecord {
+  when Int @id @map("record_id")
+  in Int @map("count")
+  as Bytes?
+  state KeywordState @default(object)
+  parentId Int?
+  object KeywordRecord? @relation("KeywordParents", fields: [parentId], references: [when], onDelete: SetNull)
+  children KeywordRecord[] @relation("KeywordParents")
+}
