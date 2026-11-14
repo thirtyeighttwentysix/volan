@@ -1,116 +1,123 @@
+<p align="center">
+  <img src="docs/media/volan-mark.svg" width="72" height="72" alt="">
+</p>
+
 <h1 align="center">Volan</h1>
 
+<p align="center">Volan is an ORM that generates a type-safe database client for Kotlin and Java from a schema file.</p>
+
 <p align="center">
-  <strong>A schema-first ORM for the JVM.</strong><br>
-  Describe your data model once. Get a type-safe client and declarative migrations.
+  <a href="#try-volan">Try Volan</a> &nbsp;&nbsp;
+  <a href="https://volan.mintlify.app/en/introduction">Documentation</a> &nbsp;&nbsp;
+  <a href="https://volan.mintlify.app/ru/introduction">Документация</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/thirtyeighttwentysix/volan/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/thirtyeighttwentysix/volan/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
-  <img alt="JVM" src="https://img.shields.io/badge/JVM-17%2B-orange.svg">
-  <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.4-7F52FF.svg">
+  <a href="https://github.com/thirtyeighttwentysix/volan/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/thirtyeighttwentysix/volan/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
----
+![schema.volan defines the User model. Gradle generates VolanClient and its user repository. The app uses this client to save and read Ada.](docs/media/schema-to-query.png)
 
-> **Volan 1.0.0 is available on Maven Central.**
-> PostgreSQL, SQLite, H2, MySQL and MariaDB; typed Kotlin/Java clients, automatic Gradle/Maven
-> generation, migrations, optional coroutines and query metrics. The CLI is included in the
-> [1.0.0 release](https://github.com/thirtyeighttwentysix/volan/releases/tag/v1.0.0).
-> Review [database support](docs/dialects.md), [migration guarantees](docs/migrations.md) and
-> [known limitations](ROADMAP.md#deliberately-deferred) before choosing a schema or provider.
-> [ARCHITECTURE.md](ARCHITECTURE.md) describes the implementation.
+## Try Volan
 
-## The idea
+You need JDK 17 or newer and a checkout of this repository. The example uses embedded H2 and
+Volan 1.0.0 from Maven Central. These commands generate the client, run the tests and start the
+app. From the repository root on macOS or Linux, use the shell wrapper.
 
-Volan brings the developer experience of Prisma to the JVM, natively: one readable schema file,
-build-time code generation instead of runtime reflection, and a query API where the compiler catches
-your typos.
-
-```prisma
-// schema.volan
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  posts     Post[]
-  createdAt DateTime @default(now())
-
-  @@map("users")
-}
+```bash
+./gradlew -p examples/kotlin-basic test run
 ```
+
+In Windows PowerShell, use the batch wrapper.
+
+```powershell
+.\gradlew.bat -p examples/kotlin-basic test run
+```
+
+The app applies the example's SQL migration, then saves and reads a user in one transaction.
+Look for `Saved and read: Ada` in the output.
+
+<a name="the-idea"></a>
+<a name="what-makes-it-different"></a>
+
+## From schema to query
+
+The Gradle plugin reads `schema.volan` before compilation and generates the client and row
+mappers for your models. The app uses that client to run queries over JDBC.
+
+In the example, `openDatabase` applies the migration and opens a `VolanClient` for this function.
+[See the full Kotlin program](examples/kotlin-basic/src/main/kotlin/example/Main.kt).
 
 ```kotlin
-val users = db.user.findMany {
-    where {
-        email endsWith "@acme.com"
-        createdAt gt Instant.now().minus(30.days)
+import example.generated.User
+import example.generated.VolanClient
+
+fun insertAndRead(db: VolanClient, name: String): User =
+    db.transaction { tx ->
+        val created = tx.user.create { this.name = name }
+        tx.user.findFirstOrThrow {
+            where { id eq created.id }
+        }
     }
-    include { posts { take = 5 } }
-    orderBy { createdAt.desc() }
-    take = 20
-}
 ```
 
-Java uses the same model and queries (`javaFriendly = true`):
+The generated `user` repository inserts the name and returns the row with its assigned ID. Volan
+uses the ID in this H2 query to read the same row back.
 
-```java
-List<User> users = db.getUser().findMany(q -> {
-    q.where(w -> w.getEmail().endsWith("@acme.com"));
-    q.include(i -> i.posts(p -> p.setTake(5)));
-    q.orderBy(o -> o.getCreatedAt().desc());
-    q.setTake(20);
-});
-
-CompletableFuture<List<User>> pending = db.getUser().findManyAsync(q -> q.setTake(20));
+```sql
+SELECT "t0"."id", "t0"."name"
+FROM "User" AS "t0"
+WHERE "t0"."id" = ?
+LIMIT ?
 ```
 
-## What makes it different
+JDBC binds the new ID and a limit of one row. The function returns the saved `User`.
 
-- **Schema-first, not class-first.** The database model is described in one file, not scattered across
-  annotations. Migrations are generated by diffing that file against the database.
-- **No runtime reflection on the hot path.** Row mapping is generated straight-line code.
-- **No hidden queries.** No lazy proxies, no persistence context. `include` costs one extra statement
-  per relation level — and the tests assert it.
-- **Java is a first-class target.** Generated callbacks, getters, builders, JSpecify nullability and
-  `CompletableFuture` operations are tested from Java. [Java API and transactions →](docs/java-api.md)
-- **Errors that teach.** Schema problems are reported with a code frame, a caret and a suggested fix.
+## Examples
 
-## ORM and SQL library comparison
+- [Run the Kotlin example with a generated client and a migration](examples/kotlin-basic/README.md).
+- [Run the same transaction from Java](examples/java-basic/README.md).
+- [Use constructor injection in a Spring Boot app](examples/spring-boot/README.md).
+- [Query a database from a Ktor route](examples/ktor/README.md).
 
-| | **Volan** | Hibernate ORM | Exposed | jOOQ |
-|---|---|---|---|---|
-| Model definition | `.volan` schema | Entity classes | Kotlin tables / entities | Database-generated or dynamic tables |
-| Query style | Generated Kotlin DSL / Java callbacks | HQL / Criteria / entity operations | Kotlin DSL / DAO | SQL DSL |
-| Row mapping | Generated code | Managed entities | Result rows / DAO entities | Records / explicit mappers |
-| Relations | Explicit, batched `include` | Entity associations and fetch plans | DSL joins / DAO references | SQL joins and nested records |
-| Nested writes | Generated relation operations | Entity cascades | Application / DAO operations | SQL operations |
-| Current Volan scope | PostgreSQL, SQLite, H2, MySQL and MariaDB in 1.0.0; Kotlin and Java | — | — | — |
+<a name="maven-central"></a>
 
-These tools offer different abstractions. See the primary references for
-[Hibernate](https://docs.hibernate.org/orm/7.4/introduction/),
-[Exposed](https://www.jetbrains.com/help/exposed/about.html) and
-[jOOQ](https://www.jooq.org/doc/latest/manual/).
-Volan includes a migration journal and `db pull` / `db push`;
-[Exposed also provides migration utilities](https://www.jetbrains.com/help/exposed/migrations.html).
+## Set up a project
+
+Use the Gradle or Maven plugin to generate the client during the build. In a Java project, enable
+`javaFriendly` in the schema and compile the generated Kotlin sources with the Kotlin compiler.
+See the [Gradle and Maven setup for Volan 1.0.0](docs/build-plugins.md).
+
+<a name="supported-databases"></a>
+
+Volan 1.0.0 supports PostgreSQL, SQLite, H2, MySQL and MariaDB. The matrix lists the types,
+query features and migration behavior for each provider. [Check database support](docs/dialects.md).
+
+<a name="migrations"></a>
+
+Apply migrations as a separate step to create or change tables. For existing databases, the CLI
+can read the schema back into a `.volan` file. [Plan and apply database changes](docs/migrations.md).
+
+<a name="install-the-cli--установка-cli"></a>
+
+The CLI runs on Windows, Linux and macOS with Java 17 or newer. The installer adds `volan` to
+your user `PATH`. [Install the CLI / Установка CLI](docs/cli-installation.md).
+
+<a name="orm-and-sql-library-comparison"></a>
 
 ## Measured performance
 
-Forty PostgreSQL cases compare reads, four concurrent readers, range updates and insert/delete
-transactions. Every adapter uses the same table shape, four fields and read-committed transaction
-boundary. The harness checks values, affected counts and final database state before timing.
+The 14 November 2026 PostgreSQL benchmark measures the optimization on `main` after 1.0.0.
+With four concurrent readers fetching 100 rows each, Volan averaged **1.80 ms per operation**,
+down from 2.58 ms before the change on the same machine. JDBC was next at 2.22 ms.
 
-Volan averaged **1.80 ms to read 100 rows with four concurrent readers**, down from 2.58 ms before
-the optimization on the same machine. This was the lowest mean in that case, followed by JDBC
-at 2.22 ms. JDBC had the lowest means in the single-thread read cases. Write latency varied widely.
+![PostgreSQL latency by library for four concurrent readers fetching 1 or 100 rows. For 100 rows, Volan averaged 1,800 microseconds per operation.](docs/benchmarks/concurrent-read-latency.svg)
 
-![PostgreSQL latency for four concurrent readers](docs/benchmarks/concurrent-read-latency.svg)
+JDBC had the lowest mean latency in both single-thread read cases. Write latency varied widely.
+[Read the benchmark setup, before/after data and reproduction steps](benchmarks/README.md).
+
+<details>
+<summary>All 40 results and three more charts</summary>
 
 <!-- BENCHMARKS:START -->
 
@@ -156,185 +163,48 @@ at 2.22 ms. JDBC had the lowest means in the single-thread read cases. Write lat
 
 <!-- BENCHMARKS:END -->
 
-**Lower is better.** Charts show the means, with one scale for both row counts in each chart.
-Tables show the means and JMH's 99.9% confidence margins in microseconds per operation.
-The [14 November 2026 run](benchmarks/results/jmh-2026-11-14.json) measured the unreleased
-optimization on a Ryzen 5 5500 with Windows 11, Corretto 25.0.3 and PostgreSQL 17.10 in Docker/WSL2.
-Each case used two JVM forks, 3 × 2 s warmup and 5 × 2 s measurement, a 512 MiB heap, and `-prof gc`.
-
-The before/after runs used the same harness and settings. Volan allocated **32% fewer bytes** per
-100-row insert/delete transaction. Write latency varies widely; see the intervals before comparing
-write means. Four-thread results measure latency per caller. Insert/delete includes both operations
-and commit.
-
-<details>
-<summary>Single-thread read and write charts</summary>
+The chart bars show means. The tables also give JMH's 99.9% confidence margins. Volan allocated
+32% fewer bytes per 100-row insert/delete transaction than before the optimization.
+[See the raw measurements and machine metadata](benchmarks/results/).
 
 ![PostgreSQL latency for one reader](docs/benchmarks/read-latency.svg)
-![PostgreSQL update latency](docs/benchmarks/update-latency.svg)
-![PostgreSQL insert/delete transaction latency](docs/benchmarks/insert-delete-latency.svg)
+![PostgreSQL update and commit latency](docs/benchmarks/update-latency.svg)
+![PostgreSQL insert, delete and commit latency](docs/benchmarks/insert-delete-latency.svg)
 
 </details>
 
-Results include loopback network, pooling and transaction costs. They do not establish performance
-for relations, nested writes, generated IDs, migrations or another database deployment.
-
-[Methodology, before/after results and reproduction](benchmarks/README.md)
-
-[Raw measurements and machine metadata](benchmarks/results/)
-
-## Examples
-
-Independent projects demonstrate [Kotlin](examples/kotlin-basic/README.md),
-[Java](examples/java-basic/README.md), [Spring Boot](examples/spring-boot/README.md) and
-[Ktor](examples/ktor/README.md), including automatic generation, committed migrations and
-client lifecycle. They resolve version 1.0.0 from Maven Central; no local artifact staging is needed.
-The [release verification](docs/release-readiness.md) records the checks performed before and after publication.
-
-## Coroutines and observability
-
-Optional `volan-coroutines` provides typed `suspendQuery` access to generated
-clients and repositories. Coroutine cancellation requests JDBC statement cancellation and waits for
-resource cleanup; entire transactions execute on one worker. Statement interceptors cover generated
-queries, relations and raw SQL, and optional `volan-micrometer` records duration/count with bounded
-provider, operation and outcome tags. Add either module separately, aligned by the 1.0.0 BOM.
-[Setup and cancellation semantics →](docs/coroutines-and-observability.md)
-
-## Migrations
-
-Preview the SQL, apply it, then read the database back as a schema:
-
-```bash
-volan db push --schema schema.volan --dry-run
-volan db push --schema schema.volan
-volan db pull --stdout
-```
-
-PostgreSQL and SQLite push run in a transaction and verify the resulting schema before commit. Repeating push makes no
-changes. Reviewed SQL files can instead be deployed through `Migrator`, which records checksums and
-refuses inconsistent history. [Setup, library API and limitations →](docs/migrations.md)
-
-## Supported databases
-
-**Available in 1.0.0:** PostgreSQL, SQLite, H2, MySQL and MariaDB with generated queries, relations,
-transactions, DDL, pull/push and versioned migrations. H2, MySQL and MariaDB have recoverable journals.
-H2/MySQL/MariaDB DDL commits immediately; interrupted changes require manual repair.
-[Feature matrix, setup and limitations →](docs/dialects.md)
-
-## Maven Central
-
-Configure plugin repositories in `settings.gradle.kts`:
-
-```kotlin
-pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal() // Kotlin compiler plugin
-    }
-}
-```
-
-Then add the plugin and your database dependencies to `build.gradle.kts`:
-
-```kotlin
-plugins {
-    kotlin("jvm") version "2.4.20"
-    id("io.github.thirtyeighttwentysix.volan") version "1.0.0"
-}
-repositories { mavenCentral() }
-dependencies {
-    implementation(platform("io.github.thirtyeighttwentysix:volan-bom:1.0.0"))
-    implementation("io.github.thirtyeighttwentysix:volan-dialect-postgres")
-    runtimeOnly("org.postgresql:postgresql:42.7.13")
-}
-```
-
-Add `schema.volan` with a `volan-kotlin` generator and run `./gradlew build`. The plugin supplies
-the matching runtime and generates the client before compilation, without a database connection.
-Database changes remain explicit. Java consumers also compile generated Kotlin through the Kotlin
-compiler. Maven projects use `volan-maven-plugin:1.0.0` during `generate-sources`.
-[Complete Gradle/Maven setup and CLI commands →](docs/build-plugins.md)
-
-## Install the CLI / Установка CLI
-
-**Windows (PowerShell):**
-
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/thirtyeighttwentysix/volan/main/scripts/install.ps1)))
-```
-
-**Linux / macOS:**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/thirtyeighttwentysix/volan/main/scripts/install.sh | bash
-```
-
-Requires **Java 17+**. Downloads the CLI, verifies SHA-256 and adds `volan` to your user `PATH`
-without administrator privileges. Run the same command to upgrade. Open a new terminal on Linux/macOS,
-then run `volan --help`. The installer selects the CLI from the `v1.0.0` release.
-
-Нужна **Java 17+**. Установщик скачает CLI, проверит SHA-256 и добавит `volan` в `PATH` без прав
-администратора. Та же команда обновляет CLI. На Linux/macOS открой новый терминал и выполни
-`volan --help`. Установщик выбирает CLI из релиза `v1.0.0`; библиотеки 1.0.0 доступны в Maven Central.
-
-[Versions, custom paths and removal / Версии, каталог установки и удаление →](docs/cli-installation.md)
-
 ## Documentation
 
-- [English documentation](https://volan.mintlify.app/en/introduction)
-- [Документация на русском](https://volan.mintlify.app/ru/introduction)
+- [Define models, fields and relations in a Volan schema](docs/schema-language.md).
+- [Write Java queries and transactions with the generated client](docs/java-api.md).
+- <a name="coroutines-and-observability"></a>[Run queries in coroutines and measure query latency](docs/coroutines-and-observability.md).
+- [See project milestones and current limitations](ROADMAP.md#deliberately-deferred).
 
-- [docs/schema-language.md](docs/schema-language.md) — the `schema.volan` syntax reference
-- [docs/java-api.md](docs/java-api.md) — Java queries, async operations and transaction semantics
-- [docs/migrations.md](docs/migrations.md) — pull, push, versioned migrations and drift detection
-- [docs/dialects.md](docs/dialects.md) — database feature matrix and SQLite storage conventions
-- [docs/build-plugins.md](docs/build-plugins.md) — CLI commands and automatic Gradle/Maven generation
-- [docs/cli-installation.md](docs/cli-installation.md) — install and upgrade the CLI on Windows, Linux and macOS
-- [benchmarks/README.md](benchmarks/README.md) — performance methodology and reproduction
-- [ARCHITECTURE.md](ARCHITECTURE.md) — how Volan is built
-- [ROADMAP.md](ROADMAP.md) — milestones and what is deferred
-- [docs/adr/](docs/adr/) — architecture decision records
-- [CONTRIBUTING.md](CONTRIBUTING.md) — how to build, test and contribute
+<a name="building-from-source"></a>
 
-## Building from source
+For contributors, see [how to build and test Volan](CONTRIBUTING.md) and
+[how the modules fit together](ARCHITECTURE.md).
 
-```bash
-git clone https://github.com/thirtyeighttwentysix/volan.git
-cd volan
-./gradlew build
-```
+<a name="support-development--поддержать-разработку"></a>
 
-Requires JDK 17 or newer. The Gradle wrapper provisions build dependencies. Docker is required for
-the PostgreSQL integration suites and the benchmark database; integration tests are skipped if Docker
-is unavailable. Build the CLI with `./gradlew :volan-cli:installDist`.
+## Support development
 
-## Support development / Поддержать разработку
+Donations give me more time to support databases, write tests and improve the docs.
 
-### English
+Поддержка помогает мне уделять больше времени базам данных, тестам и документации.
 
-If Volan is useful to you, you can support its development. Donations help me spend more time on
-new features, database support, tests and documentation. Thank you for helping the project grow!
+[Donate via CloudTips](https://pay.cloudtips.ru/p/b05a329d) &nbsp;&nbsp; [Поддержать через CloudTips](https://pay.cloudtips.ru/p/b05a329d)
 
-### Русский
-
-Если Volan тебе полезен, ты можешь поддержать его разработку. Донаты помогают мне уделять больше
-времени новым возможностям, поддержке баз данных, тестам и документации. Спасибо за поддержку проекта!
-
-<p align="center">
-  <a href="https://pay.cloudtips.ru/p/b05a329d"><img alt="Support Volan via CloudTips / Поддержать Volan через CloudTips" src="https://img.shields.io/badge/Support_Volan-CloudTips-7F52FF?style=for-the-badge"></a>
-</p>
-
-<p align="center">
-  <a href="https://pay.cloudtips.ru/p/b05a329d">Donate via CloudTips · Поддержать через CloudTips</a>
-</p>
-
-### Crypto / Криптовалюта
+<details>
+<summary>Crypto wallets / Криптокошельки</summary>
 
 | Asset / Валюта | Network / Сеть | Wallet address / Адрес кошелька |
 |---|---|---|
 | **GRAM** | TON | `UQAIjKkz-_UKju3uxH_ixEbk_10ha_qNl8LwHM7rwLVYlWdD` |
 | **USDT (Tether)** | TRON (TRC20) | `TArsteJh5PmWk9qzY3rhE5L8L1znVhZt3E` |
 | **SOL** | Solana | `EGGK8uTCYc7YDorXHLUzZQduj3zubzuiXYU2wKY2ii8W` |
+
+</details>
 
 ## Licence
 
