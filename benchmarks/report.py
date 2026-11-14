@@ -8,7 +8,7 @@ from pathlib import Path
 ORMS = ("Volan", "Hibernate", "Exposed", "jOOQ", "JDBC")
 SCENARIOS = {
     "bench.OrmBenchmark.read": ("Read, one thread", "read-latency.svg", 1),
-    "bench.ConcurrentReadBenchmark.read": ("Read, four threads sharing four connections", "concurrent-read-latency.svg", 4),
+    "bench.ConcurrentReadBenchmark.read": ("Read, four threads", "concurrent-read-latency.svg", 4),
     "bench.WriteBenchmark.update": ("Update and commit", "update-latency.svg", 1),
     "bench.WriteBenchmark.insertDelete": ("Insert, delete and commit", "insert-delete-latency.svg", 1),
 }
@@ -49,38 +49,43 @@ def validate(results):
 
 
 def chart(cases, workload):
-    title, _, threads = SCENARIOS[workload]
+    title, _, _ = SCENARIOS[workload]
+    # Both panels share a zero-based scale. Exact estimates and intervals live in the tables.
+    maximum = max(cases[workload, orm, rows]["score"] for rows in (1, 100) for orm in ORMS)
+    width, height = 760, 586
+    scale = 412 / maximum
     parts = [
-        '<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="660" viewBox="0 0 1100 660" role="img" aria-labelledby="title desc">',
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+        'role="img" aria-labelledby="title desc">',
         f'<title id="title">PostgreSQL: {html.escape(title)}</title>',
-        '<desc id="desc">Mean microseconds per operation with 99.9% confidence intervals. Lower is better. Separate axes for 1 and 100 rows. Negative lower bounds are clipped at zero.</desc>',
-        '<rect width="1100" height="660" rx="16" fill="#101827"/>',
-        '<g font-family="Segoe UI,Arial,sans-serif" fill="#edf2fa">',
-        f'<text x="40" y="52" font-size="25" font-weight="700">PostgreSQL: {html.escape(title)}</text>',
-        '<text x="40" y="81" font-size="15" fill="#a7b5ca">Mean latency; lower is better; error bars show 99.9% confidence intervals</text>',
+        '<desc id="desc">Mean microseconds per operation. Lower is better. Both panels use the same scale. '
+        'The accompanying tables provide 99.9% confidence intervals.</desc>',
+        f'<rect x="1" y="1" width="{width - 2}" height="{height - 2}" rx="20" fill="#F7FAFC" stroke="#DCE5EA" stroke-width="2"/>',
+        '<g font-family="Segoe UI,Arial,sans-serif" fill="#162C39">',
+        f'<text x="30" y="55" font-size="38" font-weight="700">{html.escape(title)}</text>',
+        '<text x="30" y="88" font-size="23">PostgreSQL latency, µs/op</text>',
+        '<text x="730" y="88" font-size="23" text-anchor="end">Lower is better</text>',
     ]
     for panel, rows in enumerate((1, 100)):
-        y0 = 124 + panel * 246
-        parts.append(f'<text x="40" y="{y0}" font-size="19" font-weight="600">{rows} {"row" if rows == 1 else "rows"}</text>')
-        ordered = sorted(ORMS, key=lambda orm: cases[workload, orm, rows]["score"])
-        maximum = max(cases[workload, orm, rows]["score"] + cases[workload, orm, rows]["scoreError"] for orm in ORMS)
-        scale = 690 / maximum
-        for position, orm in enumerate(ordered):
+        y0 = 112 + panel * 235
+        parts.extend([
+            f'<rect x="20" y="{y0}" width="720" height="219" rx="13" fill="#FFFFFF" stroke="#DCE5EA"/>',
+            f'<text x="40" y="{y0 + 34}" font-size="26" font-weight="700">{rows} {"row" if rows == 1 else "rows"}</text>',
+        ])
+        for position, orm in enumerate(ORMS):
             metric = cases[workload, orm, rows]
-            y = y0 + 19 + position * 36
-            width, error = metric["score"] * scale, metric["scoreError"] * scale
-            color = "#8db8e8" if orm == "Volan" else "#7e98b7" if orm == "JDBC" else "#3c638a"
-            lo, hi = 155 + max(0, width - error), 155 + width + error
+            y = y0 + 52 + position * 31
+            bar = metric["score"] * scale
+            color = "#167061" if orm == "Volan" else "#698D9E"
+            label = "#0E574A" if orm == "Volan" else "#162C39"
+            weight = 700 if orm == "Volan" else 500
             parts.extend([
-                f'<text x="40" y="{y+20}" font-size="15">{html.escape(orm)}</text>',
-                f'<rect x="155" y="{y}" width="{width:.2f}" height="27" rx="4" fill="{color}"/>',
-                f'<path d="M {lo:.2f},{y+13} H {hi:.2f} M {lo:.2f},{y+8} v 10 M {hi:.2f},{y+8} v 10" stroke="#f4f7fb" stroke-width="1.5"/>',
-                f'<text x="880" y="{y+20}" font-size="15">{metric["score"]:.1f} ± {metric["scoreError"]:.1f} µs</text>',
+                f'<text x="40" y="{y + 18}" font-size="24" fill="{label}" font-weight="{weight}">{html.escape(orm)}</text>',
+                f'<rect x="170" y="{y}" width="{bar:.2f}" height="22" rx="3" fill="{color}"/>',
+                f'<text x="717" y="{y + 18}" font-size="24" fill="{label}" font-weight="{weight}" text-anchor="end">'
+                f'{metric["score"]:,.1f}</text>',
             ])
-    parts.extend([
-        f'<text x="40" y="623" fill="#a7b5ca" font-size="14">10,000 baseline rows; {threads} thread(s); four pooled connections; transaction per operation</text>',
-        '</g></svg>',
-    ])
+    parts.append('</g></svg>')
     return "\n".join(parts)
 
 
@@ -97,9 +102,9 @@ def render(results, output, readme=None):
             label = f"**{orm}**" if orm == "Volan" else orm
             lines.append(f"| {label} | {' | '.join(cells)} |")
         sections.append("\n".join(lines))
-        (output / filename).write_text(chart(cases, workload), encoding="utf-8")
+        (output / filename).write_text(chart(cases, workload) + "\n", encoding="utf-8", newline="\n")
     table = "\n\n".join(sections) + "\n"
-    (output / "table.md").write_text(table, encoding="utf-8")
+    (output / "table.md").write_text(table, encoding="utf-8", newline="\n")
     if readme is not None:
         content = readme.read_text(encoding="utf-8")
         start, end = "<!-- BENCHMARKS:START -->", "<!-- BENCHMARKS:END -->"
@@ -107,7 +112,7 @@ def render(results, output, readme=None):
             raise ValueError("README must contain exactly one benchmark marker pair")
         before, remainder = content.split(start, 1)
         _, after = remainder.split(end, 1)
-        readme.write_text(before + start + "\n\n" + table + "\n" + end + after, encoding="utf-8")
+        readme.write_text(before + start + "\n\n" + table + "\n" + end + after, encoding="utf-8", newline="\n")
     return table
 
 

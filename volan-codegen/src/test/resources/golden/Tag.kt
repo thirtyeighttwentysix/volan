@@ -50,7 +50,6 @@ import kotlin.Unit
 import kotlin.collections.List
 import kotlin.collections.Map
 import kotlin.collections.MutableList
-import kotlin.collections.MutableSet
 import kotlin.collections.Set
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmName
@@ -1022,7 +1021,7 @@ public class TagGroup(
  */
 @NullMarked
 public class TagCreateData {
-  private val touched: MutableSet<String> = linkedSetOf()
+  private var `$idSet`: Boolean = false
 
   /**
    * The value for `Tag.id`.
@@ -1032,8 +1031,10 @@ public class TagCreateData {
   public var id: @Nullable Int? = null
     set(`value`) {
       field = value
-      touched.add("id")
+      this.`$idSet` = true
     }
+
+  private var `$nameSet`: Boolean = false
 
   /**
    * The value for `Tag.name`.
@@ -1043,7 +1044,7 @@ public class TagCreateData {
   public var name: @Nullable String? = null
     set(`value`) {
       field = value
-      touched.add("name")
+      this.`$nameSet` = true
     }
 
   private val writes: MutableList<NestedWrite> = mutableListOf()
@@ -1063,10 +1064,10 @@ public class TagCreateData {
    */
   internal fun toValues(): Map<String, @Nullable Any?> {
     val values = LinkedHashMap<String, Any?>()
-    if (touched.contains("id")) {
+    if (`$idSet`) {
       values["id"] = (id ?: throw VolanValidationException("Tag.id cannot be set to null"))
     }
-    if (touched.contains("name")) {
+    if (`$nameSet`) {
       values["name"] = (name ?: throw VolanValidationException("Tag.name cannot be set to null"))
     }
     return values
@@ -1080,7 +1081,7 @@ public class TagCreateData {
  */
 @NullMarked
 public class TagUpdateData {
-  private val touched: MutableSet<String> = linkedSetOf()
+  private var `$idSet`: Boolean = false
 
   /**
    * The value for `Tag.id`.
@@ -1090,8 +1091,10 @@ public class TagUpdateData {
   public var id: @Nullable Int? = null
     set(`value`) {
       field = value
-      touched.add("id")
+      this.`$idSet` = true
     }
+
+  private var `$nameSet`: Boolean = false
 
   /**
    * The value for `Tag.name`.
@@ -1101,7 +1104,7 @@ public class TagUpdateData {
   public var name: @Nullable String? = null
     set(`value`) {
       field = value
-      touched.add("name")
+      this.`$nameSet` = true
     }
 
   private val writes: MutableList<NestedWrite> = mutableListOf()
@@ -1121,10 +1124,10 @@ public class TagUpdateData {
    */
   internal fun toValues(): Map<String, @Nullable Any?> {
     val values = LinkedHashMap<String, Any?>()
-    if (touched.contains("id")) {
+    if (`$idSet`) {
       values["id"] = (id ?: throw VolanValidationException("Tag.id cannot be set to null"))
     }
-    if (touched.contains("name")) {
+    if (`$nameSet`) {
       values["name"] = (name ?: throw VolanValidationException("Tag.name cannot be set to null"))
     }
     return values

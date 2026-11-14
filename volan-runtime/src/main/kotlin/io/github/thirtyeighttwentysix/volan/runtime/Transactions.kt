@@ -100,15 +100,16 @@ internal class ConnectionSource(private val dataSource: DataSource, private val 
         }
     }
 
-    private fun <T> runOnce(isolation: Isolation, block: () -> T): T {
-        val connection = borrow()
+    private fun <T> runOnce(isolation: Isolation, block: () -> T): T = borrow().use { connection ->
         val previousAutoCommit = connection.autoCommit
-        val previousIsolation = connection.transactionIsolation
+        // Reading and setting isolation can each be a separate server request (for example in pgJDBC).
+        val previousIsolation = if (isolation == Isolation.DEFAULT) null else connection.transactionIsolation
+        val isolationToRestore = previousIsolation?.takeIf { it != isolation.jdbcLevel }
         val transaction = Transaction(connection)
         var entered = false
         try {
             connection.autoCommit = false
-            if (isolation != Isolation.DEFAULT) connection.transactionIsolation = isolation.jdbcLevel
+            if (isolationToRestore != null) connection.transactionIsolation = isolation.jdbcLevel
             active.set(transaction)
             QueryCancellation.enterTransaction()
             entered = true
@@ -124,12 +125,11 @@ internal class ConnectionSource(private val dataSource: DataSource, private val 
                 throw failure
             }
             commit(connection)
-            return result.getOrThrow()
+            result.getOrThrow()
         } finally {
             active.remove()
             if (entered) QueryCancellation.leaveTransaction()
-            restore(connection, previousAutoCommit, previousIsolation)
-            connection.close()
+            restore(connection, previousAutoCommit, isolationToRestore)
         }
     }
 
@@ -187,9 +187,9 @@ internal class ConnectionSource(private val dataSource: DataSource, private val 
     private fun translate(failure: SQLException, context: String) =
         SqlErrors.translate(failure, context, dialect?.sqlState(failure) ?: failure.sqlState.orEmpty())
 
-    private fun restore(connection: Connection, autoCommit: Boolean, isolation: Int) {
+    private fun restore(connection: Connection, autoCommit: Boolean, isolation: Int?) {
         runCatching { connection.autoCommit = autoCommit }
-        runCatching { connection.transactionIsolation = isolation }
+        if (isolation != null) runCatching { connection.transactionIsolation = isolation }
     }
 
     /** The connection one transaction is pinned to, and the savepoints opened inside it. */

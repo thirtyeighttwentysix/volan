@@ -24,15 +24,27 @@ import java.time.Instant
  * dialect's job, so a plan can be inspected and compared without a database.
  */
 internal class QueryPlanner(private val registry: TableRegistry, private val dialect: Dialect) {
+    private val inserts = registry.models.associate { table ->
+        table.model to InsertColumns(
+            table.columns.filter { it.isUpdatedAt }.mapTo(LinkedHashSet()) { it.column },
+            table.columns.filterNot { it.isNullable || it.isGenerated || it.isUpdatedAt },
+        )
+    }
+
+    private class InsertColumns(val managed: Set<String>, val required: List<ColumnMetadata>)
+    private val allColumns = registry.models.associate { table ->
+        table.model to table.columns.map { SqlSelectItem.Column(SqlExpression.Column(FIRST_ALIAS, it.column), alias = null) }
+    }
+
     fun select(spec: QuerySpec): SqlSelect {
         val table = registry.require(spec.model)
         val scope = Scope(table, Aliases())
-        val columns = spec.columns ?: table.columns.map { it.column }
+        val columns = spec.columns?.map { SqlSelectItem.Column(scope.column(it), alias = null) }
         val ordering = orderBy(spec.orderBy, scope)
         return SqlSelect(
             table = table.table,
             alias = scope.alias,
-            items = columns.map { SqlSelectItem.Column(scope.column(it), alias = null) },
+            items = columns ?: allColumns.getValue(table.model),
             condition = allOf(listOfNotNull(spec.filter?.let { condition(it, scope) }, cursorCondition(spec, scope, ordering))),
             orderBy = ordering.ifEmpty { cursorOrdering(spec, scope) },
             limit = spec.pagination.take,
@@ -212,22 +224,35 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
         return SqlDelete(table = table, condition = condition)
     }
 
-    fun insert(specs: List<CreateSpec>, now: Instant): SqlInsert {
+    fun insert(specs: List<CreateSpec>, now: Instant, returning: Boolean = true): SqlInsert {
         require(specs.isNotEmpty()) { "an insert needs at least one row" }
         val table = registry.require(specs.first().model)
-        specs.forEach { requireComplete(table, it) }
-        val managed = table.columns.filter { it.isUpdatedAt }.map { it.column }
-        val columns = (specs.flatMap { it.values.keys }.distinct() + managed).distinct()
+        val info = inserts.getValue(table.model)
+        val supplied = LinkedHashSet<String>()
+        specs.forEach { spec ->
+            requireComplete(table, info.required, spec)
+            supplied.addAll(spec.values.keys)
+        }
+        supplied.addAll(info.managed)
+        val columns = supplied.toList()
+        val updatedAt = SqlExpression.Parameter(now)
         val rows = specs.map { spec ->
             columns.map { column ->
                 when {
-                    column in managed -> SqlExpression.Parameter(now)
+                    column in info.managed -> updatedAt
                     spec.values.containsKey(column) -> SqlExpression.Parameter(spec.values[column])
                     else -> SqlExpression.Keyword("DEFAULT")
                 }
             }
         }
-        return SqlInsert(table.table, columns, rows, returning = table.columns.map { it.column })
+        return SqlInsert(table.table, columns, rows, returning = if (returning) table.columns.map { it.column } else emptyList())
+    }
+
+    /** Number of bind parameters per row in a batch of the same column shape. */
+    fun insertColumnCount(spec: CreateSpec): Int {
+        val table = registry.require(spec.model)
+        val managed = inserts.getValue(table.model).managed
+        return spec.values.size + managed.count { it !in spec.values }
     }
 
     /**
@@ -237,11 +262,9 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
      * caller wrote the block: a foreign key supplied by a nested write is absent there and present by
      * now, and complaining early would make writing a row together with its parent impossible.
      */
-    private fun requireComplete(table: TableMetadata, spec: CreateSpec) {
-        val missing = table.columns.filter { column ->
-            !column.isNullable && !column.isGenerated && !column.isUpdatedAt && !spec.values.containsKey(column.column)
-        }
-        if (missing.isEmpty()) return
+    private fun requireComplete(table: TableMetadata, required: List<ColumnMetadata>, spec: CreateSpec) {
+        if (required.all { spec.values.containsKey(it.column) }) return
+        val missing = required.filterNot { spec.values.containsKey(it.column) }
         val names = missing.joinToString(", ") { "`${table.model}.${it.field}`" }
         throw VolanValidationException(
             "$names ${if (missing.size == 1) "is" else "are"} required and ${if (missing.size == 1) "was" else "were"} not set.",
@@ -440,7 +463,10 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
     private class Aliases {
         private var next = 0
 
-        fun allocate(): String = "t${next++}"
+        fun allocate(): String = when (val index = next++) {
+            0 -> FIRST_ALIAS
+            else -> "t$index"
+        }
     }
 
     /**
@@ -469,6 +495,7 @@ internal class QueryPlanner(private val registry: TableRegistry, private val dia
     }
 
     private companion object {
+        private const val FIRST_ALIAS = "t0"
         private const val COUNT_ALIAS = "count"
     }
 }

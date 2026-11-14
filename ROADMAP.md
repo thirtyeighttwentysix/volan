@@ -116,9 +116,9 @@ the JVM without giving up something the brief also asks for.
   Shared-pool concurrency and write effects are verified before timing and by a CI correctness job.
 - Reports validate complete suites, consistent JVM/settings and publishable measurements;
   machine metadata records source and results digests, dependency versions and the Docker image.
-- The [5 October measurements](benchmarks/results/jmh-2026-10-05.json) are reflected in README
-  tables and four charts. Read latency is higher for Volan in this run; wide overlapping write
-  intervals do not support a reliable write ranking. The original September results remain archived.
+- The [5 October measurements](benchmarks/results/jmh-2026-10-05.json) covered all 40 cases.
+  The README now shows the [14 November comparison](benchmarks/results/jmh-2026-11-14.json).
+  The original September results remain archived.
 - Release rehearsals accept an explicit candidate version and validate seventeen Maven artifacts,
   independent consumers and build plugins without publishing. Successful rehearsals retain the
   unsigned repository as a downloadable CI artifact. Tags require release notes and a dated changelog.

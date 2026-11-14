@@ -56,10 +56,11 @@ an insert-only score. It does not exercise generated keys, relations or nested w
 ## Measurement and provenance
 
 Default JMH settings: 2 fresh JVM forks per case, 3 × 2 s warmup, 5 × 2 s measurement,
-512 MiB heap, average microseconds per operation and 99.9% confidence intervals. No allocation
-profiler is enabled. Run on an otherwise idle machine without competing builds or tests.
+512 MiB heap, average microseconds per operation and 99.9% confidence intervals. The November
+run used JMH's `-prof gc` for both baseline and comparison; it reports allocated bytes per operation
+in `gc.alloc.rate.norm`. Earlier runs did not use a profiler. Run without competing builds or tests.
 
-The October 2026 run pins Hibernate 7.4.11.Final, Exposed 1.5.0, jOOQ 3.19.39 (the Java 17
+The October and November 2026 runs use Hibernate 7.4.11.Final, Exposed 1.5.0, jOOQ 3.19.39 (the Java 17
 open-source line), PostgreSQL JDBC 42.7.13, Hikari 7.1.0 and JMH 1.37. The earlier September
 read-only run used Hibernate 7.4.7.Final and jOOQ 3.19.38; do not combine their measurements.
 
@@ -69,14 +70,34 @@ source digest and results checksum. `report.py` generates tables and SVGs direct
 it refuses missing/duplicate cases, incompatible configurations, invalid confidence intervals
 and smoke settings. The original ten-case September report remains reproducible.
 
-The 5 October write measurements have broad, heavily overlapping intervals. They are retained
-as measured, but do not support a reliable ordering of libraries. Read intervals are narrower;
-Volan has higher mean read latency in this run. Chart whiskers with a negative statistical lower
-bound are clipped at zero; tables retain the full JMH error value.
+### 14 November 2026
 
-This suite does not measure relation loading, nested writes, migrations, generated IDs, cold start,
-allocation rates or sustained concurrent writes. PostgreSQL over Docker/WSL2 loopback includes
-network and transaction latency. Results do not transfer directly to embedded or remote databases.
+The [baseline](results/jmh-2026-11-14-before.json) measured the eight Volan cases on `fdcf49c3`.
+The [full comparison](results/jmh-2026-11-14.json) measured the same cases plus the other adapters
+on `be9cba7c`, using the same PostgreSQL container, JVM, adapter code and timing settings.
+Volan stopped reading and resetting the connection's isolation on every default transaction.
+The patch also cuts allocations in query planning and generated write payloads.
+
+| Volan read workload | Before, µs/op | After, µs/op | Change in mean |
+|---|---:|---:|---:|
+| One thread, 1 row | 2193.8 ± 66.8 | 1898.6 ± 374.4 | −13.5% |
+| One thread, 100 rows | 2406.8 ± 170.7 | 2123.6 ± 100.0 | −11.8% |
+| Four threads, 1 row | 2551.4 ± 48.3 | 1851.1 ± 444.8 | −27.4% |
+| Four threads, 100 rows | 2583.8 ± 54.3 | 1800.1 ± 106.1 | −30.3% |
+
+With 100 rows and four concurrent readers, Volan averaged 1800.1 µs/op, followed by JDBC at
+2216.0 and jOOQ at 2267.1. In this case Volan's confidence interval was below all four other
+intervals. In several other read cases the intervals overlap. The before/after runs were sequential
+on one machine, so the percentage changes describe this setup.
+
+Volan allocated 110,133 bytes per 100-row insert/delete transaction, down from 161,725
+(32% fewer). The write timing intervals are wide in both runs. jOOQ had the lowest mean latency
+for the 100-row insert/delete transaction.
+
+The [October run](results/jmh-2026-10-05.json) remains available as a separate historical result.
+The suite does not cover relation loading, nested writes, migrations, generated IDs, cold start or
+sustained concurrent writes. PostgreSQL over Docker/WSL2 loopback includes network and transaction
+latency. Results do not transfer directly to embedded or remote databases.
 
 ## Reproduce
 
@@ -87,7 +108,7 @@ Requires JDK 17+, Python 3 and Docker. Use a dedicated database: write trials re
 docker compose -p volan-bench -f benchmarks/compose.yaml up -d --wait
 $env:VOLAN_BENCH_URL = 'jdbc:postgresql://localhost:55432/volan_bench'
 .\gradlew.bat :benchmarks:verifyAdapters
-.\gradlew.bat :benchmarks:jmh
+.\gradlew.bat :benchmarks:jmh '-PbenchmarkArgs=-prof gc'
 python benchmarks/report.py benchmarks/build/results/jmh.json
 python benchmarks/metadata.py benchmarks/build/results/jmh.json --container volan-bench-postgres-1 --output benchmarks/results/machine-local.json
 docker compose -p volan-bench -f benchmarks/compose.yaml down
