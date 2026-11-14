@@ -7,7 +7,7 @@ maven = "3.9.11"
 hikari = "7.1.0"
 slf4j = "2.0.20"
 jspecify = "1.0.1"
-micrometer = "1.17.1"
+micrometer = "1.17.2"
 jackson = "2.22.3"
 
 postgres = "42.7.13"
