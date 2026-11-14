@@ -35,8 +35,10 @@ public interface QueryInterceptor {
 }
 
 internal class QueryInterceptors(private val interceptors: List<QueryInterceptor>) {
+    val isEmpty: Boolean get() = interceptors.isEmpty()
+
     fun <T> execute(query: QueryContext, block: () -> T): T {
-        if (interceptors.isEmpty()) return block()
+        if (isEmpty) return block()
         val owner = Thread.currentThread()
         val chain = interceptors.asReversed().fold(Supplier(block)) { next, interceptor ->
             Supplier {
